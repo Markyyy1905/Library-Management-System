@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library MS — Dashboard</title>
+  <link rel="stylesheet" href="style/style.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📚</div>
+      <h1>Bibliotheca</h1>
+      <span>Library Management</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="index.html" class="nav-item active">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <a href="books.html" class="nav-item">
+        <span class="nav-icon">📖</span> Books
+      </a>
+      <a href="members.html" class="nav-item">
+        <span class="nav-icon">👥</span> Members
+      </a>
+      <a href="borrowing.html" class="nav-item">
+        <span class="nav-icon">🔄</span> Borrowing
+        <span class="nav-badge" id="overdue-badge">3</span>
+      </a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html" class="nav-item">
+        <span class="nav-icon">📊</span> Reports
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div style="font-weight:500; color: var(--text); margin-bottom:2px;">Admin User</div>
+      <div>Administrator</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>Dashboard</h2>
+        <p id="today-date">Thursday, March 12, 2026</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm">⚙ Settings</button>
+        <button class="btn btn-primary btn-sm" onclick="window.location='borrowing.html'">+ New Borrow</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Alert Bar -->
+      <div class="alert-bar" id="alert-overdue" style="display:none;">
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Books</div>
+          <div class="stat-value" id="stat-total-books">0</div>
+          <div class="stat-sub" id="stat-books-added"></div>
+          <div class="stat-icon">📚</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Members</div>
+          <div class="stat-value" id="stat-active-members">0</div>
+          <div class="stat-sub" id="stat-members-new"></div>
+          <div class="stat-icon">👥</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Books Borrowed</div>
+          <div class="stat-value" id="stat-books-borrowed">0</div>
+          <div class="stat-sub">Currently checked out</div>
+          <div class="stat-icon">🔄</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Overdue</div>
+          <div class="stat-value" id="stat-overdue" style="color:var(--red)">0</div>
+          <div class="stat-sub">Require follow-up</div>
+          <div class="stat-icon">⚠</div>
+        </div>
+      </div>
+
+      <!-- Two Columns -->
+      <div class="two-col">
+
+        <!-- Recent Borrowings -->
+        <div class="col-card">
+          <div class="col-card-header">
+            <h3>Recent Borrowings</h3>
+            <a href="borrowing.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div class="col-card-body">
+            <div class="recent-list" id="recent-borrowings-list">
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular Books -->
+        <div class="col-card">
+          <div class="col-card-header">
+            <h3>Most Popular Books</h3>
+            <a href="reports.html" class="btn btn-outline btn-sm">Reports</a>
+          </div>
+          <div class="col-card-body">
+            <div class="recent-list" id="popular-books-list">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- New Members -->
+      <div class="col-card">
+        <div class="col-card-header">
+          <h3>Recently Registered Members</h3>
+          <a href="members.html" class="btn btn-outline btn-sm">Manage Members</a>
+        </div>
+        <div class="col-card-body" style="padding:0;">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Joined</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="new-members-list">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('today-date').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const BooksService = require('./services/books.js');
+  const MembersService = require('./services/members.js');
+  const BorrowingService = require('./services/borrowing.js');
+
+  async function loadDashboard() {
+    try {
+      const [allBooks, allMembers, allBorrows] = await Promise.all([
+        BooksService.getAll(),
+        MembersService.getAll(),
+        BorrowingService.getAll()
+      ]);
+
+      const today = new Date().toISOString().split('T')[0];
+
+      // Stats
+      document.getElementById('stat-total-books').textContent = allBooks.length;
+      document.getElementById('stat-active-members').textContent = allMembers.filter(m => m.Status === 'Active').length;
+
+      let borrowed = 0, overdue = 0;
+      allBorrows.forEach(b => {
+        if (b.Status === 'Borrowed') {
+          borrowed++;
+          const dDate = b.DueDate && b.DueDate.toISOString ? b.DueDate.toISOString().split('T')[0] : new Date(b.DueDate).toISOString().split('T')[0];
+          if (dDate < today) overdue++;
+        }
+      });
+      document.getElementById('stat-books-borrowed').textContent = borrowed;
+      document.getElementById('stat-overdue').textContent = overdue;
+      
+      const badge = document.getElementById('overdue-badge');
+      if (badge) badge.textContent = overdue > 0 ? overdue : '';
+
+      const alertBar = document.getElementById('alert-overdue');
+      if (overdue > 0) {
+        alertBar.innerHTML = `⚠ <strong>${overdue} overdue books</strong> — Members have unreturned books past their due date.
+          <a href="borrowing.html" style="margin-left:auto; color:var(--red); font-weight:600; text-decoration:none;">View All →</a>`;
+        alertBar.style.display = 'flex';
+      }
+
+      // Recent Borrowings List (take top 5)
+      const recentList = document.getElementById('recent-borrowings-list');
+      recentList.innerHTML = '';
+      allBorrows.slice(0, 5).forEach(b => {
+        let badgeCol = 'badge-blue', statTxt = 'Active';
+        let metaTxt = `Due ${new Date(b.DueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
+        if (b.Status === 'Returned') {
+          badgeCol = 'badge-green'; statTxt = 'Returned';
+          metaTxt = `Returned ${new Date(b.ReturnDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
+        } else {
+          const dDate = new Date(b.DueDate).toISOString().split('T')[0];
+          if (dDate < today) {
+            badgeCol = 'badge-red'; statTxt = 'Overdue';
+          }
+        }
+
+        recentList.innerHTML += `
+          <div class="recent-item">
+            <div class="recent-avatar">📖</div>
+            <div class="recent-info">
+              <div class="recent-title">${b.BookTitle}</div>
+              <div class="recent-meta">${b.MemberName} · ${metaTxt}</div>
+            </div>
+            <span class="badge ${badgeCol}">${statTxt}</span>
+          </div>`;
+      });
+
+      // Popular books list based on copies dynamically (or borrowing freq)
+      // We don't have borrow history counts per book right away, so compute it
+      const bookCounts = {};
+      allBorrows.forEach(b => {
+        bookCounts[b.BookTitle] = (bookCounts[b.BookTitle] || 0) + 1;
+      });
+      const topBooks = allBooks
+        .map(b => ({...b, borrows: bookCounts[b.Title] || 0}))
+        .sort((a,b) => b.borrows - a.borrows)
+        .slice(0, 5);
+
+      const popList = document.getElementById('popular-books-list');
+      popList.innerHTML = '';
+      topBooks.forEach((b, i) => {
+        popList.innerHTML += `
+          <div class="recent-item">
+            <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">0${i+1}</div>
+            <div class="recent-info">
+              <div class="recent-title">${b.Title}</div>
+              <div class="recent-meta">${b.Author || 'Unknown'} · ${b.borrows} borrows</div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);">${b.AvailableCopies} left</div>
+          </div>`;
+      });
+
+      // New members
+      const newMems = [...allMembers]
+        .sort((a,b) => new Date(b.MembershipDate) - new Date(a.MembershipDate))
+        .slice(0, 3);
+      const memList = document.getElementById('new-members-list');
+      memList.innerHTML = '';
+      newMems.forEach(m => {
+        const dDate = m.MembershipDate ? new Date(m.MembershipDate).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric'}) : '—';
+        memList.innerHTML += `
+          <tr>
+            <td><strong>${m.FirstName} ${m.LastName}</strong></td>
+            <td class="td-muted">${m.Email || ''}</td>
+            <td class="td-muted">${m.Phone || ''}</td>
+            <td class="td-muted">${dDate}</td>
+            <td><span class="badge ${m.Status === 'Active' ? 'badge-green':'badge-red'}">${m.Status}</span></td>
+          </tr>`;
+      });
+      
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+</body>
+</html>

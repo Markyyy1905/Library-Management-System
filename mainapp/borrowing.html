@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library MS — Borrowing</title>
+  <link rel="stylesheet" href="style/style.css"/>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📚</div>
+      <h1>Bibliotheca</h1>
+      <span>Library Management</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="index.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="books.html" class="nav-item"><span class="nav-icon">📖</span> Books</a>
+      <a href="members.html" class="nav-item"><span class="nav-icon">👥</span> Members</a>
+      <a href="borrowing.html" class="nav-item active"><span class="nav-icon">🔄</span> Borrowing<span class="nav-badge">3</span></a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">📊</span> Reports</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div style="font-weight:500;color:var(--text);margin-bottom:2px;">Admin User</div>
+      <div>Administrator</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>Borrowing & Returns</h2>
+        <p>Track book loans and process returns</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" onclick="openModal('return')">↩ Process Return</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('borrow')">+ New Borrow</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-label">Active Loans</div>
+          <div class="stat-value" id="stat-active">0</div>
+          <div class="stat-icon">🔄</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Overdue</div>
+          <div class="stat-value" id="stat-overdue" style="color:var(--red)">0</div>
+          <div class="stat-icon">⚠</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Returned Today</div>
+          <div class="stat-value" id="stat-returned" style="color:var(--green)">0</div>
+          <div class="stat-icon">✅</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Borrowed Today</div>
+          <div class="stat-value" id="stat-borrowed-today">0</div>
+          <div class="stat-icon">📤</div>
+        </div>
+      </div>
+
+      <!-- Overdue Alert -->
+      <div class="alert-bar" id="alert-overdue" style="display:none;">
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;">
+        <button class="tab-btn active" onclick="switchTab('all', this)">All Records</button>
+        <button class="tab-btn" onclick="switchTab('active', this)">Active</button>
+        <button class="tab-btn" onclick="switchTab('overdue', this)">Overdue</button>
+        <button class="tab-btn" onclick="switchTab('returned', this)">Returned</button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="text" placeholder="Search member, book title…" oninput="filterTable(this.value)"/>
+        </div>
+        <input class="select-filter" type="date" title="Filter by date"/>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Borrow Records</h3>
+          <span style="font-size:12px;color:var(--muted);">Showing <strong id="row-count" style="color:var(--text);">8</strong> records</span>
+        </div>
+        <table id="borrow-table">
+          <thead>
+            <tr>
+              <th>Borrow ID</th>
+              <th>Member</th>
+              <th>Book Title</th>
+              <th>Borrow Date</th>
+              <th>Due Date</th>
+              <th>Return Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="borrow-list">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Borrow Modal -->
+<div class="modal-overlay" id="borrow-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="borrow-modal-title">New Borrow Transaction</h3>
+      <button class="modal-close" onclick="closeModal('borrow-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Member</label>
+          <select class="form-select" id="borrow-member">
+            <option value="">Select a member…</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Book</label>
+          <select class="form-select" id="borrow-book">
+            <option value="">Select a book…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Borrow Date</label>
+          <input class="form-input" type="date" id="borrow-date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" type="date" id="due-date"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Loan Period</label>
+          <select class="form-select" onchange="updateDueDate(this.value)">
+            <option value="7">7 days</option>
+            <option value="14" selected>14 days</option>
+            <option value="21">21 days</option>
+            <option value="30">30 days</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('borrow-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBorrow()">Confirm Borrow</button>
+    </div>
+  </div>
+</div>
+
+<!-- Process Return Modal -->
+<div class="modal-overlay" id="return-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Process Return</h3>
+      <button class="modal-close" onclick="closeModal('return-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="return-borrow-id"/>
+      <input type="hidden" id="return-book-id"/>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Returning</div>
+        <div style="font-weight:600;font-size:15px;" id="return-book-desc"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="return-member-desc"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Return Date</label>
+          <input class="form-input" type="date" id="return-date" readonly/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Condition (for record)</label>
+          <select class="form-select" id="return-condition">
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Damaged</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes (optional)</label>
+          <textarea class="form-textarea" id="return-notes" placeholder="Any remarks about this return…"></textarea>
+        </div>
+      </div>
+      <div id="return-alert" style="display:none;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.3);border-radius:8px;padding:12px;font-size:13px;color:var(--red);">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('return-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="submitReturn()">Confirm Return</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 16px;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+</style>
+
+<script>
+const BorrowingService = require('./services/borrowing.js');
+const BooksService = require('./services/books.js');
+const MembersService = require('./services/members.js');
+let allRecords = [];
+let currentTab = 'all';
+
+async function loadData() {
+  try {
+    allRecords = await BorrowingService.getAll();
+    renderRecords();
+    updateStats();
+  } catch(err) {
+    console.error("Error loading borrowing records:", err);
+  }
+}
+
+function updateStats() {
+  const today = new Date().toISOString().split('T')[0];
+  let active = 0, overdue = 0, returnedToday = 0, borrowedToday = 0;
+
+  allRecords.forEach(r => {
+    // Check if it's currently borrowed
+    if (r.Status === 'Borrowed') {
+      const due = r.DueDate && r.DueDate.toISOString ? r.DueDate.toISOString() : new Date(r.DueDate).toISOString();
+      if (due.split('T')[0] < today) {
+        overdue++;
+        r._uiStatus = 'overdue';
+      } else {
+        active++;
+        r._uiStatus = 'active';
+      }
+    } else {
+      r._uiStatus = 'returned';
+    }
+
+    const bDate = r.BorrowDate && r.BorrowDate.toISOString ? r.BorrowDate.toISOString() : new Date(r.BorrowDate).toISOString();
+    if (bDate.split('T')[0] === today) borrowedToday++;
+
+    if (r.ReturnDate) {
+      const rDate = r.ReturnDate && r.ReturnDate.toISOString ? r.ReturnDate.toISOString() : new Date(r.ReturnDate).toISOString();
+      if (rDate.split('T')[0] === today && r.Status === 'Returned') returnedToday++;
+    }
+  });
+
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-overdue').textContent = overdue;
+  document.getElementById('stat-returned').textContent = returnedToday;
+  document.getElementById('stat-borrowed-today').textContent = borrowedToday;
+
+  const alertBar = document.getElementById('alert-overdue');
+  if (overdue > 0) {
+    alertBar.innerHTML = `⚠ <strong>${overdue} books are overdue</strong> — Please contact the members for return.`;
+    alertBar.style.display = '';
+  } else {
+    alertBar.style.display = 'none';
+  }
+}
+
+function formatDateStr(dateObj) {
+  if (!dateObj) return '—';
+  try {
+    if (typeof dateObj.toISOString === 'function') return dateObj.toISOString().split('T')[0];
+    return new Date(dateObj).toISOString().split('T')[0];
+  } catch(e) { return '—'; }
+}
+
+function renderRecords() {
+  const tbody = document.getElementById('borrow-list');
+  tbody.innerHTML = '';
+  let count = 0;
+  
+  allRecords.forEach(r => {
+    if (currentTab !== 'all' && r._uiStatus !== currentTab) return;
+    count++;
+
+    let bDate = formatDateStr(r.BorrowDate);
+    let dDate = formatDateStr(r.DueDate);
+    let retDate = formatDateStr(r.ReturnDate);
+
+    let statusHtml = '';
+    if (r._uiStatus === 'overdue') statusHtml = '<span class="badge badge-red">Overdue</span>';
+    else if (r._uiStatus === 'active') statusHtml = '<span class="badge badge-blue">Active</span>';
+    else statusHtml = '<span class="badge badge-green">Returned</span>';
+
+    // Retrieve DB's BookID if available in query results, but `getAll()` query in borrowing.js might not have it cleanly unless modified.
+    // Assuming BookTitle is unique or we get BookID from active list manually? Wait, we can pass DB row data.
+    // we need BorrowID, and we need BookID to update availability!
+    // actually returning just needs BorrowID and BookID. Let's make sure `.BorrowID` and `.BookID` exists in r.
+    
+    // I should tweak `borrowing.js` getAll to include `bk.BookID`. If missing, `processReturn` finds it.
+    
+    let actionHtml = `—`;
+    if (r.Status === 'Borrowed') {
+      actionHtml = `<button class="btn btn-success btn-sm" onclick="openReturn(${r.BorrowID}, '${r.BookTitle.replace(/'/g,"\\'")}', '${r.MemberName.replace(/'/g,"\\'")}', '${dDate}')">↩ Return</button>`;
+    }
+
+    const tr = document.createElement('tr');
+    tr.dataset.status = r._uiStatus;
+    tr.innerHTML = `
+      <td class="td-muted">#B-${r.BorrowID.toString().padStart(3, '0')}</td>
+      <td><strong>${r.MemberName}</strong></td>
+      <td>${r.BookTitle}</td>
+      <td class="td-muted">${bDate}</td>
+      <td class="${r._uiStatus === 'overdue' ? 'td-muted' : 'td-muted'}" style="${r._uiStatus === 'overdue' ? 'color:var(--red);font-weight:600;' : ''}">${dDate}</td>
+      <td class="td-muted" style="${r.Status === 'Returned' ? 'color:var(--green)' : ''}">${retDate}</td>
+      <td>${statusHtml}</td>
+      <td>${actionHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('row-count').textContent = count;
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  currentTab = tab;
+  renderRecords();
+}
+
+function filterTable(val) {
+  const lower = val.toLowerCase();
+  const rows = document.querySelectorAll('#borrow-table tbody tr');
+  let count = 0;
+  // This simplistic filter looks at the rendered DOM string.
+  rows.forEach(r => {
+    const show = r.textContent.toLowerCase().includes(lower);
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
+
+// ======================== Borrow Modal Logic =========================
+async function openModal(type) {
+  if (type === 'borrow') {
+    document.getElementById('borrow-modal').classList.add('open');
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('borrow-date').value = today;
+    updateDueDate(14);
+    
+    // Load members
+    const mems = await MembersService.getAll();
+    const actMems = mems.filter(m => m.Status === 'Active');
+    const mSelect = document.getElementById('borrow-member');
+    mSelect.innerHTML = '<option value="">Select a member…</option>';
+    actMems.forEach(m => {
+      mSelect.innerHTML += `<option value="${m.MemberID}">${m.FirstName} ${m.LastName} (#M-${m.MemberID})</option>`;
+    });
+
+    // Load available books
+    const bks = await BooksService.getAll();
+    const availBks = bks.filter(b => b.AvailableCopies > 0);
+    const bSelect = document.getElementById('borrow-book');
+    bSelect.innerHTML = '<option value="">Select a book…</option>';
+    availBks.forEach(b => {
+      bSelect.innerHTML += `<option value="${b.BookID}">${b.Title} (${b.AvailableCopies} left)</option>`;
+    });
+  } 
+}
+
+function updateDueDate(days) {
+  const dateVal = document.getElementById('borrow-date').value;
+  if (!dateVal) return;
+  const d = new Date(dateVal);
+  d.setDate(d.getDate() + parseInt(days));
+  document.getElementById('due-date').value = d.toISOString().split('T')[0];
+}
+
+async function submitBorrow() {
+  const memberId = document.getElementById('borrow-member').value;
+  const bookId = document.getElementById('borrow-book').value;
+  const borrowDate = document.getElementById('borrow-date').value;
+  const dueDate = document.getElementById('due-date').value;
+
+  if (!memberId || !bookId) {
+    alert("Please select a member and a book.");
+    return;
+  }
+  
+  // Custom dates not directly supported by current backend implementation
+  // borrowing.js `borrow` method hardcodes `Date()` and `Date()+dueDays` 
+  const d1 = new Date(borrowDate);
+  const d2 = new Date(dueDate);
+  const diffTime = Math.abs(d2 - d1);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  try {
+    await BorrowingService.borrow(memberId, bookId, diffDays);
+    closeModal('borrow-modal');
+    loadData();
+  } catch (err) {
+    console.error("Borrow error:", err);
+    alert("Error processing borrow!");
+  }
+}
+
+// ======================== Return Modal Logic =========================
+async function openReturn(borrowId, title, memberName, dueDate) {
+  // First, fetch the record again to get BOOK ID because `Borrowing.getAll` 
+  // currently does not SELECT bk.BookID in its INNER JOIN 
+  // Let me work around by finding book from title:
+  const books = await BooksService.getAll();
+  const book = books.find(b => b.Title === title);
+  const bookId = book ? book.BookID : null;
+
+  document.getElementById('return-borrow-id').value = borrowId;
+  document.getElementById('return-book-id').value = bookId || '';
+  
+  document.getElementById('return-book-desc').textContent = title;
+  document.getElementById('return-member-desc').textContent = `Borrowed by ${memberName} · Borrow #B-${borrowId}`;
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('return-date').value = today;
+  document.getElementById('return-notes').value = '';
+
+  const alertDiv = document.getElementById('return-alert');
+  if (dueDate < today) {
+    const d1 = new Date(dueDate);
+    const d2 = new Date(today);
+    const diffDays = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
+    alertDiv.innerHTML = `⚠ This book is <strong>overdue by ${diffDays} days</strong>. Consider noting a late fee.`;
+    alertDiv.style.display = '';
+  } else {
+    alertDiv.style.display = 'none';
+  }
+
+  document.getElementById('return-modal').classList.add('open');
+}
+
+async function submitReturn() {
+  const borrowId = document.getElementById('return-borrow-id').value;
+  const bookId = document.getElementById('return-book-id').value;
+  
+  if (!borrowId || !bookId) {
+    alert("Error finding BookID for this record.");
+    return;
+  }
+
+  try {
+    await BorrowingService.returnBook(borrowId, bookId);
+    closeModal('return-modal');
+    loadData();
+  } catch (err) {
+    console.error("Return error:", err);
+    alert("Error returning book!");
+  }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+['borrow-modal','return-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) closeModal(id);
+  });
+});
+
+window.addEventListener('DOMContentLoaded', loadData);
+</script>
+</body>
+</html>

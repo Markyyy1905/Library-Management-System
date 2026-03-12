@@ -6,12 +6,13 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      contextIsolation: false
     }
   });
 
   // Load a local HTML file or a web URL
-  win.loadFile('screens/index.html');
+  win.loadFile('mainapp/index.html');
   // Or load a remote URL
   // win.loadURL('https://example.com');
 }
