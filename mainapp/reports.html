@@ -53,26 +53,26 @@
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
         <div class="stat-card">
           <div class="stat-label">Total Borrows</div>
-          <div class="stat-value" id="stat-total-borrows">0</div>
-          <div class="stat-sub" style="color:var(--green)"></div>
+          <div class="stat-value">248</div>
+          <div class="stat-sub" style="color:var(--green)">↑ 14% vs last month</div>
           <div class="stat-icon">📤</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Returns</div>
-          <div class="stat-value" id="stat-returns">0</div>
-          <div class="stat-sub" style="color:var(--green)"></div>
+          <div class="stat-value">231</div>
+          <div class="stat-sub" style="color:var(--green)">↑ 8% vs last month</div>
           <div class="stat-icon">↩</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">New Members</div>
-          <div class="stat-value" id="stat-new-members">0</div>
-          <div class="stat-sub" style="color:var(--red)"></div>
+          <div class="stat-value">28</div>
+          <div class="stat-sub" style="color:var(--red)">↓ 3% vs last month</div>
           <div class="stat-icon">👤</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue Rate</div>
-          <div class="stat-value" id="stat-overdue-rate">0%</div>
-          <div class="stat-sub" style="color:var(--green)"></div>
+          <div class="stat-value">3.4%</div>
+          <div class="stat-sub" style="color:var(--green)">↓ from 5.1%</div>
           <div class="stat-icon">⚠</div>
         </div>
       </div>
@@ -121,7 +121,37 @@
                   <th>Borrows</th>
                 </tr>
               </thead>
-              <tbody id="top-books-list">
+              <tbody>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">01</td>
+                  <td><strong>Atomic Habits</strong></td>
+                  <td class="td-muted">James Clear</td>
+                  <td><span class="badge badge-blue">24</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">02</td>
+                  <td><strong>Sapiens</strong></td>
+                  <td class="td-muted">Y.N. Harari</td>
+                  <td><span class="badge badge-blue">19</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">03</td>
+                  <td><strong>The Alchemist</strong></td>
+                  <td class="td-muted">Paulo Coelho</td>
+                  <td><span class="badge badge-blue">18</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">04</td>
+                  <td><strong>1984</strong></td>
+                  <td class="td-muted">G. Orwell</td>
+                  <td><span class="badge badge-blue">15</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">05</td>
+                  <td><strong>Think and Grow Rich</strong></td>
+                  <td class="td-muted">N. Hill</td>
+                  <td><span class="badge badge-blue">14</span></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -143,7 +173,37 @@
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody id="top-members-list">
+              <tbody>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">01</td>
+                  <td><strong>Roberto Garcia</strong></td>
+                  <td>8</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">02</td>
+                  <td><strong>Ana Reyes</strong></td>
+                  <td>5</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">03</td>
+                  <td><strong>Maria Santos</strong></td>
+                  <td>3</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">04</td>
+                  <td><strong>Carlos Bautista</strong></td>
+                  <td>2</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--accent);font-weight:700;">05</td>
+                  <td><strong>Juan Dela Cruz</strong></td>
+                  <td>1</td>
+                  <td><span class="badge badge-red">Suspended</span></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -190,178 +250,54 @@
 </style>
 
 <script>
-const BooksService = require('./services/books.js');
-const MembersService = require('./services/members.js');
-const BorrowingService = require('./services/borrowing.js');
+// Bar chart
+const months = [
+  { label: 'Oct', val: 142 },
+  { label: 'Nov', val: 168 },
+  { label: 'Dec', val: 125 },
+  { label: 'Jan', val: 189 },
+  { label: 'Feb', val: 217 },
+  { label: 'Mar', val: 248 },
+];
+const maxVal = Math.max(...months.map(m => m.val));
+const barChart = document.getElementById('bar-chart');
+const wrap = document.createElement('div');
+wrap.className = 'bar-chart';
+months.forEach(m => {
+  const h = Math.round((m.val / maxVal) * 120);
+  wrap.innerHTML += `
+    <div class="bar-item">
+      <div class="bar-fill" style="height:${h}px;">
+        <div class="bar-tip">${m.val}</div>
+      </div>
+      <div class="bar-label">${m.label}</div>
+    </div>`;
+});
+barChart.appendChild(wrap);
 
-async function loadData() {
-  try {
-    const [allBooks, allMembers, allBorrows] = await Promise.all([
-      BooksService.getAll(),
-      MembersService.getAll(),
-      BorrowingService.getAll()
-    ]);
-
-    // KPI Cards calculation
-    const currentMonthStr = new Date().toISOString().substring(0, 7); // Format: '2026-03'
-    let monthBorrows = 0;
-    let monthReturns = 0;
-    let overdueCount = 0;
-
-    allBorrows.forEach(b => {
-      const bDateStr = b.BorrowDate && b.BorrowDate.toISOString ? b.BorrowDate.toISOString().substring(0, 7) : new Date(b.BorrowDate).toISOString().substring(0, 7);
-      if (bDateStr === currentMonthStr) monthBorrows++;
-
-      if (b.ReturnDate) {
-        const rDateStr = b.ReturnDate && b.ReturnDate.toISOString ? b.ReturnDate.toISOString().substring(0, 7) : new Date(b.ReturnDate).toISOString().substring(0, 7);
-        if (rDateStr === currentMonthStr && b.Status === 'Returned') monthReturns++;
-      }
-
-      if (b.Status === 'Borrowed') {
-        const dueDateStr = b.DueDate && b.DueDate.toISOString ? b.DueDate.toISOString().split('T')[0] : new Date(b.DueDate).toISOString().split('T')[0];
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (dueDateStr < todayStr) overdueCount++;
-      }
-    });
-
-    let newMems = 0;
-    allMembers.forEach(m => {
-      const mDateStr = m.MembershipDate ? new Date(m.MembershipDate).toISOString().substring(0, 7) : '';
-      if (mDateStr === currentMonthStr) newMems++;
-    });
-
-    const overdueRate = allBorrows.length > 0 ? ((overdueCount / allBorrows.length) * 100).toFixed(1) : 0;
-
-    document.getElementById('stat-total-borrows').textContent = monthBorrows;
-    document.getElementById('stat-returns').textContent = monthReturns;
-    document.getElementById('stat-new-members').textContent = newMems;
-    document.getElementById('stat-overdue-rate').textContent = overdueRate + '%';
-
-    // Top Books List
-    const bookBorrows = {};
-    allBorrows.forEach(b => {
-      bookBorrows[b.BookTitle] = (bookBorrows[b.BookTitle] || 0) + 1;
-    });
-    const topBooks = allBooks
-        .map(b => ({...b, borrows: bookBorrows[b.Title] || 0}))
-        .sort((a,b) => b.borrows - a.borrows)
-        .slice(0, 5);
-
-    const bList = document.getElementById('top-books-list');
-    bList.innerHTML = '';
-    topBooks.forEach((b, i) => {
-      if(b.borrows > 0) {
-        bList.innerHTML += `
-          <tr>
-            <td style="color:var(--accent);font-weight:700;">0${i+1}</td>
-            <td><strong>${b.Title}</strong></td>
-            <td class="td-muted">${b.Author || 'Unknown'}</td>
-            <td><span class="badge badge-blue">${b.borrows}</span></td>
-          </tr>`;
-      }
-    });
-
-    // Top Members List
-    const memberBorrows = {};
-    allBorrows.forEach(b => {
-      memberBorrows[b.MemberID] = (memberBorrows[b.MemberID] || 0) + 1;
-    });
-    const topMems = allMembers
-        .map(m => ({...m, borrows: memberBorrows[m.MemberID] || 0}))
-        .sort((a,b) => b.borrows - a.borrows)
-        .slice(0, 5);
-
-    const mList = document.getElementById('top-members-list');
-    mList.innerHTML = '';
-    topMems.forEach((m, i) => {
-      if(m.borrows > 0) {
-        mList.innerHTML += `
-          <tr>
-            <td style="color:var(--accent);font-weight:700;">0${i+1}</td>
-            <td><strong>${m.FirstName} ${m.LastName}</strong></td>
-            <td>${m.borrows}</td>
-            <td><span class="badge ${m.Status==='Active' ? 'badge-green':'badge-red'}">${m.Status}</span></td>
-          </tr>`;
-      }
-    });
-
-    // Build Chart Arrays DYNAMICALLY
-    // Month Bar Chart (Last 6 Months)
-    const monthCounts = {};
-    const d = new Date();
-    const monthsArr = [];
-    for(let i=5; i>=0; i--) {
-      const past = new Date(d.getFullYear(), d.getMonth() - i, 1);
-      const mLabel = past.toLocaleDateString('en-US', {month: 'short'});
-      const mKey = past.toISOString().substring(0, 7);
-      monthCounts[mKey] = 0;
-      monthsArr.push({ label: mLabel, key: mKey });
-    }
-
-    allBorrows.forEach(b => {
-      const bDateStr = b.BorrowDate && b.BorrowDate.toISOString ? b.BorrowDate.toISOString().substring(0, 7) : new Date(b.BorrowDate).toISOString().substring(0, 7);
-      if (monthCounts[bDateStr] !== undefined) monthCounts[bDateStr]++;
-    });
-
-    const mData = monthsArr.map(m => ({ label: m.label, val: monthCounts[m.key] }));
-    const maxVal = Math.max(...mData.map(m => m.val)) || 1;
-    const barChart = document.getElementById('bar-chart');
-    barChart.innerHTML = '';
-    const wrap = document.createElement('div');
-    wrap.className = 'bar-chart';
-    mData.forEach(m => {
-      const h = Math.round((m.val / maxVal) * 120) || 4; 
-      wrap.innerHTML += `
-        <div class="bar-item">
-          <div class="bar-fill" style="height:${h}px;">
-            <div class="bar-tip">${m.val}</div>
-          </div>
-          <div class="bar-label">${m.label}</div>
-        </div>`;
-    });
-    barChart.appendChild(wrap);
-
-    // Genre Donut (using horizontal bars in genre-list)
-    const genreCounts = {};
-    topBooks.forEach(b => { 
-        // calculate based on overall genre counts
-    });
-    // better to calc from books table genre distribution
-    allBooks.forEach(b => {
-       const g = b.Genre || 'Other';
-       genreCounts[g] = (genreCounts[g] || 0) + 1;
-    });
-
-    const totalBooks = allBooks.length || 1;
-    const palette = ['#5b8dee','#c9a84c','#4caf78','#9b7fe8','#e05555','#7a8299'];
-    const genreArr = Object.keys(genreCounts).map((g, i) => ({
-      name: g,
-      pct: Math.round((genreCounts[g] / totalBooks) * 100),
-      color: palette[i % palette.length]
-    })).sort((a,b) => b.pct - a.pct).slice(0, 6);
-
-    const genreChart = document.getElementById('genre-chart');
-    genreChart.innerHTML = '';
-    const gl = document.createElement('div');
-    gl.className = 'genre-list';
-    genreArr.forEach(g => {
-      gl.innerHTML += `
-        <div class="genre-row">
-          <div class="genre-name">${g.name}</div>
-          <div class="genre-bar-track">
-            <div class="genre-bar-fill" style="width:${g.pct}%;background:${g.color};"></div>
-          </div>
-          <div class="genre-pct">${g.pct}%</div>
-        </div>`;
-    });
-    genreChart.appendChild(gl);
-
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-window.addEventListener('DOMContentLoaded', loadData);
+// Genre chart
+const genres = [
+  { name: 'Self-Help', pct: 32, color: '#5b8dee' },
+  { name: 'Fiction',   pct: 28, color: '#c9a84c' },
+  { name: 'History',   pct: 16, color: '#4caf78' },
+  { name: 'Science',   pct: 12, color: '#9b7fe8' },
+  { name: 'Technology',pct: 8,  color: '#e05555' },
+  { name: 'Biography', pct: 4,  color: '#7a8299' },
+];
+const genreChart = document.getElementById('genre-chart');
+const gl = document.createElement('div');
+gl.className = 'genre-list';
+genres.forEach(g => {
+  gl.innerHTML += `
+    <div class="genre-row">
+      <div class="genre-name">${g.name}</div>
+      <div class="genre-bar-track">
+        <div class="genre-bar-fill" style="width:${g.pct}%;background:${g.color};"></div>
+      </div>
+      <div class="genre-pct">${g.pct}%</div>
+    </div>`;
+});
+genreChart.appendChild(gl);
 </script>
 </body>
 </html>

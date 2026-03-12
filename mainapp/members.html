@@ -47,17 +47,17 @@
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Total Members</div>
-          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-value">342</div>
           <div class="stat-icon">👥</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Active</div>
-          <div class="stat-value" id="stat-active" style="color:var(--green)">0</div>
+          <div class="stat-value" style="color:var(--green)">318</div>
           <div class="stat-icon">✅</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Suspended</div>
-          <div class="stat-value" id="stat-suspended" style="color:var(--red)">0</div>
+          <div class="stat-value" style="color:var(--red)">12</div>
           <div class="stat-icon">🚫</div>
         </div>
         <div class="stat-card">
@@ -98,7 +98,98 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="members-list">
+          <tbody>
+            <tr>
+              <td class="td-muted">#M-001</td>
+              <td><strong>Maria Santos</strong></td>
+              <td class="td-muted">maria.s@email.com</td>
+              <td class="td-muted">09171234567</td>
+              <td>3</td>
+              <td class="td-muted">Jan 5, 2025</td>
+              <td><span class="badge badge-green">Active</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="td-muted">#M-002</td>
+              <td><strong>Juan Dela Cruz</strong></td>
+              <td class="td-muted">juandc@email.com</td>
+              <td class="td-muted">09281234567</td>
+              <td>1</td>
+              <td class="td-muted">Feb 14, 2025</td>
+              <td><span class="badge badge-red">Suspended</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="td-muted">#M-003</td>
+              <td><strong>Ana Reyes</strong></td>
+              <td class="td-muted">ana.reyes@email.com</td>
+              <td class="td-muted">09351234567</td>
+              <td>5</td>
+              <td class="td-muted">Mar 1, 2025</td>
+              <td><span class="badge badge-green">Active</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="td-muted">#M-004</td>
+              <td><strong>Carlos Bautista</strong></td>
+              <td class="td-muted">carlos.b@email.com</td>
+              <td class="td-muted">09461234567</td>
+              <td>2</td>
+              <td class="td-muted">Apr 20, 2025</td>
+              <td><span class="badge badge-green">Active</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="td-muted">#M-005</td>
+              <td><strong>Liza Torres</strong></td>
+              <td class="td-muted">liza.t@email.com</td>
+              <td class="td-muted">09571234567</td>
+              <td>1</td>
+              <td class="td-muted">Jun 3, 2025</td>
+              <td><span class="badge badge-red">Suspended</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="td-muted">#M-006</td>
+              <td><strong>Roberto Garcia</strong></td>
+              <td class="td-muted">roberto.g@email.com</td>
+              <td class="td-muted">09681234567</td>
+              <td>8</td>
+              <td class="td-muted">Aug 15, 2025</td>
+              <td><span class="badge badge-green">Active</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="td-muted">#M-007</td>
+              <td><strong>Sofia Villanueva</strong></td>
+              <td class="td-muted">sofia.v@email.com</td>
+              <td class="td-muted">09791234567</td>
+              <td>0</td>
+              <td class="td-muted">Mar 10, 2026</td>
+              <td><span class="badge badge-green">Active</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              </div></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -115,32 +206,43 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <input type="hidden" id="member-id">
         <div class="form-group">
           <label class="form-label">First Name</label>
-          <input class="form-input" id="member-fn" type="text" placeholder="First name"/>
+          <input class="form-input" type="text" placeholder="First name"/>
         </div>
         <div class="form-group">
           <label class="form-label">Last Name</label>
-          <input class="form-input" id="member-ln" type="text" placeholder="Last name"/>
+          <input class="form-input" type="text" placeholder="Last name"/>
         </div>
         <div class="form-group">
           <label class="form-label">Email</label>
-          <input class="form-input" id="member-email" type="email" placeholder="email@example.com"/>
+          <input class="form-input" type="email" placeholder="email@example.com"/>
         </div>
         <div class="form-group">
           <label class="form-label">Phone</label>
-          <input class="form-input" id="member-phone" type="text" placeholder="09XXXXXXXXX"/>
+          <input class="form-input" type="text" placeholder="09XXXXXXXXX"/>
         </div>
         <div class="form-group full">
           <label class="form-label">Address</label>
-          <input class="form-input" id="member-address" type="text" placeholder="Full address"/>
+          <input class="form-input" type="text" placeholder="Full address"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select">
+            <option>Active</option>
+            <option>Suspended</option>
+            <option>Expired</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Membership Date</label>
+          <input class="form-input" type="date"/>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('member-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMember()">Save Member</button>
+      <button class="btn btn-primary">Save Member</button>
     </div>
   </div>
 </div>
@@ -149,7 +251,7 @@
 <div class="modal-overlay" id="history-modal">
   <div class="modal" style="max-width:600px;">
     <div class="modal-header">
-      <h3 id="history-title">Borrow History</h3>
+      <h3>Borrow History — Maria Santos</h3>
       <button class="modal-close" onclick="closeModal('history-modal')">✕</button>
     </div>
     <div class="modal-body" style="padding:0;">
@@ -163,7 +265,28 @@
             <th>Status</th>
           </tr>
         </thead>
-        <tbody id="history-list">
+        <tbody>
+          <tr>
+            <td><strong>Atomic Habits</strong></td>
+            <td class="td-muted">Feb 28</td>
+            <td class="td-muted">Mar 14</td>
+            <td class="td-muted">Mar 10</td>
+            <td><span class="badge badge-green">Returned</span></td>
+          </tr>
+          <tr>
+            <td><strong>The Alchemist</strong></td>
+            <td class="td-muted">Mar 5</td>
+            <td class="td-muted">Mar 19</td>
+            <td class="td-muted">—</td>
+            <td><span class="badge badge-red">Overdue</span></td>
+          </tr>
+          <tr>
+            <td><strong>The Great Gatsby</strong></td>
+            <td class="td-muted">Mar 12</td>
+            <td class="td-muted">Mar 26</td>
+            <td class="td-muted">—</td>
+            <td><span class="badge badge-blue">Active</span></td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -174,189 +297,41 @@
 </div>
 
 <script>
-const MembersService = require('./services/members.js');
-const BorrowingService = require('./services/borrowing.js');
-let allMembers = [];
-
-async function loadData() {
-  try {
-    allMembers = await MembersService.getAll();
-    renderMembers(allMembers);
-    updateStats(allMembers);
-  } catch(err) {
-    console.error("Error loading members:", err);
-  }
-}
-
-function updateStats(members) {
-  document.getElementById('stat-total').textContent = members.length;
-  document.getElementById('stat-active').textContent = members.filter(m => m.Status === 'Active').length;
-  document.getElementById('stat-suspended').textContent = members.filter(m => m.Status === 'Suspended').length;
-}
-
-function renderMembers(members) {
-  const tbody = document.getElementById('members-list');
-  tbody.innerHTML = '';
-  members.forEach(m => {
-    let badge = 'badge-gray';
-    if(m.Status === 'Active') badge = 'badge-green';
-    if(m.Status === 'Suspended') badge = 'badge-red';
-
-    // format date nicely if present
-    let dateStr = m.MembershipDate || '';
-    if(dateStr && typeof dateStr.toISOString === 'function') {
-      dateStr = dateStr.toISOString().split('T')[0];
-    } else if (dateStr) {
-      dateStr = new Date(dateStr).toISOString().split('T')[0];
-    }
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="td-muted">#M-${m.MemberID.toString().padStart(3, '0')}</td>
-      <td><strong>${m.FirstName} ${m.LastName}</strong></td>
-      <td class="td-muted">${m.Email || ''}</td>
-      <td class="td-muted">${m.Phone || ''}</td>
-      <td>-</td>
-      <td class="td-muted">${dateStr}</td>
-      <td><span class="badge ${badge}">${m.Status}</span></td>
-      <td><div style="display:flex;gap:6px;">
-        <button class="btn btn-outline btn-sm" onclick="editMember(${m.MemberID})">✏ Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="openHistory(${m.MemberID})">📋 History</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteMember(${m.MemberID})">🗑</button>
-      </div></td>
-    `;
-    tbody.appendChild(tr);
-  });
-  document.getElementById('row-count').textContent = members.length;
-}
-
-function filterTable(val) {
-  const lower = val.toLowerCase();
-  const filtered = allMembers.filter(m => 
-    `${m.FirstName} ${m.LastName}`.toLowerCase().includes(lower) || 
-    (m.Email && m.Email.toLowerCase().includes(lower)) || 
-    (m.Phone && m.Phone.toLowerCase().includes(lower))
-  );
-  renderMembers(filtered);
-}
-
-function filterStatus(status) {
-  const filtered = status ? allMembers.filter(m => m.Status === status) : allMembers;
-  renderMembers(filtered);
-}
-
 function openModal(mode) {
   document.getElementById('modal-title').textContent = mode === 'add' ? 'Add New Member' : 'Edit Member';
-  if (mode === 'add') {
-    document.getElementById('member-id').value = '';
-    document.getElementById('member-fn').value = '';
-    document.getElementById('member-ln').value = '';
-    document.getElementById('member-email').value = '';
-    document.getElementById('member-phone').value = '';
-    document.getElementById('member-address').value = '';
-  }
   document.getElementById('member-modal').classList.add('open');
 }
-
-function editMember(id) {
-  const member = allMembers.find(m => m.MemberID === id);
-  if (member) {
-    document.getElementById('member-id').value = member.MemberID;
-    document.getElementById('member-fn').value = member.FirstName;
-    document.getElementById('member-ln').value = member.LastName;
-    document.getElementById('member-email').value = member.Email || '';
-    document.getElementById('member-phone').value = member.Phone || '';
-    document.getElementById('member-address').value = member.Address || '';
-    openModal('edit');
-  }
-}
-
-async function saveMember() {
-  const id = document.getElementById('member-id').value;
-  const memberData = {
-    firstName: document.getElementById('member-fn').value,
-    lastName: document.getElementById('member-ln').value,
-    email: document.getElementById('member-email').value,
-    phone: document.getElementById('member-phone').value,
-    address: document.getElementById('member-address').value
-  };
-
-  try {
-    if (id) {
-      await MembersService.update(id, memberData);
-    } else {
-      await MembersService.add(memberData);
-    }
-    closeModal('member-modal');
-    loadData();
-  } catch (err) {
-    console.error("Error saving member:", err);
-    alert("Error saving member data!");
-  }
-}
-
-async function deleteMember(id) {
-  if (confirm("Are you sure you want to delete this member?")) {
-    try {
-      await MembersService.delete(id);
-      loadData();
-    } catch (err) {
-      console.error("Error deleting member:", err);
-      alert("Error deleting member. They may have active borrowings.");
-    }
-  }
-}
-
-async function openHistory(memberId) {
-  const member = allMembers.find(m => m.MemberID === memberId);
-  document.getElementById('history-title').textContent = `Borrow History — ${member ? member.FirstName + ' ' + member.LastName : ''}`;
-  
-  const tbody = document.getElementById('history-list');
-  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+function openHistory() {
   document.getElementById('history-modal').classList.add('open');
-
-  try {
-    const history = await BorrowingService.getHistory(memberId);
-    tbody.innerHTML = '';
-    if (history.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">No borrowing history found.</td></tr>';
-      return;
-    }
-    history.forEach(h => {
-      let bDate = h.BorrowDate ? new Date(h.BorrowDate).toISOString().split('T')[0] : '';
-      let dDate = h.DueDate ? new Date(h.DueDate).toISOString().split('T')[0] : '';
-      let rDate = h.ReturnDate ? new Date(h.ReturnDate).toISOString().split('T')[0] : '—';
-      let badge = 'badge-gray';
-      if (h.Status === 'Returned') badge = 'badge-green';
-      else if (h.Status === 'Borrowed') badge = 'badge-blue';
-      
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${h.Title}</strong></td>
-        <td class="td-muted">${bDate}</td>
-        <td class="td-muted">${dDate}</td>
-        <td class="td-muted">${rDate}</td>
-        <td><span class="badge ${badge}">${h.Status}</span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("Error loading history:", err);
-    tbody.innerHTML = '<tr><td colspan="5">Error loading history.</td></tr>';
-  }
 }
-
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
-
 ['member-modal','history-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) closeModal(id);
   });
 });
-
-window.addEventListener('DOMContentLoaded', loadData);
+function filterTable(val) {
+  const rows = document.querySelectorAll('#members-table tbody tr');
+  let count = 0;
+  rows.forEach(r => {
+    const show = r.textContent.toLowerCase().includes(val.toLowerCase());
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
+function filterStatus(status) {
+  const rows = document.querySelectorAll('#members-table tbody tr');
+  let count = 0;
+  rows.forEach(r => {
+    const show = !status || r.textContent.includes(status);
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
 </script>
 </body>
 </html>

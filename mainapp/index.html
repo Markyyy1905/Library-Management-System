@@ -58,32 +58,34 @@
     <div class="content">
 
       <!-- Alert Bar -->
-      <div class="alert-bar" id="alert-overdue" style="display:none;">
+      <div class="alert-bar">
+        ⚠ <strong>3 overdue books</strong> — Members have unreturned books past their due date.
+        <a href="borrowing.html" style="margin-left:auto; color:var(--red); font-weight:600; text-decoration:none;">View All →</a>
       </div>
 
       <!-- Stat Cards -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Books</div>
-          <div class="stat-value" id="stat-total-books">0</div>
-          <div class="stat-sub" id="stat-books-added"></div>
+          <div class="stat-value">1,248</div>
+          <div class="stat-sub">↑ 12 added this month</div>
           <div class="stat-icon">📚</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Active Members</div>
-          <div class="stat-value" id="stat-active-members">0</div>
-          <div class="stat-sub" id="stat-members-new"></div>
+          <div class="stat-value">342</div>
+          <div class="stat-sub">↑ 8 new this month</div>
           <div class="stat-icon">👥</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Books Borrowed</div>
-          <div class="stat-value" id="stat-books-borrowed">0</div>
+          <div class="stat-value">87</div>
           <div class="stat-sub">Currently checked out</div>
           <div class="stat-icon">🔄</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue</div>
-          <div class="stat-value" id="stat-overdue" style="color:var(--red)">0</div>
+          <div class="stat-value" style="color:var(--red)">3</div>
           <div class="stat-sub">Require follow-up</div>
           <div class="stat-icon">⚠</div>
         </div>
@@ -99,7 +101,47 @@
             <a href="borrowing.html" class="btn btn-outline btn-sm">View All</a>
           </div>
           <div class="col-card-body">
-            <div class="recent-list" id="recent-borrowings-list">
+            <div class="recent-list">
+              <div class="recent-item">
+                <div class="recent-avatar">📖</div>
+                <div class="recent-info">
+                  <div class="recent-title">The Great Gatsby</div>
+                  <div class="recent-meta">Maria Santos · Due Mar 26</div>
+                </div>
+                <span class="badge badge-blue">Active</span>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar">📖</div>
+                <div class="recent-info">
+                  <div class="recent-title">1984 — George Orwell</div>
+                  <div class="recent-meta">Juan Dela Cruz · Due Mar 20</div>
+                </div>
+                <span class="badge badge-red">Overdue</span>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar">📖</div>
+                <div class="recent-info">
+                  <div class="recent-title">Sapiens</div>
+                  <div class="recent-meta">Ana Reyes · Returned Mar 10</div>
+                </div>
+                <span class="badge badge-green">Returned</span>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar">📖</div>
+                <div class="recent-info">
+                  <div class="recent-title">Atomic Habits</div>
+                  <div class="recent-meta">Carlos Bautista · Due Mar 24</div>
+                </div>
+                <span class="badge badge-blue">Active</span>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar">📖</div>
+                <div class="recent-info">
+                  <div class="recent-title">The Alchemist</div>
+                  <div class="recent-meta">Liza Torres · Due Mar 19</div>
+                </div>
+                <span class="badge badge-red">Overdue</span>
+              </div>
             </div>
           </div>
         </div>
@@ -111,7 +153,47 @@
             <a href="reports.html" class="btn btn-outline btn-sm">Reports</a>
           </div>
           <div class="col-card-body">
-            <div class="recent-list" id="popular-books-list">
+            <div class="recent-list">
+              <div class="recent-item">
+                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">01</div>
+                <div class="recent-info">
+                  <div class="recent-title">Atomic Habits</div>
+                  <div class="recent-meta">James Clear · 24 borrows</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);">2 left</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">02</div>
+                <div class="recent-info">
+                  <div class="recent-title">Sapiens</div>
+                  <div class="recent-meta">Yuval Noah Harari · 19 borrows</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);">1 left</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">03</div>
+                <div class="recent-info">
+                  <div class="recent-title">The Alchemist</div>
+                  <div class="recent-meta">Paulo Coelho · 18 borrows</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);">3 left</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">04</div>
+                <div class="recent-info">
+                  <div class="recent-title">1984</div>
+                  <div class="recent-meta">George Orwell · 15 borrows</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);">0 left</div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">05</div>
+                <div class="recent-info">
+                  <div class="recent-title">Think and Grow Rich</div>
+                  <div class="recent-meta">Napoleon Hill · 14 borrows</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);">2 left</div>
+              </div>
             </div>
           </div>
         </div>
@@ -135,7 +217,28 @@
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody id="new-members-list">
+            <tbody>
+              <tr>
+                <td><strong>Maria Santos</strong></td>
+                <td class="td-muted">maria.s@email.com</td>
+                <td class="td-muted">09171234567</td>
+                <td class="td-muted">Mar 10, 2026</td>
+                <td><span class="badge badge-green">Active</span></td>
+              </tr>
+              <tr>
+                <td><strong>Juan Dela Cruz</strong></td>
+                <td class="td-muted">juandc@email.com</td>
+                <td class="td-muted">09281234567</td>
+                <td class="td-muted">Mar 8, 2026</td>
+                <td><span class="badge badge-green">Active</span></td>
+              </tr>
+              <tr>
+                <td><strong>Ana Reyes</strong></td>
+                <td class="td-muted">ana.reyes@email.com</td>
+                <td class="td-muted">09351234567</td>
+                <td class="td-muted">Mar 5, 2026</td>
+                <td><span class="badge badge-green">Active</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -148,122 +251,6 @@
 <script>
   document.getElementById('today-date').textContent =
     new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-  const BooksService = require('./services/books.js');
-  const MembersService = require('./services/members.js');
-  const BorrowingService = require('./services/borrowing.js');
-
-  async function loadDashboard() {
-    try {
-      const [allBooks, allMembers, allBorrows] = await Promise.all([
-        BooksService.getAll(),
-        MembersService.getAll(),
-        BorrowingService.getAll()
-      ]);
-
-      const today = new Date().toISOString().split('T')[0];
-
-      // Stats
-      document.getElementById('stat-total-books').textContent = allBooks.length;
-      document.getElementById('stat-active-members').textContent = allMembers.filter(m => m.Status === 'Active').length;
-
-      let borrowed = 0, overdue = 0;
-      allBorrows.forEach(b => {
-        if (b.Status === 'Borrowed') {
-          borrowed++;
-          const dDate = b.DueDate && b.DueDate.toISOString ? b.DueDate.toISOString().split('T')[0] : new Date(b.DueDate).toISOString().split('T')[0];
-          if (dDate < today) overdue++;
-        }
-      });
-      document.getElementById('stat-books-borrowed').textContent = borrowed;
-      document.getElementById('stat-overdue').textContent = overdue;
-      
-      const badge = document.getElementById('overdue-badge');
-      if (badge) badge.textContent = overdue > 0 ? overdue : '';
-
-      const alertBar = document.getElementById('alert-overdue');
-      if (overdue > 0) {
-        alertBar.innerHTML = `⚠ <strong>${overdue} overdue books</strong> — Members have unreturned books past their due date.
-          <a href="borrowing.html" style="margin-left:auto; color:var(--red); font-weight:600; text-decoration:none;">View All →</a>`;
-        alertBar.style.display = 'flex';
-      }
-
-      // Recent Borrowings List (take top 5)
-      const recentList = document.getElementById('recent-borrowings-list');
-      recentList.innerHTML = '';
-      allBorrows.slice(0, 5).forEach(b => {
-        let badgeCol = 'badge-blue', statTxt = 'Active';
-        let metaTxt = `Due ${new Date(b.DueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
-        if (b.Status === 'Returned') {
-          badgeCol = 'badge-green'; statTxt = 'Returned';
-          metaTxt = `Returned ${new Date(b.ReturnDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
-        } else {
-          const dDate = new Date(b.DueDate).toISOString().split('T')[0];
-          if (dDate < today) {
-            badgeCol = 'badge-red'; statTxt = 'Overdue';
-          }
-        }
-
-        recentList.innerHTML += `
-          <div class="recent-item">
-            <div class="recent-avatar">📖</div>
-            <div class="recent-info">
-              <div class="recent-title">${b.BookTitle}</div>
-              <div class="recent-meta">${b.MemberName} · ${metaTxt}</div>
-            </div>
-            <span class="badge ${badgeCol}">${statTxt}</span>
-          </div>`;
-      });
-
-      // Popular books list based on copies dynamically (or borrowing freq)
-      // We don't have borrow history counts per book right away, so compute it
-      const bookCounts = {};
-      allBorrows.forEach(b => {
-        bookCounts[b.BookTitle] = (bookCounts[b.BookTitle] || 0) + 1;
-      });
-      const topBooks = allBooks
-        .map(b => ({...b, borrows: bookCounts[b.Title] || 0}))
-        .sort((a,b) => b.borrows - a.borrows)
-        .slice(0, 5);
-
-      const popList = document.getElementById('popular-books-list');
-      popList.innerHTML = '';
-      topBooks.forEach((b, i) => {
-        popList.innerHTML += `
-          <div class="recent-item">
-            <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">0${i+1}</div>
-            <div class="recent-info">
-              <div class="recent-title">${b.Title}</div>
-              <div class="recent-meta">${b.Author || 'Unknown'} · ${b.borrows} borrows</div>
-            </div>
-            <div style="font-size:12px;color:var(--muted);">${b.AvailableCopies} left</div>
-          </div>`;
-      });
-
-      // New members
-      const newMems = [...allMembers]
-        .sort((a,b) => new Date(b.MembershipDate) - new Date(a.MembershipDate))
-        .slice(0, 3);
-      const memList = document.getElementById('new-members-list');
-      memList.innerHTML = '';
-      newMems.forEach(m => {
-        const dDate = m.MembershipDate ? new Date(m.MembershipDate).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric'}) : '—';
-        memList.innerHTML += `
-          <tr>
-            <td><strong>${m.FirstName} ${m.LastName}</strong></td>
-            <td class="td-muted">${m.Email || ''}</td>
-            <td class="td-muted">${m.Phone || ''}</td>
-            <td class="td-muted">${dDate}</td>
-            <td><span class="badge ${m.Status === 'Active' ? 'badge-green':'badge-red'}">${m.Status}</span></td>
-          </tr>`;
-      });
-      
-    } catch(err) {
-      console.error(err);
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', loadDashboard);
 </script>
 </body>
 </html>

@@ -48,28 +48,29 @@
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Active Loans</div>
-          <div class="stat-value" id="stat-active">0</div>
+          <div class="stat-value">87</div>
           <div class="stat-icon">🔄</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue</div>
-          <div class="stat-value" id="stat-overdue" style="color:var(--red)">0</div>
+          <div class="stat-value" style="color:var(--red)">3</div>
           <div class="stat-icon">⚠</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Returned Today</div>
-          <div class="stat-value" id="stat-returned" style="color:var(--green)">0</div>
+          <div class="stat-value" style="color:var(--green)">5</div>
           <div class="stat-icon">✅</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Borrowed Today</div>
-          <div class="stat-value" id="stat-borrowed-today">0</div>
+          <div class="stat-value">7</div>
           <div class="stat-icon">📤</div>
         </div>
       </div>
 
       <!-- Overdue Alert -->
-      <div class="alert-bar" id="alert-overdue" style="display:none;">
+      <div class="alert-bar">
+        ⚠ <strong>3 books are overdue</strong> — Please contact the members for return.
       </div>
 
       <!-- Tabs -->
@@ -108,7 +109,87 @@
               <th>Action</th>
             </tr>
           </thead>
-          <tbody id="borrow-list">
+          <tbody>
+            <tr data-status="overdue">
+              <td class="td-muted">#B-001</td>
+              <td><strong>Juan Dela Cruz</strong></td>
+              <td>1984</td>
+              <td class="td-muted">Feb 24, 2026</td>
+              <td style="color:var(--red);font-weight:600;">Mar 10, 2026</td>
+              <td class="td-muted">—</td>
+              <td><span class="badge badge-red">Overdue</span></td>
+              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
+            </tr>
+            <tr data-status="overdue">
+              <td class="td-muted">#B-002</td>
+              <td><strong>Liza Torres</strong></td>
+              <td>The Alchemist</td>
+              <td class="td-muted">Feb 26, 2026</td>
+              <td style="color:var(--red);font-weight:600;">Mar 12, 2026</td>
+              <td class="td-muted">—</td>
+              <td><span class="badge badge-red">Overdue</span></td>
+              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
+            </tr>
+            <tr data-status="overdue">
+              <td class="td-muted">#B-003</td>
+              <td><strong>Carlos Bautista</strong></td>
+              <td>Sapiens</td>
+              <td class="td-muted">Mar 1, 2026</td>
+              <td style="color:var(--red);font-weight:600;">Mar 8, 2026</td>
+              <td class="td-muted">—</td>
+              <td><span class="badge badge-red">Overdue</span></td>
+              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
+            </tr>
+            <tr data-status="active">
+              <td class="td-muted">#B-004</td>
+              <td><strong>Maria Santos</strong></td>
+              <td>The Great Gatsby</td>
+              <td class="td-muted">Mar 12, 2026</td>
+              <td class="td-muted">Mar 26, 2026</td>
+              <td class="td-muted">—</td>
+              <td><span class="badge badge-blue">Active</span></td>
+              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
+            </tr>
+            <tr data-status="active">
+              <td class="td-muted">#B-005</td>
+              <td><strong>Ana Reyes</strong></td>
+              <td>Atomic Habits</td>
+              <td class="td-muted">Mar 10, 2026</td>
+              <td class="td-muted">Mar 24, 2026</td>
+              <td class="td-muted">—</td>
+              <td><span class="badge badge-blue">Active</span></td>
+              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
+            </tr>
+            <tr data-status="returned">
+              <td class="td-muted">#B-006</td>
+              <td><strong>Roberto Garcia</strong></td>
+              <td>Clean Code</td>
+              <td class="td-muted">Mar 1, 2026</td>
+              <td class="td-muted">Mar 15, 2026</td>
+              <td class="td-muted" style="color:var(--green)">Mar 10, 2026</td>
+              <td><span class="badge badge-green">Returned</span></td>
+              <td><span style="font-size:12px;color:var(--muted);">—</span></td>
+            </tr>
+            <tr data-status="returned">
+              <td class="td-muted">#B-007</td>
+              <td><strong>Sofia Villanueva</strong></td>
+              <td>Think and Grow Rich</td>
+              <td class="td-muted">Feb 20, 2026</td>
+              <td class="td-muted">Mar 6, 2026</td>
+              <td class="td-muted" style="color:var(--green)">Mar 4, 2026</td>
+              <td><span class="badge badge-green">Returned</span></td>
+              <td><span style="font-size:12px;color:var(--muted);">—</span></td>
+            </tr>
+            <tr data-status="returned">
+              <td class="td-muted">#B-008</td>
+              <td><strong>Maria Santos</strong></td>
+              <td>Sapiens</td>
+              <td class="td-muted">Feb 24, 2026</td>
+              <td class="td-muted">Mar 10, 2026</td>
+              <td class="td-muted" style="color:var(--green)">Mar 9, 2026</td>
+              <td><span class="badge badge-green">Returned</span></td>
+              <td><span style="font-size:12px;color:var(--muted);">—</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -127,14 +208,27 @@
       <div class="form-grid">
         <div class="form-group full">
           <label class="form-label">Member</label>
-          <select class="form-select" id="borrow-member">
+          <select class="form-select">
             <option value="">Select a member…</option>
+            <option>Maria Santos (#M-001)</option>
+            <option>Juan Dela Cruz (#M-002)</option>
+            <option>Ana Reyes (#M-003)</option>
+            <option>Carlos Bautista (#M-004)</option>
+            <option>Roberto Garcia (#M-006)</option>
+            <option>Sofia Villanueva (#M-007)</option>
           </select>
         </div>
         <div class="form-group full">
           <label class="form-label">Book</label>
-          <select class="form-select" id="borrow-book">
+          <select class="form-select">
             <option value="">Select a book…</option>
+            <option>Atomic Habits — James Clear</option>
+            <option>Sapiens — Yuval Noah Harari</option>
+            <option>The Alchemist — Paulo Coelho</option>
+            <option>Think and Grow Rich — Napoleon Hill</option>
+            <option>The Great Gatsby — F. Scott Fitzgerald</option>
+            <option>Clean Code — Robert C. Martin</option>
+            <option>A Brief History of Time — Stephen Hawking</option>
           </select>
         </div>
         <div class="form-group">
@@ -158,7 +252,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('borrow-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitBorrow()">Confirm Borrow</button>
+      <button class="btn btn-primary">Confirm Borrow</button>
     </div>
   </div>
 </div>
@@ -171,21 +265,19 @@
       <button class="modal-close" onclick="closeModal('return-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="return-borrow-id"/>
-      <input type="hidden" id="return-book-id"/>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
         <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Returning</div>
-        <div style="font-weight:600;font-size:15px;" id="return-book-desc"></div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="return-member-desc"></div>
+        <div style="font-weight:600;font-size:15px;">1984 — George Orwell</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Borrowed by Juan Dela Cruz · Borrow #B-001</div>
       </div>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Return Date</label>
-          <input class="form-input" type="date" id="return-date" readonly/>
+          <input class="form-input" type="date" id="return-date"/>
         </div>
         <div class="form-group">
-          <label class="form-label">Condition (for record)</label>
-          <select class="form-select" id="return-condition">
+          <label class="form-label">Condition</label>
+          <select class="form-select">
             <option>Good</option>
             <option>Fair</option>
             <option>Damaged</option>
@@ -193,15 +285,16 @@
         </div>
         <div class="form-group full">
           <label class="form-label">Notes (optional)</label>
-          <textarea class="form-textarea" id="return-notes" placeholder="Any remarks about this return…"></textarea>
+          <textarea class="form-textarea" placeholder="Any remarks about this return…"></textarea>
         </div>
       </div>
-      <div id="return-alert" style="display:none;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.3);border-radius:8px;padding:12px;font-size:13px;color:var(--red);">
+      <div style="background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.3);border-radius:8px;padding:12px;font-size:13px;color:var(--red);">
+        ⚠ This book is <strong>overdue by 2 days</strong>. Consider noting a late fee.
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('return-modal')">Cancel</button>
-      <button class="btn btn-success" onclick="submitReturn()">Confirm Return</button>
+      <button class="btn btn-success">Confirm Return</button>
     </div>
   </div>
 </div>
@@ -225,263 +318,55 @@
 </style>
 
 <script>
-const BorrowingService = require('./services/borrowing.js');
-const BooksService = require('./services/books.js');
-const MembersService = require('./services/members.js');
-let allRecords = [];
-let currentTab = 'all';
-
-async function loadData() {
-  try {
-    allRecords = await BorrowingService.getAll();
-    renderRecords();
-    updateStats();
-  } catch(err) {
-    console.error("Error loading borrowing records:", err);
-  }
-}
-
-function updateStats() {
+// Set today's date defaults
+window.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
-  let active = 0, overdue = 0, returnedToday = 0, borrowedToday = 0;
-
-  allRecords.forEach(r => {
-    // Check if it's currently borrowed
-    if (r.Status === 'Borrowed') {
-      const due = r.DueDate && r.DueDate.toISOString ? r.DueDate.toISOString() : new Date(r.DueDate).toISOString();
-      if (due.split('T')[0] < today) {
-        overdue++;
-        r._uiStatus = 'overdue';
-      } else {
-        active++;
-        r._uiStatus = 'active';
-      }
-    } else {
-      r._uiStatus = 'returned';
-    }
-
-    const bDate = r.BorrowDate && r.BorrowDate.toISOString ? r.BorrowDate.toISOString() : new Date(r.BorrowDate).toISOString();
-    if (bDate.split('T')[0] === today) borrowedToday++;
-
-    if (r.ReturnDate) {
-      const rDate = r.ReturnDate && r.ReturnDate.toISOString ? r.ReturnDate.toISOString() : new Date(r.ReturnDate).toISOString();
-      if (rDate.split('T')[0] === today && r.Status === 'Returned') returnedToday++;
-    }
-  });
-
-  document.getElementById('stat-active').textContent = active;
-  document.getElementById('stat-overdue').textContent = overdue;
-  document.getElementById('stat-returned').textContent = returnedToday;
-  document.getElementById('stat-borrowed-today').textContent = borrowedToday;
-
-  const alertBar = document.getElementById('alert-overdue');
-  if (overdue > 0) {
-    alertBar.innerHTML = `⚠ <strong>${overdue} books are overdue</strong> — Please contact the members for return.`;
-    alertBar.style.display = '';
-  } else {
-    alertBar.style.display = 'none';
-  }
-}
-
-function formatDateStr(dateObj) {
-  if (!dateObj) return '—';
-  try {
-    if (typeof dateObj.toISOString === 'function') return dateObj.toISOString().split('T')[0];
-    return new Date(dateObj).toISOString().split('T')[0];
-  } catch(e) { return '—'; }
-}
-
-function renderRecords() {
-  const tbody = document.getElementById('borrow-list');
-  tbody.innerHTML = '';
-  let count = 0;
-  
-  allRecords.forEach(r => {
-    if (currentTab !== 'all' && r._uiStatus !== currentTab) return;
-    count++;
-
-    let bDate = formatDateStr(r.BorrowDate);
-    let dDate = formatDateStr(r.DueDate);
-    let retDate = formatDateStr(r.ReturnDate);
-
-    let statusHtml = '';
-    if (r._uiStatus === 'overdue') statusHtml = '<span class="badge badge-red">Overdue</span>';
-    else if (r._uiStatus === 'active') statusHtml = '<span class="badge badge-blue">Active</span>';
-    else statusHtml = '<span class="badge badge-green">Returned</span>';
-
-    // Retrieve DB's BookID if available in query results, but `getAll()` query in borrowing.js might not have it cleanly unless modified.
-    // Assuming BookTitle is unique or we get BookID from active list manually? Wait, we can pass DB row data.
-    // we need BorrowID, and we need BookID to update availability!
-    // actually returning just needs BorrowID and BookID. Let's make sure `.BorrowID` and `.BookID` exists in r.
-    
-    // I should tweak `borrowing.js` getAll to include `bk.BookID`. If missing, `processReturn` finds it.
-    
-    let actionHtml = `—`;
-    if (r.Status === 'Borrowed') {
-      actionHtml = `<button class="btn btn-success btn-sm" onclick="openReturn(${r.BorrowID}, '${r.BookTitle.replace(/'/g,"\\'")}', '${r.MemberName.replace(/'/g,"\\'")}', '${dDate}')">↩ Return</button>`;
-    }
-
-    const tr = document.createElement('tr');
-    tr.dataset.status = r._uiStatus;
-    tr.innerHTML = `
-      <td class="td-muted">#B-${r.BorrowID.toString().padStart(3, '0')}</td>
-      <td><strong>${r.MemberName}</strong></td>
-      <td>${r.BookTitle}</td>
-      <td class="td-muted">${bDate}</td>
-      <td class="${r._uiStatus === 'overdue' ? 'td-muted' : 'td-muted'}" style="${r._uiStatus === 'overdue' ? 'color:var(--red);font-weight:600;' : ''}">${dDate}</td>
-      <td class="td-muted" style="${r.Status === 'Returned' ? 'color:var(--green)' : ''}">${retDate}</td>
-      <td>${statusHtml}</td>
-      <td>${actionHtml}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-  document.getElementById('row-count').textContent = count;
-}
-
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  currentTab = tab;
-  renderRecords();
-}
-
-function filterTable(val) {
-  const lower = val.toLowerCase();
-  const rows = document.querySelectorAll('#borrow-table tbody tr');
-  let count = 0;
-  // This simplistic filter looks at the rendered DOM string.
-  rows.forEach(r => {
-    const show = r.textContent.toLowerCase().includes(lower);
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
-}
-
-// ======================== Borrow Modal Logic =========================
-async function openModal(type) {
-  if (type === 'borrow') {
-    document.getElementById('borrow-modal').classList.add('open');
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('borrow-date').value = today;
-    updateDueDate(14);
-    
-    // Load members
-    const mems = await MembersService.getAll();
-    const actMems = mems.filter(m => m.Status === 'Active');
-    const mSelect = document.getElementById('borrow-member');
-    mSelect.innerHTML = '<option value="">Select a member…</option>';
-    actMems.forEach(m => {
-      mSelect.innerHTML += `<option value="${m.MemberID}">${m.FirstName} ${m.LastName} (#M-${m.MemberID})</option>`;
-    });
-
-    // Load available books
-    const bks = await BooksService.getAll();
-    const availBks = bks.filter(b => b.AvailableCopies > 0);
-    const bSelect = document.getElementById('borrow-book');
-    bSelect.innerHTML = '<option value="">Select a book…</option>';
-    availBks.forEach(b => {
-      bSelect.innerHTML += `<option value="${b.BookID}">${b.Title} (${b.AvailableCopies} left)</option>`;
-    });
-  } 
-}
+  document.getElementById('borrow-date').value = today;
+  document.getElementById('return-date').value = today;
+  updateDueDate(14);
+});
 
 function updateDueDate(days) {
-  const dateVal = document.getElementById('borrow-date').value;
-  if (!dateVal) return;
-  const d = new Date(dateVal);
+  const d = new Date();
   d.setDate(d.getDate() + parseInt(days));
   document.getElementById('due-date').value = d.toISOString().split('T')[0];
 }
 
-async function submitBorrow() {
-  const memberId = document.getElementById('borrow-member').value;
-  const bookId = document.getElementById('borrow-book').value;
-  const borrowDate = document.getElementById('borrow-date').value;
-  const dueDate = document.getElementById('due-date').value;
-
-  if (!memberId || !bookId) {
-    alert("Please select a member and a book.");
-    return;
-  }
-  
-  // Custom dates not directly supported by current backend implementation
-  // borrowing.js `borrow` method hardcodes `Date()` and `Date()+dueDays` 
-  const d1 = new Date(borrowDate);
-  const d2 = new Date(dueDate);
-  const diffTime = Math.abs(d2 - d1);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  try {
-    await BorrowingService.borrow(memberId, bookId, diffDays);
-    closeModal('borrow-modal');
-    loadData();
-  } catch (err) {
-    console.error("Borrow error:", err);
-    alert("Error processing borrow!");
-  }
+function openModal(type) {
+  if (type === 'borrow') document.getElementById('borrow-modal').classList.add('open');
+  else document.getElementById('return-modal').classList.add('open');
 }
-
-// ======================== Return Modal Logic =========================
-async function openReturn(borrowId, title, memberName, dueDate) {
-  // First, fetch the record again to get BOOK ID because `Borrowing.getAll` 
-  // currently does not SELECT bk.BookID in its INNER JOIN 
-  // Let me work around by finding book from title:
-  const books = await BooksService.getAll();
-  const book = books.find(b => b.Title === title);
-  const bookId = book ? book.BookID : null;
-
-  document.getElementById('return-borrow-id').value = borrowId;
-  document.getElementById('return-book-id').value = bookId || '';
-  
-  document.getElementById('return-book-desc').textContent = title;
-  document.getElementById('return-member-desc').textContent = `Borrowed by ${memberName} · Borrow #B-${borrowId}`;
-  
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('return-date').value = today;
-  document.getElementById('return-notes').value = '';
-
-  const alertDiv = document.getElementById('return-alert');
-  if (dueDate < today) {
-    const d1 = new Date(dueDate);
-    const d2 = new Date(today);
-    const diffDays = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
-    alertDiv.innerHTML = `⚠ This book is <strong>overdue by ${diffDays} days</strong>. Consider noting a late fee.`;
-    alertDiv.style.display = '';
-  } else {
-    alertDiv.style.display = 'none';
-  }
-
-  document.getElementById('return-modal').classList.add('open');
-}
-
-async function submitReturn() {
-  const borrowId = document.getElementById('return-borrow-id').value;
-  const bookId = document.getElementById('return-book-id').value;
-  
-  if (!borrowId || !bookId) {
-    alert("Error finding BookID for this record.");
-    return;
-  }
-
-  try {
-    await BorrowingService.returnBook(borrowId, bookId);
-    closeModal('return-modal');
-    loadData();
-  } catch (err) {
-    console.error("Return error:", err);
-    alert("Error returning book!");
-  }
-}
-
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
 ['borrow-modal','return-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) closeModal(id);
   });
 });
 
-window.addEventListener('DOMContentLoaded', loadData);
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const rows = document.querySelectorAll('#borrow-table tbody tr');
+  let count = 0;
+  rows.forEach(r => {
+    const show = tab === 'all' || r.dataset.status === tab;
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
+
+function filterTable(val) {
+  const rows = document.querySelectorAll('#borrow-table tbody tr');
+  let count = 0;
+  rows.forEach(r => {
+    const show = r.textContent.toLowerCase().includes(val.toLowerCase());
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
 </script>
 </body>
 </html>
