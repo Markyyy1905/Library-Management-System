@@ -1,0 +1,23 @@
+{
+  "name": "library-management-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+"scripts": {
+  "start": "electron ."
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Markyyy1905/Library-Management-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Markyyy1905/Library-Management-System/issues"
+  },
+  "homepage": "https://github.com/Markyyy1905/Library-Management-System#readme",
+  "devDependencies": {
+    "electron": "^41.0.0"
+  }
+}
