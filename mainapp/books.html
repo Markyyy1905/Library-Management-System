@@ -50,22 +50,22 @@
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Total Titles</div>
-          <div class="stat-value" id="stat-total-titles">0</div>
+          <div class="stat-value">1,248</div>
           <div class="stat-icon">📚</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Available</div>
-          <div class="stat-value" id="stat-available" style="color:var(--green)">0</div>
+          <div class="stat-value" style="color:var(--green)">1,161</div>
           <div class="stat-icon">✅</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Borrowed</div>
-          <div class="stat-value" id="stat-borrowed" style="color:var(--blue)">0</div>
+          <div class="stat-value" style="color:var(--blue)">87</div>
           <div class="stat-icon">🔄</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Genres</div>
-          <div class="stat-value" id="stat-genres">0</div>
+          <div class="stat-value">14</div>
           <div class="stat-icon">🏷</div>
         </div>
       </div>
@@ -113,7 +113,119 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="books-list">
+          <tbody>
+            <tr>
+              <td><strong>Atomic Habits</strong></td>
+              <td>James Clear</td>
+              <td class="td-muted">978-0735211292</td>
+              <td><span class="badge badge-blue">Self-Help</span></td>
+              <td class="td-muted">2018</td>
+              <td>5</td>
+              <td>2</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>1984</strong></td>
+              <td>George Orwell</td>
+              <td class="td-muted">978-0451524935</td>
+              <td><span class="badge badge-gold">Fiction</span></td>
+              <td class="td-muted">1949</td>
+              <td>3</td>
+              <td>0</td>
+              <td><span class="badge badge-red">Unavailable</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>Sapiens</strong></td>
+              <td>Yuval Noah Harari</td>
+              <td class="td-muted">978-0062316097</td>
+              <td><span class="badge badge-blue">History</span></td>
+              <td class="td-muted">2011</td>
+              <td>4</td>
+              <td>1</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>The Alchemist</strong></td>
+              <td>Paulo Coelho</td>
+              <td class="td-muted">978-0062315007</td>
+              <td><span class="badge badge-gold">Fiction</span></td>
+              <td class="td-muted">1988</td>
+              <td>5</td>
+              <td>3</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>Think and Grow Rich</strong></td>
+              <td>Napoleon Hill</td>
+              <td class="td-muted">978-1585424337</td>
+              <td><span class="badge badge-blue">Self-Help</span></td>
+              <td class="td-muted">1937</td>
+              <td>3</td>
+              <td>2</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>The Great Gatsby</strong></td>
+              <td>F. Scott Fitzgerald</td>
+              <td class="td-muted">978-0743273565</td>
+              <td><span class="badge badge-gold">Fiction</span></td>
+              <td class="td-muted">1925</td>
+              <td>4</td>
+              <td>2</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>Clean Code</strong></td>
+              <td>Robert C. Martin</td>
+              <td class="td-muted">978-0132350884</td>
+              <td><span class="badge badge-gray">Technology</span></td>
+              <td class="td-muted">2008</td>
+              <td>2</td>
+              <td>1</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>Brief History of Time</strong></td>
+              <td>Stephen Hawking</td>
+              <td class="td-muted">978-0553380163</td>
+              <td><span class="badge badge-green">Science</span></td>
+              <td class="td-muted">1988</td>
+              <td>3</td>
+              <td>3</td>
+              <td><span class="badge badge-green">Available</span></td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </div></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -131,22 +243,21 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <input type="hidden" id="book-id">
         <div class="form-group full">
           <label class="form-label">Book Title</label>
-          <input class="form-input" id="book-title" type="text" placeholder="e.g. Atomic Habits"/>
+          <input class="form-input" type="text" placeholder="e.g. Atomic Habits"/>
         </div>
         <div class="form-group">
           <label class="form-label">Author</label>
-          <input class="form-input" id="book-author" type="text" placeholder="Author name"/>
+          <input class="form-input" type="text" placeholder="Author name"/>
         </div>
         <div class="form-group">
           <label class="form-label">ISBN</label>
-          <input class="form-input" id="book-isbn" type="text" placeholder="978-XXXXXXXXXX"/>
+          <input class="form-input" type="text" placeholder="978-XXXXXXXXXX"/>
         </div>
         <div class="form-group">
           <label class="form-label">Genre</label>
-          <select class="form-select" id="book-genre">
+          <select class="form-select">
             <option value="">Select Genre</option>
             <option>Fiction</option>
             <option>Non-Fiction</option>
@@ -159,163 +270,57 @@
         </div>
         <div class="form-group">
           <label class="form-label">Published Year</label>
-          <input class="form-input" id="book-year" type="number" placeholder="e.g. 2024"/>
+          <input class="form-input" type="number" placeholder="e.g. 2024"/>
         </div>
         <div class="form-group">
           <label class="form-label">Total Copies</label>
-          <input class="form-input" id="book-total" type="number" placeholder="e.g. 3" min="1"/>
+          <input class="form-input" type="number" placeholder="e.g. 3" min="1"/>
         </div>
         <div class="form-group full">
           <label class="form-label">Description (optional)</label>
-          <textarea class="form-textarea" id="book-desc" placeholder="Brief description of the book…"></textarea>
+          <textarea class="form-textarea" placeholder="Brief description of the book…"></textarea>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBook()">Save Book</button>
+      <button class="btn btn-primary">Save Book</button>
     </div>
   </div>
 </div>
 
 <script>
-const BooksService = require('./services/books.js');
-let allBooks = [];
-
-async function loadData() {
-  try {
-    allBooks = await BooksService.getAll();
-    renderBooks(allBooks);
-    updateStats(allBooks);
-  } catch (err) {
-    console.error("Error loading books:", err);
-  }
-}
-
-function updateStats(books) {
-  document.getElementById('stat-total-titles').textContent = books.length;
-  document.getElementById('stat-available').textContent = books.filter(b => b.AvailableCopies > 0).length;
-  document.getElementById('stat-borrowed').textContent = books.filter(b => b.AvailableCopies < b.TotalCopies).length;
-  const genres = new Set(books.map(b => b.Genre).filter(Boolean));
-  document.getElementById('stat-genres').textContent = genres.size;
-}
-
-function renderBooks(booksToRender) {
-  const tbody = document.getElementById('books-list');
-  tbody.innerHTML = '';
-  booksToRender.forEach(book => {
-    const isAvail = book.AvailableCopies > 0;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${book.Title}</strong></td>
-      <td>${book.Author}</td>
-      <td class="td-muted">${book.ISBN || ''}</td>
-      <td><span class="badge badge-blue">${book.Genre || 'N/A'}</span></td>
-      <td class="td-muted">${book.PublishedYear || ''}</td>
-      <td>${book.TotalCopies}</td>
-      <td>${book.AvailableCopies}</td>
-      <td><span class="badge ${isAvail ? 'badge-green' : 'badge-red'}">${isAvail ? 'Available' : 'Unavailable'}</span></td>
-      <td><div style="display:flex;gap:6px;">
-        <button class="btn btn-outline btn-sm" onclick="editBook(${book.BookID})">✏ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.BookID})">🗑</button>
-      </div></td>
-    `;
-    tbody.appendChild(tr);
-  });
-  document.getElementById('row-count').textContent = booksToRender.length;
-}
-
-function filterTable(val) {
-  const lower = val.toLowerCase();
-  const filtered = allBooks.filter(b => 
-    b.Title.toLowerCase().includes(lower) || 
-    b.Author.toLowerCase().includes(lower) || 
-    (b.ISBN && b.ISBN.toLowerCase().includes(lower))
-  );
-  renderBooks(filtered);
-}
-
-function filterGenre(genre) {
-  const filtered = genre ? allBooks.filter(b => b.Genre === genre) : allBooks;
-  renderBooks(filtered);
-}
-
 function openModal(mode) {
   document.getElementById('modal-title').textContent = mode === 'add' ? 'Add New Book' : 'Edit Book';
-  if (mode === 'add') {
-    document.getElementById('book-id').value = '';
-    document.getElementById('book-title').value = '';
-    document.getElementById('book-author').value = '';
-    document.getElementById('book-isbn').value = '';
-    document.getElementById('book-genre').value = '';
-    document.getElementById('book-year').value = '';
-    document.getElementById('book-total').value = '1';
-    document.getElementById('book-desc').value = '';
-  }
   document.getElementById('book-modal').classList.add('open');
 }
-
-function editBook(id) {
-  const book = allBooks.find(b => b.BookID === id);
-  if (book) {
-    document.getElementById('book-id').value = book.BookID;
-    document.getElementById('book-title').value = book.Title;
-    document.getElementById('book-author').value = book.Author;
-    document.getElementById('book-isbn').value = book.ISBN || '';
-    document.getElementById('book-genre').value = book.Genre || '';
-    document.getElementById('book-year').value = book.PublishedYear || '';
-    document.getElementById('book-total').value = book.TotalCopies || 1;
-    // Assuming you might add description later
-    openModal('edit');
-  }
-}
-
-async function saveBook() {
-  const id = document.getElementById('book-id').value;
-  const bookData = {
-    title: document.getElementById('book-title').value,
-    author: document.getElementById('book-author').value,
-    isbn: document.getElementById('book-isbn').value,
-    genre: document.getElementById('book-genre').value,
-    totalCopies: parseInt(document.getElementById('book-total').value) || 1,
-    publishedYear: parseInt(document.getElementById('book-year').value) || new Date().getFullYear()
-  };
-
-  try {
-    if (id) {
-      await BooksService.update(id, bookData);
-    } else {
-      await BooksService.add(bookData);
-    }
-    closeModal();
-    loadData();
-  } catch (err) {
-    console.error("Error saving book:", err);
-    alert("Error saving book data!");
-  }
-}
-
-async function deleteBook(id) {
-  if (confirm("Are you sure you want to delete this book?")) {
-    try {
-      await BooksService.delete(id);
-      loadData();
-    } catch (err) {
-      console.error("Error deleting book:", err);
-      alert("Error deleting book data!");
-    }
-  }
-}
-
 function closeModal() {
   document.getElementById('book-modal').classList.remove('open');
 }
-
 document.getElementById('book-modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
-
-window.addEventListener('DOMContentLoaded', loadData);
+function filterTable(val) {
+  const rows = document.querySelectorAll('#books-table tbody tr');
+  let count = 0;
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    const show = text.includes(val.toLowerCase());
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
+function filterGenre(genre) {
+  const rows = document.querySelectorAll('#books-table tbody tr');
+  let count = 0;
+  rows.forEach(r => {
+    const show = !genre || r.textContent.includes(genre);
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('row-count').textContent = count;
+}
 </script>
 </body>
 </html>
