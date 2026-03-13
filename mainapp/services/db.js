@@ -1,23 +1,28 @@
-/**
- * db.js - Microsoft Access (.accdb) Database Connection Module
- * Uses node-adodb (requires 32-bit Node.js on Windows or ADODB support)
- *
- * Install dependency: npm install node-adodb
- */
+// node mainapp/services/db.js
+const odbc = require('odbc');
+const path = require('path');
 
-const ADODB = require('node-adodb');
+const DATABASE_PATH = path.join(__dirname, '..', 'data', 'LMS.accdb');
 
-// ── Connection String ──────────────────────────────────────────────────────────
-// Update DATABASE_PATH to point to your .accdb file
-const DATABASE_PATH = require('path').join(__dirname, '..', 'data', 'LMS.accdb');
+async function connectDB() {
+    try {
+        const connection = await odbc.connect(
+            `Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=${DATABASE_PATH};`
+        );
+        console.log('✅ Database connected');
+        console.log('📁 Path:', DATABASE_PATH);
+        return connection;
+    } catch (err) {
+        console.error('❌ Database connection failed');
+        console.error(err);
+    }
+}
 
-const CONNECTION_STRING =
-  `Provider=Microsoft.ACE.OLEDB.12.0;Data Source=${DATABASE_PATH};Persist Security Info=False;`;
+// Immediately invoke for debug when running db.js directly
+if (require.main === module) {
+    (async () => {
+        await connectDB();
+    })();
+}
 
-// If your .accdb file has a password, use:
-// `Provider=Microsoft.ACE.OLEDB.12.0;Data Source=${DATABASE_PATH};Jet OLEDB:Database Password=yourpassword;`
-
-// ── Create Connection ──────────────────────────────────────────────────────────
-const connection = ADODB.open(CONNECTION_STRING);
-
-module.exports = connection;
+module.exports = connectDB;

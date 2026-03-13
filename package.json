@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
-"scripts": {
-  "start": "electron ."
-},
+  "scripts": {
+    "start": "electron ."
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Markyyy1905/Library-Management-System.git"
@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/Markyyy1905/Library-Management-System#readme",
   "devDependencies": {
-    "electron": "^41.0.0"
+    "electron": "^41.0.2"
+  },
+  "dependencies": {
+    "odbc": "^2.4.9"
   }
 }
