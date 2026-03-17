@@ -60,7 +60,7 @@ const Users = {
   getAll: () => db.query(`
     SELECT u.UserID, u.Username, u.FirstName, u.LastName,
            u.Email, u.AccountStatus, u.DateCreated, r.RoleName
-    FROM Users u LEFT JOIN Roles r ON u.RoleID = r.RoleID
+    FROM Users_Table u LEFT JOIN Roles_Table r ON u.RoleID = r.RoleID
     ORDER BY u.LastName ASC
   `),
 
@@ -97,7 +97,7 @@ const Users = {
 };
 
 const Roles = {
-  getAll: () => db.query('SELECT * FROM Roles ORDER BY RoleName ASC'),
+  getAll: () => db.query('SELECT * FROM Roles_Table ORDER BY RoleName ASC'),
 };
 
 // ── Audit Logs ───────────────────────────────────────────────
@@ -111,7 +111,7 @@ const AuditLogs = {
     SELECT TOP ${limit}
       al.LogID, al.ActionType, al.ActionDescription, al.ActionDateTime,
       u.FirstName & ' ' & u.LastName AS UserName
-    FROM AuditLogs al LEFT JOIN Users u ON al.UserID = u.UserID
+    FROM AuditLogs al LEFT JOIN Users_Table u ON al.UserID = u.UserID
     ORDER BY al.ActionDateTime DESC
   `),
 };

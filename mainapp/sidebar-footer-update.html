@@ -1,0 +1,74 @@
+<!-- 
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  SIDEBAR FOOTER UPDATE                                       ║
+  ║  Replace the static <div class="sidebar-footer"> in ALL      ║
+  ║  page files (index, books, members, borrowing, reports)      ║
+  ║  with the block below.                                       ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+
+<!-- REPLACE THIS in every page: -->
+<!--
+<div class="sidebar-footer">
+  <strong>Admin User</strong>Administrator
+</div>
+-->
+
+<!-- WITH THIS: -->
+<div class="sidebar-footer" style="flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:16px;">
+  <div style="display:flex;align-items:center;gap:10px;width:100%;">
+    <div class="avatar" id="sf-avatar">AU</div>
+    <div style="min-width:0;flex:1;">
+      <div id="sf-name" style="font-size:12px;color:var(--text2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Admin User</div>
+      <div id="sf-role" style="font-size:11px;color:var(--muted2);">Administrator</div>
+    </div>
+  </div>
+  <button onclick="doLogout()" style="
+    width:100%;
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:6px 10px;
+    font-family:'Geist',sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    cursor:pointer;
+    text-align:left;
+    transition:all 0.15s;
+  " onmouseover="this.style.color='var(--red)';this.style.borderColor='rgba(220,38,38,0.3)'"
+     onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+    ↩ Sign out
+  </button>
+</div>
+
+<!--
+  Add this <script> block at the bottom of each page
+  (right before the closing </body> tag, after the existing <script>):
+-->
+<script>
+// Session display + logout
+(async () => {
+  try {
+    const { ipcRenderer } = require('electron');
+    const sess = await ipcRenderer.invoke('auth:session');
+    if (!sess) {
+      // Not logged in — redirect to login
+      window.location = 'login.html';
+      return;
+    }
+    const name = `${sess.FirstName} ${sess.LastName}`;
+    const initials = (sess.FirstName[0] + sess.LastName[0]).toUpperCase();
+    document.getElementById('sf-name').textContent    = name;
+    document.getElementById('sf-role').textContent    = sess.RoleName || 'Staff';
+    document.getElementById('sf-avatar').textContent  = initials;
+  } catch (err) { /* non-critical */ }
+})();
+
+async function doLogout() {
+  try {
+    const { ipcRenderer } = require('electron');
+    await ipcRenderer.invoke('auth:logout');
+  } catch {}
+  window.location = 'login.html';
+}
+</script>

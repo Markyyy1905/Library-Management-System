@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LMS — Create Account</title>
+  <link rel="stylesheet" href="style/style.css"/>
+  <style>
+    body { background: var(--bg2); }
+
+    .auth-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg2);
+      position: relative;
+      overflow: hidden;
+      padding: 32px 16px;
+    }
+    .auth-wrap::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(24,24,27,0.04) 0%, transparent 70%);
+      top: -100px; right: -100px;
+      pointer-events: none;
+    }
+    .auth-wrap::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(22,163,74,0.05) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+      pointer-events: none;
+    }
+
+    .auth-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      padding: 40px 48px;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
+      animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .auth-logo .logo-mark {
+      width: 44px; height: 44px;
+      background: var(--accent);
+      border-radius: 12px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-logo .logo-mark svg {
+      width: 22px; height: 22px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .auth-logo h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .auth-logo p { font-size: 13px; color: var(--muted2); }
+
+    .auth-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 19px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .auth-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 26px;
+    }
+
+    .auth-form { display: flex; flex-direction: column; gap: 13px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .auth-field { display: flex; flex-direction: column; gap: 5px; }
+    .auth-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+    .auth-input {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 13px;
+      color: var(--text);
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .auth-input::placeholder { color: var(--muted2); }
+    .auth-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(24,24,27,0.07);
+    }
+    .auth-input.error { border-color: var(--red); }
+
+    .auth-select {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 13px;
+      color: var(--text);
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .auth-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(24,24,27,0.07); }
+
+    .password-hint {
+      font-size: 11.5px;
+      color: var(--muted2);
+      margin-top: 2px;
+    }
+
+    .auth-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      padding: 11px;
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 4px;
+      letter-spacing: -0.01em;
+    }
+    .auth-btn:hover { background: var(--accent2); box-shadow: 0 2px 10px rgba(24,24,27,0.2); }
+    .auth-btn:active { transform: scale(0.99); }
+    .auth-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .auth-divider {
+      text-align: center;
+      position: relative;
+      margin: 6px 0;
+    }
+    .auth-divider::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 1px;
+      background: var(--border);
+    }
+    .auth-divider span {
+      position: relative;
+      background: var(--bg);
+      padding: 0 12px;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+
+    .auth-link-row {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .auth-link {
+      color: var(--text);
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border2);
+      padding-bottom: 1px;
+      transition: border-color 0.15s;
+    }
+    .auth-link:hover { border-color: var(--text); }
+
+    .auth-error {
+      background: var(--red-soft);
+      border: 1px solid rgba(220,38,38,0.2);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 13px;
+      color: var(--red);
+      display: none;
+    }
+    .auth-error.show { display: block; }
+
+    .auth-success {
+      background: var(--green-soft);
+      border: 1px solid rgba(22,163,74,0.2);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 13px;
+      color: var(--green);
+      display: none;
+    }
+    .auth-success.show { display: block; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 6px 0 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      </div>
+      <h1>PUNLAZAN</h1>
+      <p>Library Management System</p>
+    </div>
+
+    <h2 class="auth-title">Create account</h2>
+    <p class="auth-sub">Fill in the details below to register a new staff account</p>
+
+    <div id="reg-error" class="auth-error"></div>
+    <div id="reg-success" class="auth-success"></div>
+
+    <form class="auth-form" onsubmit="return false;">
+      <div class="section-label">Personal Information</div>
+
+      <div class="form-row">
+        <div class="auth-field">
+          <label class="auth-label">First Name *</label>
+          <input class="auth-input" type="text" id="firstName" placeholder="First name"/>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Last Name *</label>
+          <input class="auth-input" type="text" id="lastName" placeholder="Last name"/>
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input class="auth-input" type="email" id="email" placeholder="email@example.com"/>
+      </div>
+
+      <div class="section-label" style="margin-top:4px;">Account Details</div>
+
+      <div class="auth-field">
+        <label class="auth-label">Username *</label>
+        <input class="auth-input" type="text" id="username" placeholder="Choose a username" autocomplete="username"/>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label">Role *</label>
+        <select class="auth-select" id="roleId">
+          <option value="">— Select role —</option>
+        </select>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label">Password *</label>
+        <input class="auth-input" type="password" id="password" placeholder="At least 6 characters" autocomplete="new-password"/>
+        <span class="password-hint">Minimum 6 characters</span>
+      </div>
+
+      <div class="auth-field">
+        <label class="auth-label">Confirm Password *</label>
+        <input class="auth-input" type="password" id="confirmPassword" placeholder="Repeat password" autocomplete="new-password"/>
+      </div>
+
+      <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create account</button>
+    </form>
+
+    <div class="auth-divider" style="margin-top:22px;"><span>or</span></div>
+
+    <div class="auth-link-row" style="margin-top:14px;">
+      Already have an account? <span class="auth-link" onclick="window.location='login.html'">Sign in</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+
+async function loadRoles() {
+  try {
+    const roles = await ipcRenderer.invoke('roles:all');
+    const sel = document.getElementById('roleId');
+    roles.forEach(r => {
+      sel.innerHTML += `<option value="${r.RoleID}">${r.RoleName}</option>`;
+    });
+  } catch (err) {
+    // fallback static roles if DB not ready
+    const sel = document.getElementById('roleId');
+    sel.innerHTML += `<option value="1">Admin</option><option value="2">Librarian</option><option value="3">Staff</option>`;
+  }
+}
+
+async function doRegister() {
+  const firstName  = document.getElementById('firstName').value.trim();
+  const lastName   = document.getElementById('lastName').value.trim();
+  const email      = document.getElementById('email').value.trim();
+  const username   = document.getElementById('username').value.trim();
+  const roleId     = document.getElementById('roleId').value;
+  const password   = document.getElementById('password').value;
+  const confirm    = document.getElementById('confirmPassword').value;
+  const errEl      = document.getElementById('reg-error');
+  const successEl  = document.getElementById('reg-success');
+  const btn        = document.getElementById('reg-btn');
+
+  errEl.classList.remove('show');
+  successEl.classList.remove('show');
+
+  // Validation
+  if (!firstName || !lastName) return showError('First and last name are required.');
+  if (!username) return showError('Username is required.');
+  if (!roleId) return showError('Please select a role.');
+  if (!password) return showError('Password is required.');
+  if (password.length < 6) return showError('Password must be at least 6 characters.');
+  if (password !== confirm) return showError('Passwords do not match.');
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+
+  try {
+    const result = await ipcRenderer.invoke('auth:register', {
+      firstName, lastName, email, username, roleId: parseInt(roleId), password
+    });
+
+    if (result.success) {
+      successEl.textContent = 'Account created! Redirecting to login…';
+      successEl.classList.add('show');
+      setTimeout(() => { window.location = 'login.html'; }, 1800);
+    } else {
+      showError(result.message || 'Registration failed. Please try again.');
+    }
+  } catch (err) {
+    showError('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('reg-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+// Allow Enter
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+
+loadRoles();
+</script>
+</body>
+</html>
