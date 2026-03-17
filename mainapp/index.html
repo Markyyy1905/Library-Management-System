@@ -9,7 +9,7 @@
 <body>
 <div class="app">
 
-  <!-- ── Sidebar ── -->
+  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon"></div>
@@ -19,35 +19,38 @@
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
       <a href="index.html" class="nav-item active">
-        <span class="nav-icon"></span> Dashboard
+        <span class="nav-icon">⊞</span> Dashboard
       </a>
       <a href="books.html" class="nav-item">
-        <span class="nav-icon"></span> Books
+        <span class="nav-icon">◫</span> Books
       </a>
       <a href="members.html" class="nav-item">
-        <span class="nav-icon"></span> Members
+        <span class="nav-icon">◎</span> Members
       </a>
       <a href="borrowing.html" class="nav-item">
-        <span class="nav-icon"></span> Borrowing
+        <span class="nav-icon">⇄</span> Borrowing
         <span class="nav-badge" id="overdue-badge">3</span>
       </a>
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html" class="nav-item">
-        <span class="nav-icon"></span> Reports
+        <span class="nav-icon">◈</span> Reports
       </a>
     </nav>
     <div class="sidebar-footer">
-      <div style="font-weight:500; color: var(--text); margin-bottom:2px;">Admin User</div>
-      <div>Administrator</div>
+      <div class="avatar">AU</div>
+      <div>
+        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
+        <div style="font-size:11px;">Administrator</div>
+      </div>
     </div>
   </aside>
 
-  <!-- ── Main ── -->
+  <!-- Main -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">
         <h2>Dashboard</h2>
-        <p id="today-date">Thursday, March 12, 2026</p>
+        <p id="today-date"></p>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-outline btn-sm">⚙ Settings</button>
@@ -60,7 +63,7 @@
       <!-- Alert Bar -->
       <div class="alert-bar">
         ⚠ <strong>3 overdue books</strong> — Members have unreturned books past their due date.
-        <a href="borrowing.html" style="margin-left:auto; color:var(--red); font-weight:600; text-decoration:none;">View All →</a>
+        <a href="borrowing.html" style="margin-left:auto; color:var(--red); font-weight:600; text-decoration:none; font-size:12px;">View All →</a>
       </div>
 
       <!-- Stat Cards -->
@@ -81,13 +84,13 @@
           <div class="stat-label">Books Borrowed</div>
           <div class="stat-value">87</div>
           <div class="stat-sub">Currently checked out</div>
-          <div class="stat-icon">🔄</div>
+          <div class="stat-icon">⇄</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue</div>
           <div class="stat-value" style="color:var(--red)">3</div>
-          <div class="stat-sub">Require follow-up</div>
-          <div class="stat-icon">⚠</div>
+          <div class="stat-sub" style="color:var(--red);opacity:0.6;">Require follow-up</div>
+          <div class="stat-icon" style="opacity:0.08;">⚠</div>
         </div>
       </div>
 
@@ -155,44 +158,44 @@
           <div class="col-card-body">
             <div class="recent-list">
               <div class="recent-item">
-                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">01</div>
+                <div class="recent-avatar" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--bg3);">01</div>
                 <div class="recent-info">
                   <div class="recent-title">Atomic Habits</div>
                   <div class="recent-meta">James Clear · 24 borrows</div>
                 </div>
-                <div style="font-size:12px;color:var(--muted);">2 left</div>
+                <div style="font-size:12px;color:var(--muted2);">2 left</div>
               </div>
               <div class="recent-item">
-                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">02</div>
+                <div class="recent-avatar" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--bg3);">02</div>
                 <div class="recent-info">
                   <div class="recent-title">Sapiens</div>
                   <div class="recent-meta">Yuval Noah Harari · 19 borrows</div>
                 </div>
-                <div style="font-size:12px;color:var(--muted);">1 left</div>
+                <div style="font-size:12px;color:var(--muted2);">1 left</div>
               </div>
               <div class="recent-item">
-                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">03</div>
+                <div class="recent-avatar" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--bg3);">03</div>
                 <div class="recent-info">
                   <div class="recent-title">The Alchemist</div>
                   <div class="recent-meta">Paulo Coelho · 18 borrows</div>
                 </div>
-                <div style="font-size:12px;color:var(--muted);">3 left</div>
+                <div style="font-size:12px;color:var(--muted2);">3 left</div>
               </div>
               <div class="recent-item">
-                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">04</div>
+                <div class="recent-avatar" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--bg3);">04</div>
                 <div class="recent-info">
                   <div class="recent-title">1984</div>
                   <div class="recent-meta">George Orwell · 15 borrows</div>
                 </div>
-                <div style="font-size:12px;color:var(--muted);">0 left</div>
+                <div style="font-size:12px;color:var(--red);">0 left</div>
               </div>
               <div class="recent-item">
-                <div class="recent-avatar" style="font-size:13px;font-weight:700;color:var(--accent);">05</div>
+                <div class="recent-avatar" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--bg3);">05</div>
                 <div class="recent-info">
                   <div class="recent-title">Think and Grow Rich</div>
                   <div class="recent-meta">Napoleon Hill · 14 borrows</div>
                 </div>
-                <div style="font-size:12px;color:var(--muted);">2 left</div>
+                <div style="font-size:12px;color:var(--muted2);">2 left</div>
               </div>
             </div>
           </div>

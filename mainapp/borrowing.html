@@ -17,16 +17,19 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
-      <a href="books.html" class="nav-item"><span class="nav-icon"></span> Books</a>
-      <a href="members.html" class="nav-item"><span class="nav-icon"></span> Members</a>
-      <a href="borrowing.html" class="nav-item active"><span class="nav-icon"></span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="books.html" class="nav-item"><span class="nav-icon">◫</span> Books</a>
+      <a href="members.html" class="nav-item"><span class="nav-icon">◎</span> Members</a>
+      <a href="borrowing.html" class="nav-item active"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◈</span> Reports</a>
     </nav>
     <div class="sidebar-footer">
-      <div style="font-weight:500;color:var(--text);margin-bottom:2px;">Admin User</div>
-      <div>Administrator</div>
+      <div class="avatar">AU</div>
+      <div>
+        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
+        <div style="font-size:11px;">Administrator</div>
+      </div>
     </div>
   </aside>
 
@@ -44,44 +47,40 @@
 
     <div class="content">
 
-      <!-- Stats -->
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Active Loans</div>
           <div class="stat-value">87</div>
-          <div class="stat-icon">🔄</div>
+          <div class="stat-icon">⇄</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue</div>
           <div class="stat-value" style="color:var(--red)">3</div>
-          <div class="stat-icon">⚠</div>
+          <div class="stat-icon" style="opacity:0.08;">⚠</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Returned Today</div>
           <div class="stat-value" style="color:var(--green)">5</div>
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon" style="opacity:0.08;">↩</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Borrowed Today</div>
           <div class="stat-value">7</div>
-          <div class="stat-icon">📤</div>
+          <div class="stat-icon">↗</div>
         </div>
       </div>
 
-      <!-- Overdue Alert -->
       <div class="alert-bar">
         ⚠ <strong>3 books are overdue</strong> — Please contact the members for return.
       </div>
 
-      <!-- Tabs -->
-      <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;">
+      <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;">
         <button class="tab-btn active" onclick="switchTab('all', this)">All Records</button>
         <button class="tab-btn" onclick="switchTab('active', this)">Active</button>
         <button class="tab-btn" onclick="switchTab('overdue', this)">Overdue</button>
         <button class="tab-btn" onclick="switchTab('returned', this)">Returned</button>
       </div>
 
-      <!-- Toolbar -->
       <div class="toolbar">
         <div class="search-wrap">
           <span class="search-icon">🔍</span>
@@ -90,11 +89,10 @@
         <input class="select-filter" type="date" title="Filter by date"/>
       </div>
 
-      <!-- Table -->
       <div class="table-wrap">
         <div class="table-header">
           <h3>Borrow Records</h3>
-          <span style="font-size:12px;color:var(--muted);">Showing <strong id="row-count" style="color:var(--text);">8</strong> records</span>
+          <span style="font-size:12px;color:var(--muted2);">Showing <strong id="row-count" style="color:var(--text2);">8</strong> records</span>
         </div>
         <table id="borrow-table">
           <thead>
@@ -115,7 +113,7 @@
               <td><strong>Juan Dela Cruz</strong></td>
               <td>1984</td>
               <td class="td-muted">Feb 24, 2026</td>
-              <td style="color:var(--red);font-weight:600;">Mar 10, 2026</td>
+              <td style="color:var(--red);font-weight:500;font-size:12px;">Mar 10, 2026</td>
               <td class="td-muted">—</td>
               <td><span class="badge badge-red">Overdue</span></td>
               <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
@@ -125,7 +123,7 @@
               <td><strong>Liza Torres</strong></td>
               <td>The Alchemist</td>
               <td class="td-muted">Feb 26, 2026</td>
-              <td style="color:var(--red);font-weight:600;">Mar 12, 2026</td>
+              <td style="color:var(--red);font-weight:500;font-size:12px;">Mar 12, 2026</td>
               <td class="td-muted">—</td>
               <td><span class="badge badge-red">Overdue</span></td>
               <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
@@ -135,7 +133,7 @@
               <td><strong>Carlos Bautista</strong></td>
               <td>Sapiens</td>
               <td class="td-muted">Mar 1, 2026</td>
-              <td style="color:var(--red);font-weight:600;">Mar 8, 2026</td>
+              <td style="color:var(--red);font-weight:500;font-size:12px;">Mar 8, 2026</td>
               <td class="td-muted">—</td>
               <td><span class="badge badge-red">Overdue</span></td>
               <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
@@ -166,9 +164,9 @@
               <td>Clean Code</td>
               <td class="td-muted">Mar 1, 2026</td>
               <td class="td-muted">Mar 15, 2026</td>
-              <td class="td-muted" style="color:var(--green)">Mar 10, 2026</td>
+              <td style="color:var(--green);font-size:12px;">Mar 10, 2026</td>
               <td><span class="badge badge-green">Returned</span></td>
-              <td><span style="font-size:12px;color:var(--muted);">—</span></td>
+              <td><span style="font-size:12px;color:var(--muted2);">—</span></td>
             </tr>
             <tr data-status="returned">
               <td class="td-muted">#B-007</td>
@@ -176,9 +174,9 @@
               <td>Think and Grow Rich</td>
               <td class="td-muted">Feb 20, 2026</td>
               <td class="td-muted">Mar 6, 2026</td>
-              <td class="td-muted" style="color:var(--green)">Mar 4, 2026</td>
+              <td style="color:var(--green);font-size:12px;">Mar 4, 2026</td>
               <td><span class="badge badge-green">Returned</span></td>
-              <td><span style="font-size:12px;color:var(--muted);">—</span></td>
+              <td><span style="font-size:12px;color:var(--muted2);">—</span></td>
             </tr>
             <tr data-status="returned">
               <td class="td-muted">#B-008</td>
@@ -186,9 +184,9 @@
               <td>Sapiens</td>
               <td class="td-muted">Feb 24, 2026</td>
               <td class="td-muted">Mar 10, 2026</td>
-              <td class="td-muted" style="color:var(--green)">Mar 9, 2026</td>
+              <td style="color:var(--green);font-size:12px;">Mar 9, 2026</td>
               <td><span class="badge badge-green">Returned</span></td>
-              <td><span style="font-size:12px;color:var(--muted);">—</span></td>
+              <td><span style="font-size:12px;color:var(--muted2);">—</span></td>
             </tr>
           </tbody>
         </table>
@@ -265,10 +263,10 @@
       <button class="modal-close" onclick="closeModal('return-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Returning</div>
-        <div style="font-weight:600;font-size:15px;">1984 — George Orwell</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Borrowed by Juan Dela Cruz · Borrow #B-001</div>
+      <div class="info-box">
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Returning</div>
+        <div style="font-weight:600;font-size:14.5px;color:var(--text);">1984 — George Orwell</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Borrowed by Juan Dela Cruz · Borrow #B-001</div>
       </div>
       <div class="form-grid">
         <div class="form-group">
@@ -288,7 +286,7 @@
           <textarea class="form-textarea" placeholder="Any remarks about this return…"></textarea>
         </div>
       </div>
-      <div style="background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.3);border-radius:8px;padding:12px;font-size:13px;color:var(--red);">
+      <div class="alert-bar" style="margin-top:4px;margin-bottom:0;">
         ⚠ This book is <strong>overdue by 2 days</strong>. Consider noting a late fee.
       </div>
     </div>
@@ -299,26 +297,7 @@
   </div>
 </div>
 
-<style>
-.tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: 8px 16px;
-  color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: -1px;
-  transition: all 0.15s;
-}
-.tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
-.tab-btn:hover:not(.active) { color: var(--text); }
-</style>
-
 <script>
-// Set today's date defaults
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('borrow-date').value = today;

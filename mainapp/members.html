@@ -17,16 +17,19 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
-      <a href="books.html" class="nav-item"><span class="nav-icon"></span> Books</a>
-      <a href="members.html" class="nav-item active"><span class="nav-icon"></span> Members</a>
-      <a href="borrowing.html" class="nav-item"><span class="nav-icon"></span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="books.html" class="nav-item"><span class="nav-icon">◫</span> Books</a>
+      <a href="members.html" class="nav-item active"><span class="nav-icon">◎</span> Members</a>
+      <a href="borrowing.html" class="nav-item"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◈</span> Reports</a>
     </nav>
     <div class="sidebar-footer">
-      <div style="font-weight:500;color:var(--text);margin-bottom:2px;">Admin User</div>
-      <div>Administrator</div>
+      <div class="avatar">AU</div>
+      <div>
+        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
+        <div style="font-size:11px;">Administrator</div>
+      </div>
     </div>
   </aside>
 
@@ -53,17 +56,17 @@
         <div class="stat-card">
           <div class="stat-label">Active</div>
           <div class="stat-value" style="color:var(--green)">318</div>
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon" style="opacity:0.08;">✓</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Suspended</div>
           <div class="stat-value" style="color:var(--red)">12</div>
-          <div class="stat-icon">🚫</div>
+          <div class="stat-icon" style="opacity:0.08;">⊘</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">New This Month</div>
           <div class="stat-value">8</div>
-          <div class="stat-icon">🆕</div>
+          <div class="stat-icon">✦</div>
         </div>
       </div>
 
@@ -83,7 +86,7 @@
       <div class="table-wrap">
         <div class="table-header">
           <h3>Member Registry</h3>
-          <span style="font-size:12px;color:var(--muted);">Showing <strong id="row-count" style="color:var(--text);">7</strong> members</span>
+          <span style="font-size:12px;color:var(--muted2);">Showing <strong id="row-count" style="color:var(--text2);">7</strong> members</span>
         </div>
         <table id="members-table">
           <thead>
@@ -107,9 +110,9 @@
               <td>3</td>
               <td class="td-muted">Jan 5, 2025</td>
               <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
             <tr>
@@ -120,9 +123,9 @@
               <td>1</td>
               <td class="td-muted">Feb 14, 2025</td>
               <td><span class="badge badge-red">Suspended</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
             <tr>
@@ -133,9 +136,9 @@
               <td>5</td>
               <td class="td-muted">Mar 1, 2025</td>
               <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
             <tr>
@@ -146,9 +149,9 @@
               <td>2</td>
               <td class="td-muted">Apr 20, 2025</td>
               <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
             <tr>
@@ -159,9 +162,9 @@
               <td>1</td>
               <td class="td-muted">Jun 3, 2025</td>
               <td><span class="badge badge-red">Suspended</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
             <tr>
@@ -172,9 +175,9 @@
               <td>8</td>
               <td class="td-muted">Aug 15, 2025</td>
               <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
             <tr>
@@ -185,9 +188,9 @@
               <td>0</td>
               <td class="td-muted">Mar 10, 2026</td>
               <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">📋 History</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
               </div></td>
             </tr>
           </tbody>

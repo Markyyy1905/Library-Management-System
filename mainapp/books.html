@@ -9,7 +9,6 @@
 <body>
 <div class="app">
 
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon"></div>
@@ -18,20 +17,22 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
-      <a href="books.html" class="nav-item active"><span class="nav-icon"></span> Books</a>
-      <a href="members.html" class="nav-item"><span class="nav-icon"></span> Members</a>
-      <a href="borrowing.html" class="nav-item"><span class="nav-icon"></span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="books.html" class="nav-item active"><span class="nav-icon">◫</span> Books</a>
+      <a href="members.html" class="nav-item"><span class="nav-icon">◎</span> Members</a>
+      <a href="borrowing.html" class="nav-item"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">◈</span> Reports</a>
     </nav>
     <div class="sidebar-footer">
-      <div style="font-weight:500;color:var(--text);margin-bottom:2px;">Admin User</div>
-      <div>Administrator</div>
+      <div class="avatar">AU</div>
+      <div>
+        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
+        <div style="font-size:11px;">Administrator</div>
+      </div>
     </div>
   </aside>
 
-  <!-- Main -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">
@@ -46,7 +47,6 @@
 
     <div class="content">
 
-      <!-- Stats row -->
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Total Titles</div>
@@ -56,21 +56,20 @@
         <div class="stat-card">
           <div class="stat-label">Available</div>
           <div class="stat-value" style="color:var(--green)">1,161</div>
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon" style="opacity:0.08;">✓</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Borrowed</div>
           <div class="stat-value" style="color:var(--blue)">87</div>
-          <div class="stat-icon">🔄</div>
+          <div class="stat-icon" style="opacity:0.08;">⇄</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Genres</div>
           <div class="stat-value">14</div>
-          <div class="stat-icon">🏷</div>
+          <div class="stat-icon">◈</div>
         </div>
       </div>
 
-      <!-- Toolbar -->
       <div class="toolbar">
         <div class="search-wrap">
           <span class="search-icon">🔍</span>
@@ -93,11 +92,10 @@
         </select>
       </div>
 
-      <!-- Table -->
       <div class="table-wrap">
         <div class="table-header">
           <h3>Book Catalog</h3>
-          <span style="font-size:12px;color:var(--muted);">Showing <strong id="row-count" style="color:var(--text);">8</strong> books</span>
+          <span style="font-size:12px;color:var(--muted2);">Showing <strong id="row-count" style="color:var(--text2);">8</strong> books</span>
         </div>
         <table id="books-table">
           <thead>
@@ -120,12 +118,11 @@
               <td class="td-muted">978-0735211292</td>
               <td><span class="badge badge-blue">Self-Help</span></td>
               <td class="td-muted">2018</td>
-              <td>5</td>
-              <td>2</td>
+              <td>5</td><td>2</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -134,12 +131,11 @@
               <td class="td-muted">978-0451524935</td>
               <td><span class="badge badge-gold">Fiction</span></td>
               <td class="td-muted">1949</td>
-              <td>3</td>
-              <td>0</td>
+              <td>3</td><td>0</td>
               <td><span class="badge badge-red">Unavailable</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -148,12 +144,11 @@
               <td class="td-muted">978-0062316097</td>
               <td><span class="badge badge-blue">History</span></td>
               <td class="td-muted">2011</td>
-              <td>4</td>
-              <td>1</td>
+              <td>4</td><td>1</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -162,12 +157,11 @@
               <td class="td-muted">978-0062315007</td>
               <td><span class="badge badge-gold">Fiction</span></td>
               <td class="td-muted">1988</td>
-              <td>5</td>
-              <td>3</td>
+              <td>5</td><td>3</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -176,12 +170,11 @@
               <td class="td-muted">978-1585424337</td>
               <td><span class="badge badge-blue">Self-Help</span></td>
               <td class="td-muted">1937</td>
-              <td>3</td>
-              <td>2</td>
+              <td>3</td><td>2</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -190,12 +183,11 @@
               <td class="td-muted">978-0743273565</td>
               <td><span class="badge badge-gold">Fiction</span></td>
               <td class="td-muted">1925</td>
-              <td>4</td>
-              <td>2</td>
+              <td>4</td><td>2</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -204,12 +196,11 @@
               <td class="td-muted">978-0132350884</td>
               <td><span class="badge badge-gray">Technology</span></td>
               <td class="td-muted">2008</td>
-              <td>2</td>
-              <td>1</td>
+              <td>2</td><td>1</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
             <tr>
@@ -218,18 +209,16 @@
               <td class="td-muted">978-0553380163</td>
               <td><span class="badge badge-green">Science</span></td>
               <td class="td-muted">1988</td>
-              <td>3</td>
-              <td>3</td>
+              <td>3</td><td>3</td>
               <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:6px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">✏ Edit</button>
-                <button class="btn btn-danger btn-sm">🗑</button>
+              <td><div style="display:flex;gap:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
               </div></td>
             </tr>
           </tbody>
         </table>
       </div>
-
     </div>
   </div>
 </div>
@@ -304,8 +293,7 @@ function filterTable(val) {
   const rows = document.querySelectorAll('#books-table tbody tr');
   let count = 0;
   rows.forEach(r => {
-    const text = r.textContent.toLowerCase();
-    const show = text.includes(val.toLowerCase());
+    const show = r.textContent.toLowerCase().includes(val.toLowerCase());
     r.style.display = show ? '' : 'none';
     if (show) count++;
   });

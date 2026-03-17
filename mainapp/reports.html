@@ -17,16 +17,19 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
-      <a href="books.html" class="nav-item"><span class="nav-icon"></span> Books</a>
-      <a href="members.html" class="nav-item"><span class="nav-icon"></span> Members</a>
-      <a href="borrowing.html" class="nav-item"><span class="nav-icon"></span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="books.html" class="nav-item"><span class="nav-icon">◫</span> Books</a>
+      <a href="members.html" class="nav-item"><span class="nav-icon">◎</span> Members</a>
+      <a href="borrowing.html" class="nav-item"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item active"><span class="nav-icon"></span> Reports</a>
+      <a href="reports.html" class="nav-item active"><span class="nav-icon">◈</span> Reports</a>
     </nav>
     <div class="sidebar-footer">
-      <div style="font-weight:500;color:var(--text);margin-bottom:2px;">Admin User</div>
-      <div>Administrator</div>
+      <div class="avatar">AU</div>
+      <div>
+        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
+        <div style="font-size:11px;">Administrator</div>
+      </div>
     </div>
   </aside>
 
@@ -50,12 +53,12 @@
     <div class="content">
 
       <!-- KPI Cards -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Total Borrows</div>
           <div class="stat-value">248</div>
           <div class="stat-sub" style="color:var(--green)">↑ 14% vs last month</div>
-          <div class="stat-icon">📤</div>
+          <div class="stat-icon">↗</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Returns</div>
@@ -67,18 +70,18 @@
           <div class="stat-label">New Members</div>
           <div class="stat-value">28</div>
           <div class="stat-sub" style="color:var(--red)">↓ 3% vs last month</div>
-          <div class="stat-icon">👤</div>
+          <div class="stat-icon">◎</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue Rate</div>
           <div class="stat-value">3.4%</div>
           <div class="stat-sub" style="color:var(--green)">↓ from 5.1%</div>
-          <div class="stat-icon">⚠</div>
+          <div class="stat-icon" style="opacity:0.08;">⚠</div>
         </div>
       </div>
 
       <!-- Charts Row -->
-      <div class="two-col" style="margin-bottom:24px;">
+      <div class="two-col" style="margin-bottom:16px;">
 
         <!-- Monthly Activity Bar Chart -->
         <div class="col-card">
@@ -86,7 +89,7 @@
             <h3>Monthly Borrow Activity</h3>
           </div>
           <div class="col-card-body">
-            <div class="chart-bar-wrap" id="bar-chart"></div>
+            <div id="bar-chart"></div>
           </div>
         </div>
 
@@ -102,14 +105,13 @@
 
       </div>
 
-      <!-- Two tables side by side -->
+      <!-- Two tables -->
       <div class="two-col">
 
-        <!-- Top Borrowed Books -->
         <div class="col-card">
           <div class="col-card-header">
             <h3>Most Borrowed Books</h3>
-            <span style="font-size:12px;color:var(--muted);">This month</span>
+            <span style="font-size:11.5px;color:var(--muted2);">This month</span>
           </div>
           <div class="col-card-body" style="padding:0;">
             <table>
@@ -123,31 +125,31 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">01</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">01</td>
                   <td><strong>Atomic Habits</strong></td>
                   <td class="td-muted">James Clear</td>
                   <td><span class="badge badge-blue">24</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">02</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">02</td>
                   <td><strong>Sapiens</strong></td>
                   <td class="td-muted">Y.N. Harari</td>
                   <td><span class="badge badge-blue">19</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">03</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">03</td>
                   <td><strong>The Alchemist</strong></td>
                   <td class="td-muted">Paulo Coelho</td>
                   <td><span class="badge badge-blue">18</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">04</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">04</td>
                   <td><strong>1984</strong></td>
                   <td class="td-muted">G. Orwell</td>
                   <td><span class="badge badge-blue">15</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">05</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">05</td>
                   <td><strong>Think and Grow Rich</strong></td>
                   <td class="td-muted">N. Hill</td>
                   <td><span class="badge badge-blue">14</span></td>
@@ -157,11 +159,10 @@
           </div>
         </div>
 
-        <!-- Most Active Members -->
         <div class="col-card">
           <div class="col-card-header">
             <h3>Most Active Members</h3>
-            <span style="font-size:12px;color:var(--muted);">This month</span>
+            <span style="font-size:11.5px;color:var(--muted2);">This month</span>
           </div>
           <div class="col-card-body" style="padding:0;">
             <table>
@@ -175,31 +176,31 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">01</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">01</td>
                   <td><strong>Roberto Garcia</strong></td>
                   <td>8</td>
                   <td><span class="badge badge-green">Active</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">02</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">02</td>
                   <td><strong>Ana Reyes</strong></td>
                   <td>5</td>
                   <td><span class="badge badge-green">Active</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">03</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">03</td>
                   <td><strong>Maria Santos</strong></td>
                   <td>3</td>
                   <td><span class="badge badge-green">Active</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">04</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">04</td>
                   <td><strong>Carlos Bautista</strong></td>
                   <td>2</td>
                   <td><span class="badge badge-green">Active</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--accent);font-weight:700;">05</td>
+                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">05</td>
                   <td><strong>Juan Dela Cruz</strong></td>
                   <td>1</td>
                   <td><span class="badge badge-red">Suspended</span></td>
@@ -215,40 +216,6 @@
   </div>
 </div>
 
-<style>
-/* ── Bar Chart ── */
-.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; padding-bottom: 24px; position: relative; }
-.bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.bar-fill {
-  width: 100%;
-  background: var(--accent);
-  border-radius: 4px 4px 0 0;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-  position: relative;
-}
-.bar-fill:hover { opacity: 1; }
-.bar-fill .bar-tip {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--accent2);
-  white-space: nowrap;
-}
-.bar-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
-
-/* ── Genre donut ── */
-.genre-list { display: flex; flex-direction: column; gap: 10px; }
-.genre-row { display: flex; align-items: center; gap: 10px; }
-.genre-name { font-size: 13px; width: 90px; flex-shrink: 0; }
-.genre-bar-track { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
-.genre-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-.genre-pct { font-size: 12px; color: var(--muted); width: 36px; text-align: right; flex-shrink: 0; }
-</style>
-
 <script>
 // Bar chart
 const months = [
@@ -263,39 +230,41 @@ const maxVal = Math.max(...months.map(m => m.val));
 const barChart = document.getElementById('bar-chart');
 const wrap = document.createElement('div');
 wrap.className = 'bar-chart';
-months.forEach(m => {
+months.forEach((m, i) => {
   const h = Math.round((m.val / maxVal) * 120);
-  wrap.innerHTML += `
-    <div class="bar-item">
-      <div class="bar-fill" style="height:${h}px;">
-        <div class="bar-tip">${m.val}</div>
-      </div>
-      <div class="bar-label">${m.label}</div>
-    </div>`;
+  const item = document.createElement('div');
+  item.className = 'bar-item';
+  item.innerHTML = `
+    <div class="bar-fill" style="height:${h}px;animation-delay:${i * 0.08}s">
+      <div class="bar-tip">${m.val}</div>
+    </div>
+    <div class="bar-label">${m.label}</div>`;
+  wrap.appendChild(item);
 });
 barChart.appendChild(wrap);
 
 // Genre chart
 const genres = [
-  { name: 'Self-Help', pct: 32, color: '#5b8dee' },
-  { name: 'Fiction',   pct: 28, color: '#c9a84c' },
-  { name: 'History',   pct: 16, color: '#4caf78' },
-  { name: 'Science',   pct: 12, color: '#9b7fe8' },
-  { name: 'Technology',pct: 8,  color: '#e05555' },
-  { name: 'Biography', pct: 4,  color: '#7a8299' },
+  { name: 'Self-Help', pct: 32, color: '#2563eb' },
+  { name: 'Fiction',   pct: 28, color: '#d97706' },
+  { name: 'History',   pct: 16, color: '#16a34a' },
+  { name: 'Science',   pct: 12, color: '#7c3aed' },
+  { name: 'Technology',pct: 8,  color: '#dc2626' },
+  { name: 'Biography', pct: 4,  color: '#71717a' },
 ];
 const genreChart = document.getElementById('genre-chart');
 const gl = document.createElement('div');
 gl.className = 'genre-list';
-genres.forEach(g => {
-  gl.innerHTML += `
-    <div class="genre-row">
-      <div class="genre-name">${g.name}</div>
-      <div class="genre-bar-track">
-        <div class="genre-bar-fill" style="width:${g.pct}%;background:${g.color};"></div>
-      </div>
-      <div class="genre-pct">${g.pct}%</div>
-    </div>`;
+genres.forEach((g, i) => {
+  const row = document.createElement('div');
+  row.className = 'genre-row';
+  row.innerHTML = `
+    <div class="genre-name">${g.name}</div>
+    <div class="genre-bar-track">
+      <div class="genre-bar-fill" style="width:${g.pct}%;background:${g.color};animation-delay:${0.1 + i * 0.07}s"></div>
+    </div>
+    <div class="genre-pct">${g.pct}%</div>`;
+  gl.appendChild(row);
 });
 genreChart.appendChild(gl);
 </script>
