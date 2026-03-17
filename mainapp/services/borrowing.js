@@ -28,7 +28,7 @@ const Borrowing = {
       INNER JOIN Members m ON l.MemberID = m.MemberID)
       INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
       INNER JOIN Books bk ON bc.BookID = bk.BookID)
-      LEFT JOIN Users u ON l.IssuedBy = u.UserID
+      LEFT JOIN Users_Table u ON l.IssuedBy = u.UserID
     ORDER BY l.DateBorrowed DESC
   `),
 
