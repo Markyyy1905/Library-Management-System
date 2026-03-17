@@ -3,293 +3,157 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Library MS — Members</title>
+  <title>LMS — Members</title>
   <link rel="stylesheet" href="style/style.css"/>
 </head>
 <body>
 <div class="app">
 
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon"></div>
-      <h1>PUNLAZAN</h1>
-      <span>Library Management</span>
-    </div>
+    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="books.html" class="nav-item"><span class="nav-icon">◫</span> Books</a>
-      <a href="members.html" class="nav-item active"><span class="nav-icon">◎</span> Members</a>
-      <a href="borrowing.html" class="nav-item"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html"     class="nav-item">Dashboard</a>
+      <a href="books.html"     class="nav-item">Books</a>
+      <a href="members.html"   class="nav-item active">Members</a>
+      <a href="borrowing.html" class="nav-item">Borrowing</a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◈</span> Reports</a>
+      <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="avatar">AU</div>
-      <div>
-        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
-        <div style="font-size:11px;">Administrator</div>
-      </div>
-    </div>
+    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
   </aside>
 
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">
-        <h2>Members</h2>
-        <p>Manage library member accounts</p>
+        <h2>MEMBERS</h2>
+        <p>Member registry</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-outline btn-sm">↓ Export</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
         <button class="btn btn-primary btn-sm" onclick="openModal('add')">+ Add Member</button>
       </div>
     </div>
 
     <div class="content">
 
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
-        <div class="stat-card">
-          <div class="stat-label">Total Members</div>
-          <div class="stat-value">342</div>
-          <div class="stat-icon">👥</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Active</div>
-          <div class="stat-value" style="color:var(--green)">318</div>
-          <div class="stat-icon" style="opacity:0.08;">✓</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Suspended</div>
-          <div class="stat-value" style="color:var(--red)">12</div>
-          <div class="stat-icon" style="opacity:0.08;">⊘</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">New This Month</div>
-          <div class="stat-value">8</div>
-          <div class="stat-icon">✦</div>
-        </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="s-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="s-active" style="color:var(--green)">—</div></div>
+        <div class="stat-card"><div class="stat-label">Suspended</div><div class="stat-value" id="s-suspended" style="color:var(--red)">—</div></div>
+        <div class="stat-card"><div class="stat-label">With Active Loans</div><div class="stat-value" id="s-loans" style="color:var(--blue)">—</div></div>
       </div>
 
       <div class="toolbar">
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input class="search-input" type="text" placeholder="Search name, email, phone…" oninput="filterTable(this.value)"/>
+          <span class="search-icon">⌕</span>
+          <input class="search-input" type="text" placeholder="Search name, email…" oninput="search(this.value)"/>
         </div>
         <select class="select-filter" onchange="filterStatus(this.value)">
           <option value="">All Status</option>
-          <option>Active</option>
-          <option>Suspended</option>
-          <option>Expired</option>
+          <option value="Active">Active</option>
+          <option value="Suspended">Suspended</option>
+          <option value="Inactive">Inactive</option>
         </select>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
           <h3>Member Registry</h3>
-          <span style="font-size:12px;color:var(--muted2);">Showing <strong id="row-count" style="color:var(--text2);">7</strong> members</span>
+          <span style="font-size:11px;color:var(--muted);">Showing <strong id="row-count">0</strong> members</span>
         </div>
         <table id="members-table">
           <thead>
             <tr>
-              <th>Member ID</th>
+              <th>ID</th>
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>Books Borrowed</th>
-              <th>Joined</th>
+              <th>Active Loans</th>
+              <th>Registered</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="td-muted">#M-001</td>
-              <td><strong>Maria Santos</strong></td>
-              <td class="td-muted">maria.s@email.com</td>
-              <td class="td-muted">09171234567</td>
-              <td>3</td>
-              <td class="td-muted">Jan 5, 2025</td>
-              <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td class="td-muted">#M-002</td>
-              <td><strong>Juan Dela Cruz</strong></td>
-              <td class="td-muted">juandc@email.com</td>
-              <td class="td-muted">09281234567</td>
-              <td>1</td>
-              <td class="td-muted">Feb 14, 2025</td>
-              <td><span class="badge badge-red">Suspended</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td class="td-muted">#M-003</td>
-              <td><strong>Ana Reyes</strong></td>
-              <td class="td-muted">ana.reyes@email.com</td>
-              <td class="td-muted">09351234567</td>
-              <td>5</td>
-              <td class="td-muted">Mar 1, 2025</td>
-              <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td class="td-muted">#M-004</td>
-              <td><strong>Carlos Bautista</strong></td>
-              <td class="td-muted">carlos.b@email.com</td>
-              <td class="td-muted">09461234567</td>
-              <td>2</td>
-              <td class="td-muted">Apr 20, 2025</td>
-              <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td class="td-muted">#M-005</td>
-              <td><strong>Liza Torres</strong></td>
-              <td class="td-muted">liza.t@email.com</td>
-              <td class="td-muted">09571234567</td>
-              <td>1</td>
-              <td class="td-muted">Jun 3, 2025</td>
-              <td><span class="badge badge-red">Suspended</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td class="td-muted">#M-006</td>
-              <td><strong>Roberto Garcia</strong></td>
-              <td class="td-muted">roberto.g@email.com</td>
-              <td class="td-muted">09681234567</td>
-              <td>8</td>
-              <td class="td-muted">Aug 15, 2025</td>
-              <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td class="td-muted">#M-007</td>
-              <td><strong>Sofia Villanueva</strong></td>
-              <td class="td-muted">sofia.v@email.com</td>
-              <td class="td-muted">09791234567</td>
-              <td>0</td>
-              <td class="td-muted">Mar 10, 2026</td>
-              <td><span class="badge badge-green">Active</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="openHistory()">History</button>
-              </div></td>
-            </tr>
+          <tbody id="members-tbody">
+            <tr><td colspan="8" class="loading-row">Loading…</td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Add/Edit Member Modal -->
+<!-- Add/Edit Modal -->
 <div class="modal-overlay" id="member-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="modal-title">Add New Member</h3>
+      <h3 id="modal-title">ADD MEMBER</h3>
       <button class="modal-close" onclick="closeModal('member-modal')">✕</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="edit-id"/>
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">First Name</label>
-          <input class="form-input" type="text" placeholder="First name"/>
+          <label class="form-label">First Name *</label>
+          <input class="form-input" type="text" id="f-first" placeholder="First name"/>
         </div>
         <div class="form-group">
-          <label class="form-label">Last Name</label>
-          <input class="form-input" type="text" placeholder="Last name"/>
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" type="text" id="f-last" placeholder="Last name"/>
         </div>
         <div class="form-group">
           <label class="form-label">Email</label>
-          <input class="form-input" type="email" placeholder="email@example.com"/>
+          <input class="form-input" type="email" id="f-email" placeholder="email@example.com"/>
         </div>
         <div class="form-group">
           <label class="form-label">Phone</label>
-          <input class="form-input" type="text" placeholder="09XXXXXXXXX"/>
+          <input class="form-input" type="text" id="f-phone" placeholder="09XXXXXXXXX"/>
         </div>
         <div class="form-group full">
           <label class="form-label">Address</label>
-          <input class="form-input" type="text" placeholder="Full address"/>
+          <input class="form-input" type="text" id="f-addr" placeholder="Full address"/>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="status-group" style="display:none;">
           <label class="form-label">Status</label>
-          <select class="form-select">
-            <option>Active</option>
-            <option>Suspended</option>
-            <option>Expired</option>
+          <select class="form-select" id="f-status">
+            <option value="Active">Active</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Inactive">Inactive</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Membership Date</label>
-          <input class="form-input" type="date"/>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('member-modal')">Cancel</button>
-      <button class="btn btn-primary">Save Member</button>
+      <button class="btn btn-primary" onclick="saveMember()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Borrow History Modal -->
+<!-- History Modal -->
 <div class="modal-overlay" id="history-modal">
-  <div class="modal" style="max-width:600px;">
+  <div class="modal" style="max-width:620px;">
     <div class="modal-header">
-      <h3>Borrow History — Maria Santos</h3>
+      <h3 id="history-title">BORROW HISTORY</h3>
       <button class="modal-close" onclick="closeModal('history-modal')">✕</button>
     </div>
     <div class="modal-body" style="padding:0;">
       <table>
         <thead>
           <tr>
-            <th>Book Title</th>
+            <th>Book</th>
+            <th>Copy #</th>
             <th>Borrowed</th>
             <th>Due</th>
             <th>Returned</th>
             <th>Status</th>
+            <th>Fine</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Atomic Habits</strong></td>
-            <td class="td-muted">Feb 28</td>
-            <td class="td-muted">Mar 14</td>
-            <td class="td-muted">Mar 10</td>
-            <td><span class="badge badge-green">Returned</span></td>
-          </tr>
-          <tr>
-            <td><strong>The Alchemist</strong></td>
-            <td class="td-muted">Mar 5</td>
-            <td class="td-muted">Mar 19</td>
-            <td class="td-muted">—</td>
-            <td><span class="badge badge-red">Overdue</span></td>
-          </tr>
-          <tr>
-            <td><strong>The Great Gatsby</strong></td>
-            <td class="td-muted">Mar 12</td>
-            <td class="td-muted">Mar 26</td>
-            <td class="td-muted">—</td>
-            <td><span class="badge badge-blue">Active</span></td>
-          </tr>
+        <tbody id="history-tbody">
+          <tr><td colspan="7" class="loading-row">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -300,41 +164,167 @@
 </div>
 
 <script>
-function openModal(mode) {
-  document.getElementById('modal-title').textContent = mode === 'add' ? 'Add New Member' : 'Edit Member';
+const { ipcRenderer } = require('electron');
+let allMembers = [];
+
+const STATUS_BADGE = { Active: 'badge-green', Suspended: 'badge-red', Inactive: 'badge-gray' };
+
+async function load() {
+  try {
+    const members = await ipcRenderer.invoke('members:all');
+    allMembers = members;
+    renderTable(members);
+    updateStats(members);
+  } catch (err) {
+    document.getElementById('members-tbody').innerHTML =
+      `<tr><td colspan="8" class="error-row">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function updateStats(members) {
+  document.getElementById('s-total').textContent     = members.length;
+  document.getElementById('s-active').textContent    = members.filter(m => m.MembershipStatus === 'Active').length;
+  document.getElementById('s-suspended').textContent = members.filter(m => m.MembershipStatus === 'Suspended').length;
+  document.getElementById('s-loans').textContent     = members.filter(m => (m.ActiveLoans || 0) > 0).length;
+}
+
+function renderTable(members) {
+  document.getElementById('row-count').textContent = members.length;
+  const tbody = document.getElementById('members-tbody');
+  if (!members.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">No members found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = members.map(m => `
+    <tr>
+      <td class="td-mono">#${m.MemberID}</td>
+      <td><strong>${esc(m.LastName)}, ${esc(m.FirstName)}</strong></td>
+      <td class="td-muted">${esc(m.Email || '—')}</td>
+      <td class="td-muted">${esc(m.PhoneNumber || '—')}</td>
+      <td class="td-mono">${m.ActiveLoans || 0}</td>
+      <td class="td-muted">${fmtDate(m.DateRegistered)}</td>
+      <td><span class="badge ${STATUS_BADGE[m.MembershipStatus] || 'badge-gray'}">${m.MembershipStatus}</span></td>
+      <td>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-outline btn-sm" onclick="editMember(${m.MemberID})">Edit</button>
+          <button class="btn btn-outline btn-sm" onclick="showHistory(${m.MemberID}, '${esc(m.FirstName)} ${esc(m.LastName)}')">History</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+let searchTimer;
+function search(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    if (val.trim().length < 2) { renderTable(allMembers); return; }
+    try {
+      const r = await ipcRenderer.invoke('members:search', val.trim());
+      renderTable(r);
+    } catch {}
+  }, 300);
+}
+
+function filterStatus(status) {
+  if (!status) { renderTable(allMembers); return; }
+  renderTable(allMembers.filter(m => m.MembershipStatus === status));
+}
+
+function openModal(mode, member = null) {
+  document.getElementById('modal-title').textContent = mode === 'add' ? 'ADD MEMBER' : 'EDIT MEMBER';
+  document.getElementById('edit-id').value  = member ? member.MemberID : '';
+  document.getElementById('f-first').value  = member ? member.FirstName : '';
+  document.getElementById('f-last').value   = member ? member.LastName : '';
+  document.getElementById('f-email').value  = member ? (member.Email || '') : '';
+  document.getElementById('f-phone').value  = member ? (member.PhoneNumber || '') : '';
+  document.getElementById('f-addr').value   = member ? (member.Address || '') : '';
+  document.getElementById('status-group').style.display = member ? 'flex' : 'none';
+  if (member) document.getElementById('f-status').value = member.MembershipStatus || 'Active';
   document.getElementById('member-modal').classList.add('open');
 }
-function openHistory() {
-  document.getElementById('history-modal').classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 ['member-modal','history-modal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function(e) {
-    if (e.target === this) closeModal(id);
-  });
+  document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id); });
 });
-function filterTable(val) {
-  const rows = document.querySelectorAll('#members-table tbody tr');
-  let count = 0;
-  rows.forEach(r => {
-    const show = r.textContent.toLowerCase().includes(val.toLowerCase());
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
+
+async function editMember(id) {
+  const rows = await ipcRenderer.invoke('members:byId', id);
+  if (rows && rows.length) openModal('edit', rows[0]);
 }
-function filterStatus(status) {
-  const rows = document.querySelectorAll('#members-table tbody tr');
-  let count = 0;
-  rows.forEach(r => {
-    const show = !status || r.textContent.includes(status);
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
+
+async function showHistory(id, name) {
+  document.getElementById('history-title').textContent = `HISTORY — ${name.toUpperCase()}`;
+  document.getElementById('history-tbody').innerHTML = '<tr><td colspan="7" class="loading-row">Loading…</td></tr>';
+  document.getElementById('history-modal').classList.add('open');
+  try {
+    const rows = await ipcRenderer.invoke('members:history', id);
+    const STATUS_B = { Borrowed: 'badge-blue', Returned: 'badge-green', Overdue: 'badge-red' };
+    const FINE_B   = { Paid: 'badge-green', Unpaid: 'badge-red', Waived: 'badge-gray' };
+    if (!rows.length) {
+      document.getElementById('history-tbody').innerHTML =
+        '<tr><td colspan="7" class="loading-row">No borrow history.</td></tr>';
+      return;
+    }
+    document.getElementById('history-tbody').innerHTML = rows.map(r => `
+      <tr>
+        <td><strong>${esc(r.BookTitle)}</strong></td>
+        <td class="td-mono">${esc(r.AccessionNumber || '—')}</td>
+        <td class="td-muted">${fmtDate(r.DateBorrowed)}</td>
+        <td class="td-muted">${fmtDate(r.DueDate)}</td>
+        <td class="td-muted">${fmtDate(r.DateReturned)}</td>
+        <td><span class="badge ${STATUS_B[r.LoanStatus] || 'badge-gray'}">${r.LoanStatus}</span></td>
+        <td>${r.FineAmount ? `<span class="badge ${FINE_B[r.FineStatus]||'badge-gray'}">₱${r.FineAmount}</span>` : '—'}</td>
+      </tr>`).join('');
+  } catch (err) {
+    document.getElementById('history-tbody').innerHTML =
+      `<tr><td colspan="7" class="error-row">Error: ${err.message}</td></tr>`;
+  }
 }
+
+async function saveMember() {
+  const data = {
+    firstName:   document.getElementById('f-first').value.trim(),
+    lastName:    document.getElementById('f-last').value.trim(),
+    email:       document.getElementById('f-email').value.trim(),
+    phoneNumber: document.getElementById('f-phone').value.trim(),
+    address:     document.getElementById('f-addr').value.trim(),
+  };
+  if (!data.firstName || !data.lastName) { alert('First and Last name are required.'); return; }
+  try {
+    const editId = document.getElementById('edit-id').value;
+    if (editId) {
+      await ipcRenderer.invoke('members:update', parseInt(editId), data);
+      const newStatus = document.getElementById('f-status').value;
+      await ipcRenderer.invoke('members:updateStatus', parseInt(editId), newStatus);
+    } else {
+      await ipcRenderer.invoke('members:add', data);
+    }
+    closeModal('member-modal');
+    await load();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+function exportCSV() {
+  const rows = [['ID','LastName','FirstName','Email','Phone','ActiveLoans','Registered','Status']];
+  allMembers.forEach(m => rows.push([m.MemberID, `"${m.LastName}"`, `"${m.FirstName}"`,
+    m.Email||'', m.PhoneNumber||'', m.ActiveLoans||0, m.DateRegistered||'', m.MembershipStatus]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'members.csv';
+  a.click();
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+load();
 </script>
 </body>
 </html>

@@ -3,213 +3,102 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Library MS — Reports</title>
+  <title>LMS — Reports</title>
   <link rel="stylesheet" href="style/style.css"/>
 </head>
 <body>
 <div class="app">
 
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon"></div>
-      <h1>PUNLAZAN</h1>
-      <span>Library Management</span>
-    </div>
+    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="books.html" class="nav-item"><span class="nav-icon">◫</span> Books</a>
-      <a href="members.html" class="nav-item"><span class="nav-icon">◎</span> Members</a>
-      <a href="borrowing.html" class="nav-item"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html"     class="nav-item">Dashboard</a>
+      <a href="books.html"     class="nav-item">Books</a>
+      <a href="members.html"   class="nav-item">Members</a>
+      <a href="borrowing.html" class="nav-item">Borrowing</a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item active"><span class="nav-icon">◈</span> Reports</a>
+      <a href="reports.html"   class="nav-item active">Reports</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="avatar">AU</div>
-      <div>
-        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
-        <div style="font-size:11px;">Administrator</div>
-      </div>
-    </div>
+    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
   </aside>
 
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">
-        <h2>Reports</h2>
-        <p>Library analytics and activity summaries</p>
+        <h2>REPORTS</h2>
+        <p>Analytics &amp; summaries</p>
       </div>
       <div class="topbar-actions">
-        <select class="select-filter" style="font-size:13px;">
-          <option>This Month — March 2026</option>
-          <option>Last Month — February 2026</option>
-          <option>This Year — 2026</option>
-          <option>Last Year — 2025</option>
-        </select>
-        <button class="btn btn-primary btn-sm">↓ Export PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">↓ Print</button>
       </div>
     </div>
 
     <div class="content">
 
-      <!-- KPI Cards -->
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
         <div class="stat-card">
           <div class="stat-label">Total Borrows</div>
-          <div class="stat-value">248</div>
-          <div class="stat-sub" style="color:var(--green)">↑ 14% vs last month</div>
-          <div class="stat-icon">↗</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Returns</div>
-          <div class="stat-value">231</div>
-          <div class="stat-sub" style="color:var(--green)">↑ 8% vs last month</div>
-          <div class="stat-icon">↩</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">New Members</div>
-          <div class="stat-value">28</div>
-          <div class="stat-sub" style="color:var(--red)">↓ 3% vs last month</div>
-          <div class="stat-icon">◎</div>
+          <div class="stat-value" id="r-total">—</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Overdue Rate</div>
-          <div class="stat-value">3.4%</div>
-          <div class="stat-sub" style="color:var(--green)">↓ from 5.1%</div>
-          <div class="stat-icon" style="opacity:0.08;">⚠</div>
+          <div class="stat-value" id="r-rate" style="color:var(--red)">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Fines</div>
+          <div class="stat-value" id="r-fines" style="color:var(--amber)">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Fines Collected</div>
+          <div class="stat-value" id="r-collected" style="color:var(--green)">—</div>
         </div>
       </div>
 
-      <!-- Charts Row -->
-      <div class="two-col" style="margin-bottom:16px;">
-
-        <!-- Monthly Activity Bar Chart -->
-        <div class="col-card">
-          <div class="col-card-header">
-            <h3>Monthly Borrow Activity</h3>
-          </div>
-          <div class="col-card-body">
-            <div id="bar-chart"></div>
-          </div>
-        </div>
-
-        <!-- Genre Breakdown -->
-        <div class="col-card">
-          <div class="col-card-header">
-            <h3>Borrows by Genre</h3>
-          </div>
-          <div class="col-card-body">
-            <div id="genre-chart"></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Two tables -->
       <div class="two-col">
-
         <div class="col-card">
-          <div class="col-card-header">
-            <h3>Most Borrowed Books</h3>
-            <span style="font-size:11.5px;color:var(--muted2);">This month</span>
-          </div>
+          <div class="col-card-header"><h3>Most Borrowed Books</h3></div>
           <div class="col-card-body" style="padding:0;">
             <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Title</th>
-                  <th>Author</th>
-                  <th>Borrows</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">01</td>
-                  <td><strong>Atomic Habits</strong></td>
-                  <td class="td-muted">James Clear</td>
-                  <td><span class="badge badge-blue">24</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">02</td>
-                  <td><strong>Sapiens</strong></td>
-                  <td class="td-muted">Y.N. Harari</td>
-                  <td><span class="badge badge-blue">19</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">03</td>
-                  <td><strong>The Alchemist</strong></td>
-                  <td class="td-muted">Paulo Coelho</td>
-                  <td><span class="badge badge-blue">18</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">04</td>
-                  <td><strong>1984</strong></td>
-                  <td class="td-muted">G. Orwell</td>
-                  <td><span class="badge badge-blue">15</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">05</td>
-                  <td><strong>Think and Grow Rich</strong></td>
-                  <td class="td-muted">N. Hill</td>
-                  <td><span class="badge badge-blue">14</span></td>
-                </tr>
-              </tbody>
+              <thead><tr><th>#</th><th>Title</th><th>Borrows</th></tr></thead>
+              <tbody id="top-books-tbody"><tr><td colspan="3" class="loading-row">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
 
         <div class="col-card">
-          <div class="col-card-header">
-            <h3>Most Active Members</h3>
-            <span style="font-size:11.5px;color:var(--muted2);">This month</span>
-          </div>
+          <div class="col-card-header"><h3>Most Active Members</h3></div>
           <div class="col-card-body" style="padding:0;">
             <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Member</th>
-                  <th>Borrows</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">01</td>
-                  <td><strong>Roberto Garcia</strong></td>
-                  <td>8</td>
-                  <td><span class="badge badge-green">Active</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">02</td>
-                  <td><strong>Ana Reyes</strong></td>
-                  <td>5</td>
-                  <td><span class="badge badge-green">Active</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">03</td>
-                  <td><strong>Maria Santos</strong></td>
-                  <td>3</td>
-                  <td><span class="badge badge-green">Active</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">04</td>
-                  <td><strong>Carlos Bautista</strong></td>
-                  <td>2</td>
-                  <td><span class="badge badge-green">Active</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--muted2);font-weight:600;font-size:11px;">05</td>
-                  <td><strong>Juan Dela Cruz</strong></td>
-                  <td>1</td>
-                  <td><span class="badge badge-red">Suspended</span></td>
-                </tr>
-              </tbody>
+              <thead><tr><th>#</th><th>Member</th><th>Borrows</th><th>Status</th></tr></thead>
+              <tbody id="top-members-tbody"><tr><td colspan="4" class="loading-row">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
+      </div>
 
+      <div class="col-card" style="margin-top:16px;">
+        <div class="col-card-header"><h3>Overdue Loans</h3></div>
+        <div class="col-card-body" style="padding:0;">
+          <table>
+            <thead>
+              <tr><th>Loan ID</th><th>Member</th><th>Book</th><th>Copy #</th><th>Due Date</th><th>Days Late</th></tr>
+            </thead>
+            <tbody id="overdue-tbody"><tr><td colspan="6" class="loading-row">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-card" style="margin-top:16px;">
+        <div class="col-card-header"><h3>Unpaid Fines</h3></div>
+        <div class="col-card-body" style="padding:0;">
+          <table>
+            <thead>
+              <tr><th>Fine ID</th><th>Member</th><th>Book</th><th>Amount</th><th>Issued</th><th>Action</th></tr>
+            </thead>
+            <tbody id="fines-tbody"><tr><td colspan="6" class="loading-row">Loading…</td></tr></tbody>
+          </table>
+        </div>
       </div>
 
     </div>
@@ -217,56 +106,81 @@
 </div>
 
 <script>
-// Bar chart
-const months = [
-  { label: 'Oct', val: 142 },
-  { label: 'Nov', val: 168 },
-  { label: 'Dec', val: 125 },
-  { label: 'Jan', val: 189 },
-  { label: 'Feb', val: 217 },
-  { label: 'Mar', val: 248 },
-];
-const maxVal = Math.max(...months.map(m => m.val));
-const barChart = document.getElementById('bar-chart');
-const wrap = document.createElement('div');
-wrap.className = 'bar-chart';
-months.forEach((m, i) => {
-  const h = Math.round((m.val / maxVal) * 120);
-  const item = document.createElement('div');
-  item.className = 'bar-item';
-  item.innerHTML = `
-    <div class="bar-fill" style="height:${h}px;animation-delay:${i * 0.08}s">
-      <div class="bar-tip">${m.val}</div>
-    </div>
-    <div class="bar-label">${m.label}</div>`;
-  wrap.appendChild(item);
-});
-barChart.appendChild(wrap);
+const { ipcRenderer } = require('electron');
 
-// Genre chart
-const genres = [
-  { name: 'Self-Help', pct: 32, color: '#2563eb' },
-  { name: 'Fiction',   pct: 28, color: '#d97706' },
-  { name: 'History',   pct: 16, color: '#16a34a' },
-  { name: 'Science',   pct: 12, color: '#7c3aed' },
-  { name: 'Technology',pct: 8,  color: '#dc2626' },
-  { name: 'Biography', pct: 4,  color: '#71717a' },
-];
-const genreChart = document.getElementById('genre-chart');
-const gl = document.createElement('div');
-gl.className = 'genre-list';
-genres.forEach((g, i) => {
-  const row = document.createElement('div');
-  row.className = 'genre-row';
-  row.innerHTML = `
-    <div class="genre-name">${g.name}</div>
-    <div class="genre-bar-track">
-      <div class="genre-bar-fill" style="width:${g.pct}%;background:${g.color};animation-delay:${0.1 + i * 0.07}s"></div>
-    </div>
-    <div class="genre-pct">${g.pct}%</div>`;
-  gl.appendChild(row);
-});
-genreChart.appendChild(gl);
+async function load() {
+  try {
+    // Top books
+    const topBooksRaw = await ipcRenderer.invoke('dashboard:recent').then(r => r.topBooks);
+    const topBooks = document.getElementById('top-books-tbody');
+    topBooks.innerHTML = topBooksRaw.length ? topBooksRaw.map((b, i) => `
+      <tr>
+        <td class="td-mono" style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
+        <td><strong>${esc(b.Title)}</strong></td>
+        <td class="td-mono">${b.BorrowCount}</td>
+      </tr>`).join('') : '<tr><td colspan="3" class="loading-row">No data.</td></tr>';
+
+    // Top members
+    let topMembersData = [];
+    try {
+      topMembersData = await ipcRenderer.invoke('members:all');
+      topMembersData.sort((a, b) => (b.TotalBorrows || 0) - (a.TotalBorrows || 0));
+      topMembersData = topMembersData.slice(0, 10);
+    } catch {}
+    const topMems = document.getElementById('top-members-tbody');
+    const STATUS_B = { Active: 'badge-green', Suspended: 'badge-red', Inactive: 'badge-gray' };
+    topMems.innerHTML = topMembersData.length ? topMembersData.map((m, i) => `
+      <tr>
+        <td class="td-mono" style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
+        <td><strong>${esc(m.LastName)}, ${esc(m.FirstName)}</strong></td>
+        <td class="td-mono">${m.TotalBorrows || 0}</td>
+        <td><span class="badge ${STATUS_B[m.MembershipStatus]||'badge-gray'}">${m.MembershipStatus}</span></td>
+      </tr>`).join('') : '<tr><td colspan="4" class="loading-row">No data.</td></tr>';
+
+    // Overdue
+    const overdue = await ipcRenderer.invoke('loans:overdue');
+    const overdueEl = document.getElementById('overdue-tbody');
+    overdueEl.innerHTML = overdue.length ? overdue.map(l => `
+      <tr>
+        <td class="td-mono">#${l.LoanID}</td>
+        <td><strong>${esc(l.MemberName)}</strong></td>
+        <td>${esc(l.BookTitle)}</td>
+        <td class="td-mono">${esc(l.AccessionNumber || '—')}</td>
+        <td style="color:var(--red);font-family:var(--mono);font-size:11px;">${fmtDate(l.DueDate)}</td>
+        <td><span class="badge badge-red">${l.DaysOverdue}d</span></td>
+      </tr>`).join('') : '<tr><td colspan="6" class="loading-row">No overdue loans.</td></tr>';
+
+    // Stats
+    document.getElementById('r-total').textContent = (await ipcRenderer.invoke('loans:all')).length;
+    const allLoans = await ipcRenderer.invoke('loans:all');
+    const rate = allLoans.length > 0
+      ? ((overdue.length / allLoans.length) * 100).toFixed(1) + '%'
+      : '0%';
+    document.getElementById('r-rate').textContent = rate;
+
+    // Fines
+    const allLoansData = await ipcRenderer.invoke('loans:all');
+    // We'll just load from borrowing data
+    let totalFines = 0, collectedFines = 0;
+    const finesEl = document.getElementById('fines-tbody');
+    finesEl.innerHTML = '<tr><td colspan="6" class="loading-row">Data from Fines table — connect DB to view.</td></tr>';
+    document.getElementById('r-fines').textContent = '—';
+    document.getElementById('r-collected').textContent = '—';
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+load();
 </script>
 </body>
 </html>

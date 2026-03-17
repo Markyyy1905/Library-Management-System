@@ -3,222 +3,81 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Library MS — Books</title>
+  <title>LMS — Books</title>
   <link rel="stylesheet" href="style/style.css"/>
 </head>
 <body>
 <div class="app">
 
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon"></div>
-      <h1>PUNLAZAN</h1>
-      <span>Library Management</span>
-    </div>
+    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="books.html" class="nav-item active"><span class="nav-icon">◫</span> Books</a>
-      <a href="members.html" class="nav-item"><span class="nav-icon">◎</span> Members</a>
-      <a href="borrowing.html" class="nav-item"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html"     class="nav-item">Dashboard</a>
+      <a href="books.html"     class="nav-item active">Books</a>
+      <a href="members.html"   class="nav-item">Members</a>
+      <a href="borrowing.html" class="nav-item">Borrowing</a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◈</span> Reports</a>
+      <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="avatar">AU</div>
-      <div>
-        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
-        <div style="font-size:11px;">Administrator</div>
-      </div>
-    </div>
+    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
   </aside>
 
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">
-        <h2>Books</h2>
-        <p>Manage book inventory and catalog</p>
+        <h2>BOOKS</h2>
+        <p>Catalog &amp; copy management</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-outline btn-sm">↓ Export</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
         <button class="btn btn-primary btn-sm" onclick="openModal('add')">+ Add Book</button>
       </div>
     </div>
 
     <div class="content">
 
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:20px;">
-        <div class="stat-card">
-          <div class="stat-label">Total Titles</div>
-          <div class="stat-value">1,248</div>
-          <div class="stat-icon">📚</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Available</div>
-          <div class="stat-value" style="color:var(--green)">1,161</div>
-          <div class="stat-icon" style="opacity:0.08;">✓</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Borrowed</div>
-          <div class="stat-value" style="color:var(--blue)">87</div>
-          <div class="stat-icon" style="opacity:0.08;">⇄</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Genres</div>
-          <div class="stat-value">14</div>
-          <div class="stat-icon">◈</div>
-        </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-label">Total Titles</div><div class="stat-value" id="s-titles">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Copies</div><div class="stat-value" id="s-copies">—</div></div>
+        <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" id="s-avail" style="color:var(--green)">—</div></div>
+        <div class="stat-card"><div class="stat-label">On Loan</div><div class="stat-value" id="s-loan" style="color:var(--blue)">—</div></div>
       </div>
 
       <div class="toolbar">
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input class="search-input" type="text" placeholder="Search by title, author, ISBN…" oninput="filterTable(this.value)"/>
+          <span class="search-icon">⌕</span>
+          <input class="search-input" type="text" placeholder="Search title, ISBN…" oninput="search(this.value)"/>
         </div>
-        <select class="select-filter" onchange="filterGenre(this.value)">
-          <option value="">All Genres</option>
-          <option>Fiction</option>
-          <option>Non-Fiction</option>
-          <option>Science</option>
-          <option>History</option>
-          <option>Self-Help</option>
-          <option>Biography</option>
-          <option>Technology</option>
-        </select>
-        <select class="select-filter">
-          <option value="">All Status</option>
-          <option>Available</option>
-          <option>Unavailable</option>
+        <select class="select-filter" id="cat-filter" onchange="filterCat(this.value)">
+          <option value="">All Categories</option>
         </select>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
           <h3>Book Catalog</h3>
-          <span style="font-size:12px;color:var(--muted2);">Showing <strong id="row-count" style="color:var(--text2);">8</strong> books</span>
+          <span style="font-size:11px;color:var(--muted);">Showing <strong id="row-count">0</strong> titles</span>
         </div>
         <table id="books-table">
           <thead>
             <tr>
               <th>Title</th>
-              <th>Author</th>
+              <th>Author(s)</th>
               <th>ISBN</th>
-              <th>Genre</th>
+              <th>Publisher</th>
               <th>Year</th>
-              <th>Total</th>
-              <th>Available</th>
-              <th>Status</th>
+              <th>Copies</th>
+              <th>Avail</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td><strong>Atomic Habits</strong></td>
-              <td>James Clear</td>
-              <td class="td-muted">978-0735211292</td>
-              <td><span class="badge badge-blue">Self-Help</span></td>
-              <td class="td-muted">2018</td>
-              <td>5</td><td>2</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>1984</strong></td>
-              <td>George Orwell</td>
-              <td class="td-muted">978-0451524935</td>
-              <td><span class="badge badge-gold">Fiction</span></td>
-              <td class="td-muted">1949</td>
-              <td>3</td><td>0</td>
-              <td><span class="badge badge-red">Unavailable</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>Sapiens</strong></td>
-              <td>Yuval Noah Harari</td>
-              <td class="td-muted">978-0062316097</td>
-              <td><span class="badge badge-blue">History</span></td>
-              <td class="td-muted">2011</td>
-              <td>4</td><td>1</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>The Alchemist</strong></td>
-              <td>Paulo Coelho</td>
-              <td class="td-muted">978-0062315007</td>
-              <td><span class="badge badge-gold">Fiction</span></td>
-              <td class="td-muted">1988</td>
-              <td>5</td><td>3</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>Think and Grow Rich</strong></td>
-              <td>Napoleon Hill</td>
-              <td class="td-muted">978-1585424337</td>
-              <td><span class="badge badge-blue">Self-Help</span></td>
-              <td class="td-muted">1937</td>
-              <td>3</td><td>2</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>The Great Gatsby</strong></td>
-              <td>F. Scott Fitzgerald</td>
-              <td class="td-muted">978-0743273565</td>
-              <td><span class="badge badge-gold">Fiction</span></td>
-              <td class="td-muted">1925</td>
-              <td>4</td><td>2</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>Clean Code</strong></td>
-              <td>Robert C. Martin</td>
-              <td class="td-muted">978-0132350884</td>
-              <td><span class="badge badge-gray">Technology</span></td>
-              <td class="td-muted">2008</td>
-              <td>2</td><td>1</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><strong>Brief History of Time</strong></td>
-              <td>Stephen Hawking</td>
-              <td class="td-muted">978-0553380163</td>
-              <td><span class="badge badge-green">Science</span></td>
-              <td class="td-muted">1988</td>
-              <td>3</td><td>3</td>
-              <td><span class="badge badge-green">Available</span></td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-sm" onclick="openModal('edit')">Edit</button>
-                <button class="btn btn-danger btn-sm">Delete</button>
-              </div></td>
-            </tr>
+          <tbody id="books-tbody">
+            <tr><td colspan="8" class="loading-row">Loading…</td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
 </div>
@@ -227,88 +86,210 @@
 <div class="modal-overlay" id="book-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="modal-title">Add New Book</h3>
+      <h3 id="modal-title">ADD BOOK</h3>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="edit-id"/>
       <div class="form-grid">
         <div class="form-group full">
-          <label class="form-label">Book Title</label>
-          <input class="form-input" type="text" placeholder="e.g. Atomic Habits"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Author</label>
-          <input class="form-input" type="text" placeholder="Author name"/>
+          <label class="form-label">Title *</label>
+          <input class="form-input" type="text" id="f-title" placeholder="Book title"/>
         </div>
         <div class="form-group">
           <label class="form-label">ISBN</label>
-          <input class="form-input" type="text" placeholder="978-XXXXXXXXXX"/>
+          <input class="form-input" type="text" id="f-isbn" placeholder="978-…"/>
         </div>
         <div class="form-group">
-          <label class="form-label">Genre</label>
-          <select class="form-select">
-            <option value="">Select Genre</option>
-            <option>Fiction</option>
-            <option>Non-Fiction</option>
-            <option>Science</option>
-            <option>History</option>
-            <option>Self-Help</option>
-            <option>Biography</option>
-            <option>Technology</option>
+          <label class="form-label">Year Published</label>
+          <input class="form-input" type="number" id="f-year" placeholder="e.g. 2024"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Publisher</label>
+          <select class="form-select" id="f-publisher">
+            <option value="">— Select —</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Published Year</label>
-          <input class="form-input" type="number" placeholder="e.g. 2024"/>
+          <label class="form-label">Edition</label>
+          <input class="form-input" type="text" id="f-edition" placeholder="e.g. 2nd"/>
         </div>
         <div class="form-group">
-          <label class="form-label">Total Copies</label>
-          <input class="form-input" type="number" placeholder="e.g. 3" min="1"/>
+          <label class="form-label">Language</label>
+          <input class="form-input" type="text" id="f-lang" placeholder="English" value="English"/>
         </div>
         <div class="form-group full">
-          <label class="form-label">Description (optional)</label>
-          <textarea class="form-textarea" placeholder="Brief description of the book…"></textarea>
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="f-desc" placeholder="Brief description…"></textarea>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary">Save Book</button>
+      <button class="btn btn-primary" onclick="saveBook()">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-function openModal(mode) {
-  document.getElementById('modal-title').textContent = mode === 'add' ? 'Add New Book' : 'Edit Book';
+const { ipcRenderer } = require('electron');
+
+let allBooks = [];
+
+async function load() {
+  try {
+    const [books, publishers, categories] = await Promise.all([
+      ipcRenderer.invoke('books:all'),
+      ipcRenderer.invoke('publishers:all'),
+      ipcRenderer.invoke('categories:all'),
+    ]);
+
+    allBooks = books;
+
+    // Populate filters
+    const catSel = document.getElementById('cat-filter');
+    categories.forEach(c => {
+      catSel.innerHTML += `<option value="${c.CategoryID}">${c.CategoryName}</option>`;
+    });
+
+    const pubSel = document.getElementById('f-publisher');
+    publishers.forEach(p => {
+      pubSel.innerHTML += `<option value="${p.PublisherID}">${p.PublisherName}</option>`;
+    });
+
+    renderTable(books);
+    updateStats(books);
+  } catch (err) {
+    document.getElementById('books-tbody').innerHTML =
+      `<tr><td colspan="8" class="error-row">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function updateStats(books) {
+  const totalCopies = books.reduce((a, b) => a + (b.TotalCopies || 0), 0);
+  const availCopies = books.reduce((a, b) => a + (b.AvailableCopies || 0), 0);
+  document.getElementById('s-titles').textContent = books.length.toLocaleString();
+  document.getElementById('s-copies').textContent = totalCopies.toLocaleString();
+  document.getElementById('s-avail').textContent  = availCopies.toLocaleString();
+  document.getElementById('s-loan').textContent   = (totalCopies - availCopies).toLocaleString();
+}
+
+function renderTable(books) {
+  const tbody = document.getElementById('books-tbody');
+  document.getElementById('row-count').textContent = books.length;
+  if (books.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">No books found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = books.map(b => `
+    <tr>
+      <td><strong>${esc(b.Title)}</strong></td>
+      <td class="td-muted">${esc(b.AuthorNames || '—')}</td>
+      <td class="td-mono">${esc(b.ISBN || '—')}</td>
+      <td class="td-muted">${esc(b.PublisherName || '—')}</td>
+      <td class="td-mono">${b.YearPublished || '—'}</td>
+      <td class="td-mono">${b.TotalCopies || 0}</td>
+      <td>
+        <span class="badge ${(b.AvailableCopies||0) > 0 ? 'badge-green' : 'badge-red'}">
+          ${b.AvailableCopies || 0}
+        </span>
+      </td>
+      <td>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-outline btn-sm" onclick="editBook(${b.BookID})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.BookID})">Del</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+let searchTimer;
+function search(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    if (val.trim().length < 2) { renderTable(allBooks); return; }
+    try {
+      const results = await ipcRenderer.invoke('books:search', val.trim());
+      renderTable(results);
+    } catch {}
+  }, 300);
+}
+
+function filterCat(catId) {
+  if (!catId) { renderTable(allBooks); return; }
+  // Client-side filter by category name for now
+  renderTable(allBooks.filter(b => b.CategoryIDs && String(b.CategoryIDs).includes(catId)));
+}
+
+function openModal(mode, book = null) {
+  document.getElementById('modal-title').textContent = mode === 'add' ? 'ADD BOOK' : 'EDIT BOOK';
+  document.getElementById('edit-id').value = book ? book.BookID : '';
+  document.getElementById('f-title').value   = book ? book.Title : '';
+  document.getElementById('f-isbn').value    = book ? (book.ISBN || '') : '';
+  document.getElementById('f-year').value    = book ? (book.YearPublished || '') : '';
+  document.getElementById('f-edition').value = book ? (book.Edition || '') : '';
+  document.getElementById('f-lang').value    = book ? (book.Language || 'English') : 'English';
+  document.getElementById('f-desc').value    = book ? (book.BookDescription || '') : '';
+  if (book && book.PublisherID) document.getElementById('f-publisher').value = book.PublisherID;
   document.getElementById('book-modal').classList.add('open');
 }
-function closeModal() {
-  document.getElementById('book-modal').classList.remove('open');
+
+function closeModal() { document.getElementById('book-modal').classList.remove('open'); }
+document.getElementById('book-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+async function editBook(id) {
+  const rows = await ipcRenderer.invoke('books:byId', id);
+  if (rows && rows.length) openModal('edit', rows[0]);
 }
-document.getElementById('book-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-function filterTable(val) {
-  const rows = document.querySelectorAll('#books-table tbody tr');
-  let count = 0;
-  rows.forEach(r => {
-    const show = r.textContent.toLowerCase().includes(val.toLowerCase());
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
+
+async function deleteBook(id) {
+  if (!confirm('Delete this book and all its copies?')) return;
+  try {
+    await ipcRenderer.invoke('books:delete', id);
+    allBooks = allBooks.filter(b => b.BookID !== id);
+    renderTable(allBooks);
+    updateStats(allBooks);
+  } catch (err) { alert('Error: ' + err.message); }
 }
-function filterGenre(genre) {
-  const rows = document.querySelectorAll('#books-table tbody tr');
-  let count = 0;
-  rows.forEach(r => {
-    const show = !genre || r.textContent.includes(genre);
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
+
+async function saveBook() {
+  const data = {
+    title:       document.getElementById('f-title').value.trim(),
+    isbn:        document.getElementById('f-isbn').value.trim(),
+    yearPublished: parseInt(document.getElementById('f-year').value) || null,
+    publisherId: parseInt(document.getElementById('f-publisher').value) || null,
+    edition:     document.getElementById('f-edition').value.trim(),
+    language:    document.getElementById('f-lang').value.trim() || 'English',
+    description: document.getElementById('f-desc').value.trim(),
+  };
+  if (!data.title) { alert('Title is required.'); return; }
+  try {
+    const editId = document.getElementById('edit-id').value;
+    if (editId) {
+      await ipcRenderer.invoke('books:update', parseInt(editId), data);
+    } else {
+      await ipcRenderer.invoke('books:add', data);
+    }
+    closeModal();
+    await load();
+  } catch (err) { alert('Error: ' + err.message); }
 }
+
+function exportCSV() {
+  const rows = [['Title','ISBN','Publisher','Year','TotalCopies','Available']];
+  allBooks.forEach(b => rows.push([`"${b.Title}"`, b.ISBN||'', `"${b.PublisherName||''}"`, b.YearPublished||'', b.TotalCopies||0, b.AvailableCopies||0]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'books.csv';
+  a.click();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+load();
 </script>
 </body>
 </html>

@@ -3,194 +3,90 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Library MS — Borrowing</title>
+  <title>LMS — Borrowing</title>
   <link rel="stylesheet" href="style/style.css"/>
 </head>
 <body>
 <div class="app">
 
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon"></div>
-      <h1>PUNLAZAN</h1>
-      <span>Library Management</span>
-    </div>
+    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a href="index.html" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="books.html" class="nav-item"><span class="nav-icon">◫</span> Books</a>
-      <a href="members.html" class="nav-item"><span class="nav-icon">◎</span> Members</a>
-      <a href="borrowing.html" class="nav-item active"><span class="nav-icon">⇄</span> Borrowing<span class="nav-badge">3</span></a>
+      <a href="index.html"     class="nav-item">Dashboard</a>
+      <a href="books.html"     class="nav-item">Books</a>
+      <a href="members.html"   class="nav-item">Members</a>
+      <a href="borrowing.html" class="nav-item active">Borrowing <span class="nav-badge" id="overdue-badge">0</span></a>
       <div class="nav-section-label">Analytics</div>
-      <a href="reports.html" class="nav-item"><span class="nav-icon">◈</span> Reports</a>
+      <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="avatar">AU</div>
-      <div>
-        <div style="font-weight:500;color:var(--text);font-size:12.5px;">Admin User</div>
-        <div style="font-size:11px;">Administrator</div>
-      </div>
-    </div>
+    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
   </aside>
 
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">
-        <h2>Borrowing & Returns</h2>
-        <p>Track book loans and process returns</p>
+        <h2>BORROWING</h2>
+        <p>Loans &amp; returns</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-outline btn-sm" onclick="openModal('return')">↩ Process Return</button>
-        <button class="btn btn-primary btn-sm" onclick="openModal('borrow')">+ New Borrow</button>
+        <button class="btn btn-outline btn-sm" onclick="openReturnModal()">↩ Return</button>
+        <button class="btn btn-primary btn-sm" onclick="openBorrowModal()">+ New Loan</button>
       </div>
     </div>
 
     <div class="content">
 
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
-        <div class="stat-card">
-          <div class="stat-label">Active Loans</div>
-          <div class="stat-value">87</div>
-          <div class="stat-icon">⇄</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Overdue</div>
-          <div class="stat-value" style="color:var(--red)">3</div>
-          <div class="stat-icon" style="opacity:0.08;">⚠</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Returned Today</div>
-          <div class="stat-value" style="color:var(--green)">5</div>
-          <div class="stat-icon" style="opacity:0.08;">↩</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Borrowed Today</div>
-          <div class="stat-value">7</div>
-          <div class="stat-icon">↗</div>
-        </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-label">Active Loans</div><div class="stat-value" id="s-active">—</div></div>
+        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" id="s-overdue" style="color:var(--red)">—</div></div>
+        <div class="stat-card"><div class="stat-label">Returned Today</div><div class="stat-value" id="s-today" style="color:var(--green)">—</div></div>
+        <div class="stat-card"><div class="stat-label">Unpaid Fines</div><div class="stat-value" id="s-fines" style="color:var(--amber)">—</div></div>
       </div>
 
-      <div class="alert-bar">
-        ⚠ <strong>3 books are overdue</strong> — Please contact the members for return.
+      <div class="alert-bar" id="overdue-alert" style="display:none;">
+        ⚠ <strong id="overdue-msg"></strong> — Immediate follow-up required.
       </div>
 
-      <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;">
-        <button class="tab-btn active" onclick="switchTab('all', this)">All Records</button>
-        <button class="tab-btn" onclick="switchTab('active', this)">Active</button>
-        <button class="tab-btn" onclick="switchTab('overdue', this)">Overdue</button>
-        <button class="tab-btn" onclick="switchTab('returned', this)">Returned</button>
+      <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);">
+        <button class="tab-btn active" onclick="switchTab('all',this)">All</button>
+        <button class="tab-btn" onclick="switchTab('active',this)">Active</button>
+        <button class="tab-btn" onclick="switchTab('overdue',this)">Overdue</button>
+        <button class="tab-btn" onclick="switchTab('returned',this)">Returned</button>
       </div>
 
       <div class="toolbar">
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input class="search-input" type="text" placeholder="Search member, book title…" oninput="filterTable(this.value)"/>
+          <span class="search-icon">⌕</span>
+          <input class="search-input" type="text" placeholder="Search member, book, accession…" oninput="filterSearch(this.value)"/>
         </div>
-        <input class="select-filter" type="date" title="Filter by date"/>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
-          <h3>Borrow Records</h3>
-          <span style="font-size:12px;color:var(--muted2);">Showing <strong id="row-count" style="color:var(--text2);">8</strong> records</span>
+          <h3>Loan Records</h3>
+          <span style="font-size:11px;color:var(--muted);">Showing <strong id="row-count">0</strong> records</span>
         </div>
-        <table id="borrow-table">
+        <table id="loans-table">
           <thead>
             <tr>
-              <th>Borrow ID</th>
+              <th>Loan ID</th>
               <th>Member</th>
-              <th>Book Title</th>
-              <th>Borrow Date</th>
-              <th>Due Date</th>
-              <th>Return Date</th>
+              <th>Book</th>
+              <th>Copy #</th>
+              <th>Borrowed</th>
+              <th>Due</th>
+              <th>Returned</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            <tr data-status="overdue">
-              <td class="td-muted">#B-001</td>
-              <td><strong>Juan Dela Cruz</strong></td>
-              <td>1984</td>
-              <td class="td-muted">Feb 24, 2026</td>
-              <td style="color:var(--red);font-weight:500;font-size:12px;">Mar 10, 2026</td>
-              <td class="td-muted">—</td>
-              <td><span class="badge badge-red">Overdue</span></td>
-              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
-            </tr>
-            <tr data-status="overdue">
-              <td class="td-muted">#B-002</td>
-              <td><strong>Liza Torres</strong></td>
-              <td>The Alchemist</td>
-              <td class="td-muted">Feb 26, 2026</td>
-              <td style="color:var(--red);font-weight:500;font-size:12px;">Mar 12, 2026</td>
-              <td class="td-muted">—</td>
-              <td><span class="badge badge-red">Overdue</span></td>
-              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
-            </tr>
-            <tr data-status="overdue">
-              <td class="td-muted">#B-003</td>
-              <td><strong>Carlos Bautista</strong></td>
-              <td>Sapiens</td>
-              <td class="td-muted">Mar 1, 2026</td>
-              <td style="color:var(--red);font-weight:500;font-size:12px;">Mar 8, 2026</td>
-              <td class="td-muted">—</td>
-              <td><span class="badge badge-red">Overdue</span></td>
-              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
-            </tr>
-            <tr data-status="active">
-              <td class="td-muted">#B-004</td>
-              <td><strong>Maria Santos</strong></td>
-              <td>The Great Gatsby</td>
-              <td class="td-muted">Mar 12, 2026</td>
-              <td class="td-muted">Mar 26, 2026</td>
-              <td class="td-muted">—</td>
-              <td><span class="badge badge-blue">Active</span></td>
-              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
-            </tr>
-            <tr data-status="active">
-              <td class="td-muted">#B-005</td>
-              <td><strong>Ana Reyes</strong></td>
-              <td>Atomic Habits</td>
-              <td class="td-muted">Mar 10, 2026</td>
-              <td class="td-muted">Mar 24, 2026</td>
-              <td class="td-muted">—</td>
-              <td><span class="badge badge-blue">Active</span></td>
-              <td><button class="btn btn-success btn-sm" onclick="openModal('return')">↩ Return</button></td>
-            </tr>
-            <tr data-status="returned">
-              <td class="td-muted">#B-006</td>
-              <td><strong>Roberto Garcia</strong></td>
-              <td>Clean Code</td>
-              <td class="td-muted">Mar 1, 2026</td>
-              <td class="td-muted">Mar 15, 2026</td>
-              <td style="color:var(--green);font-size:12px;">Mar 10, 2026</td>
-              <td><span class="badge badge-green">Returned</span></td>
-              <td><span style="font-size:12px;color:var(--muted2);">—</span></td>
-            </tr>
-            <tr data-status="returned">
-              <td class="td-muted">#B-007</td>
-              <td><strong>Sofia Villanueva</strong></td>
-              <td>Think and Grow Rich</td>
-              <td class="td-muted">Feb 20, 2026</td>
-              <td class="td-muted">Mar 6, 2026</td>
-              <td style="color:var(--green);font-size:12px;">Mar 4, 2026</td>
-              <td><span class="badge badge-green">Returned</span></td>
-              <td><span style="font-size:12px;color:var(--muted2);">—</span></td>
-            </tr>
-            <tr data-status="returned">
-              <td class="td-muted">#B-008</td>
-              <td><strong>Maria Santos</strong></td>
-              <td>Sapiens</td>
-              <td class="td-muted">Feb 24, 2026</td>
-              <td class="td-muted">Mar 10, 2026</td>
-              <td style="color:var(--green);font-size:12px;">Mar 9, 2026</td>
-              <td><span class="badge badge-green">Returned</span></td>
-              <td><span style="font-size:12px;color:var(--muted2);">—</span></td>
-            </tr>
+          <tbody id="loans-tbody">
+            <tr><td colspan="9" class="loading-row">Loading…</td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
 </div>
@@ -199,58 +95,41 @@
 <div class="modal-overlay" id="borrow-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="borrow-modal-title">New Borrow Transaction</h3>
+      <h3>NEW LOAN</h3>
       <button class="modal-close" onclick="closeModal('borrow-modal')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group full">
-          <label class="form-label">Member</label>
-          <select class="form-select">
-            <option value="">Select a member…</option>
-            <option>Maria Santos (#M-001)</option>
-            <option>Juan Dela Cruz (#M-002)</option>
-            <option>Ana Reyes (#M-003)</option>
-            <option>Carlos Bautista (#M-004)</option>
-            <option>Roberto Garcia (#M-006)</option>
-            <option>Sofia Villanueva (#M-007)</option>
+          <label class="form-label">Member *</label>
+          <select class="form-select" id="b-member">
+            <option value="">— Select member —</option>
           </select>
         </div>
         <div class="form-group full">
-          <label class="form-label">Book</label>
-          <select class="form-select">
-            <option value="">Select a book…</option>
-            <option>Atomic Habits — James Clear</option>
-            <option>Sapiens — Yuval Noah Harari</option>
-            <option>The Alchemist — Paulo Coelho</option>
-            <option>Think and Grow Rich — Napoleon Hill</option>
-            <option>The Great Gatsby — F. Scott Fitzgerald</option>
-            <option>Clean Code — Robert C. Martin</option>
-            <option>A Brief History of Time — Stephen Hawking</option>
+          <label class="form-label">Book Copy (Accession #) *</label>
+          <select class="form-select" id="b-copy">
+            <option value="">— Select available copy —</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Borrow Date</label>
-          <input class="form-input" type="date" id="borrow-date"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Due Date</label>
-          <input class="form-input" type="date" id="due-date"/>
-        </div>
-        <div class="form-group full">
           <label class="form-label">Loan Period</label>
-          <select class="form-select" onchange="updateDueDate(this.value)">
+          <select class="form-select" id="b-days" onchange="updateDueDate(this.value)">
             <option value="7">7 days</option>
             <option value="14" selected>14 days</option>
             <option value="21">21 days</option>
             <option value="30">30 days</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" type="date" id="b-due" readonly/>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('borrow-modal')">Cancel</button>
-      <button class="btn btn-primary">Confirm Borrow</button>
+      <button class="btn btn-primary" onclick="confirmBorrow()">Issue Loan</button>
     </div>
   </div>
 </div>
@@ -259,93 +138,227 @@
 <div class="modal-overlay" id="return-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3>Process Return</h3>
+      <h3>PROCESS RETURN</h3>
       <button class="modal-close" onclick="closeModal('return-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="info-box">
-        <div style="font-size:11px;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Returning</div>
-        <div style="font-weight:600;font-size:14.5px;color:var(--text);">1984 — George Orwell</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Borrowed by Juan Dela Cruz · Borrow #B-001</div>
+      <div id="return-info" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:12px;">
+        <div id="return-book" style="font-weight:600;margin-bottom:4px;"></div>
+        <div id="return-member" style="color:var(--muted);"></div>
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">Return Date</label>
-          <input class="form-input" type="date" id="return-date"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Condition</label>
-          <select class="form-select">
-            <option>Good</option>
-            <option>Fair</option>
-            <option>Damaged</option>
+          <label class="form-label">Copy Condition</label>
+          <select class="form-select" id="r-condition">
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Damaged">Damaged</option>
           </select>
         </div>
-        <div class="form-group full">
-          <label class="form-label">Notes (optional)</label>
-          <textarea class="form-textarea" placeholder="Any remarks about this return…"></textarea>
-        </div>
       </div>
-      <div class="alert-bar" style="margin-top:4px;margin-bottom:0;">
-        ⚠ This book is <strong>overdue by 2 days</strong>. Consider noting a late fee.
+      <div id="overdue-warning" style="display:none;margin-top:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);border-radius:var(--radius);padding:10px;font-size:12px;color:var(--red);">
+        ⚠ This loan is overdue. A fine will be created automatically.
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('return-modal')">Cancel</button>
-      <button class="btn btn-success">Confirm Return</button>
+      <button class="btn btn-success" onclick="confirmReturn()">Confirm Return</button>
     </div>
   </div>
 </div>
 
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('borrow-date').value = today;
-  document.getElementById('return-date').value = today;
-  updateDueDate(14);
-});
+const { ipcRenderer } = require('electron');
 
-function updateDueDate(days) {
-  const d = new Date();
-  d.setDate(d.getDate() + parseInt(days));
-  document.getElementById('due-date').value = d.toISOString().split('T')[0];
+let allLoans = [];
+let currentTab = 'all';
+let returnLoanId = null, returnCopyId = null;
+
+const STATUS_BADGE = { Borrowed: 'badge-blue', Returned: 'badge-green', Overdue: 'badge-red' };
+
+async function load() {
+  try {
+    const loans = await ipcRenderer.invoke('loans:all');
+    allLoans = loans;
+    renderTable(loans);
+    updateStats(loans);
+    updateOverdueBadge(loans);
+  } catch (err) {
+    document.getElementById('loans-tbody').innerHTML =
+      `<tr><td colspan="9" class="error-row">Error: ${err.message}</td></tr>`;
+  }
 }
 
-function openModal(type) {
-  if (type === 'borrow') document.getElementById('borrow-modal').classList.add('open');
-  else document.getElementById('return-modal').classList.add('open');
-}
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function updateStats(loans) {
+  const today = new Date().toDateString();
+  const active   = loans.filter(l => l.LoanStatus === 'Borrowed').length;
+  const overdue  = loans.filter(l => l.LoanStatus === 'Borrowed' && new Date(l.DueDate) < new Date()).length;
+  const retToday = loans.filter(l => l.LoanStatus === 'Returned' && new Date(l.DateReturned).toDateString() === today).length;
 
-['borrow-modal','return-modal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function(e) {
-    if (e.target === this) closeModal(id);
-  });
-});
+  document.getElementById('s-active').textContent  = active;
+  document.getElementById('s-overdue').textContent = overdue;
+  document.getElementById('s-today').textContent   = retToday;
+
+  if (overdue > 0) {
+    document.getElementById('overdue-alert').style.display = 'flex';
+    document.getElementById('overdue-msg').textContent = `${overdue} overdue loan${overdue !== 1 ? 's' : ''}`;
+    document.getElementById('overdue-badge').textContent = overdue;
+  }
+}
+
+function updateOverdueBadge(loans) {
+  const overdue = loans.filter(l => l.LoanStatus === 'Borrowed' && new Date(l.DueDate) < new Date()).length;
+  document.getElementById('overdue-badge').textContent = overdue;
+}
+
+function renderTable(loans) {
+  document.getElementById('row-count').textContent = loans.length;
+  const tbody = document.getElementById('loans-tbody');
+  if (!loans.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No records.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = loans.map(l => {
+    const isOverdue = l.LoanStatus === 'Borrowed' && new Date(l.DueDate) < new Date();
+    const status = isOverdue ? 'Overdue' : l.LoanStatus;
+    return `
+      <tr>
+        <td class="td-mono">#${l.LoanID}</td>
+        <td><strong>${esc(l.MemberName)}</strong></td>
+        <td>${esc(l.BookTitle)}</td>
+        <td class="td-mono">${esc(l.AccessionNumber || '—')}</td>
+        <td class="td-muted">${fmtDate(l.DateBorrowed)}</td>
+        <td class="${isOverdue ? '' : 'td-muted'}" style="${isOverdue ? 'color:var(--red);font-weight:600;font-family:var(--mono);font-size:11px;' : ''}">${fmtDate(l.DueDate)}</td>
+        <td class="td-muted">${fmtDate(l.DateReturned)}</td>
+        <td><span class="badge ${STATUS_BADGE[status] || 'badge-gray'}">${status}</span></td>
+        <td>
+          ${l.LoanStatus === 'Borrowed'
+            ? `<button class="btn btn-success btn-sm" onclick="openReturnForLoan(${l.LoanID},${l.CopyID},'${esc(l.BookTitle)}','${esc(l.MemberName)}',${isOverdue})">↩ Return</button>`
+            : `<span style="font-size:11px;color:var(--muted);">—</span>`}
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function filterSearch(val) {
+  const v = val.toLowerCase();
+  const filtered = allLoans.filter(l =>
+    l.MemberName.toLowerCase().includes(v) ||
+    l.BookTitle.toLowerCase().includes(v) ||
+    (l.AccessionNumber || '').toLowerCase().includes(v)
+  );
+  applyTabFilter(filtered);
+}
 
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const rows = document.querySelectorAll('#borrow-table tbody tr');
-  let count = 0;
-  rows.forEach(r => {
-    const show = tab === 'all' || r.dataset.status === tab;
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
+  currentTab = tab;
+  applyTabFilter(allLoans);
 }
 
-function filterTable(val) {
-  const rows = document.querySelectorAll('#borrow-table tbody tr');
-  let count = 0;
-  rows.forEach(r => {
-    const show = r.textContent.toLowerCase().includes(val.toLowerCase());
-    r.style.display = show ? '' : 'none';
-    if (show) count++;
-  });
-  document.getElementById('row-count').textContent = count;
+function applyTabFilter(loans) {
+  let filtered;
+  if (currentTab === 'all')      filtered = loans;
+  else if (currentTab === 'active')   filtered = loans.filter(l => l.LoanStatus === 'Borrowed' && new Date(l.DueDate) >= new Date());
+  else if (currentTab === 'overdue')  filtered = loans.filter(l => l.LoanStatus === 'Borrowed' && new Date(l.DueDate) < new Date());
+  else if (currentTab === 'returned') filtered = loans.filter(l => l.LoanStatus === 'Returned');
+  else filtered = loans;
+  renderTable(filtered);
 }
+
+// ── Borrow Modal ──────────────────────────────────────────────
+async function openBorrowModal() {
+  document.getElementById('borrow-modal').classList.add('open');
+  updateDueDate(14);
+
+  try {
+    const [members, books] = await Promise.all([
+      ipcRenderer.invoke('members:all'),
+      ipcRenderer.invoke('books:all'),
+    ]);
+
+    const mSel = document.getElementById('b-member');
+    mSel.innerHTML = '<option value="">— Select member —</option>';
+    members.filter(m => m.MembershipStatus === 'Active').forEach(m => {
+      mSel.innerHTML += `<option value="${m.MemberID}">${m.LastName}, ${m.FirstName} (#${m.MemberID})</option>`;
+    });
+
+    // Populate copies grouped by book
+    const cSel = document.getElementById('b-copy');
+    cSel.innerHTML = '<option value="">— Select available copy —</option>';
+    for (const book of books) {
+      if ((book.AvailableCopies || 0) === 0) continue;
+      const copies = await ipcRenderer.invoke('books:copies', book.BookID);
+      const avail  = copies.filter(c => c.CopyStatus === 'Available');
+      avail.forEach(c => {
+        cSel.innerHTML += `<option value="${c.CopyID}">${book.Title} — #${c.AccessionNumber}</option>`;
+      });
+    }
+  } catch (err) { alert('Error loading data: ' + err.message); }
+}
+
+function updateDueDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + parseInt(days));
+  document.getElementById('b-due').value = d.toISOString().split('T')[0];
+}
+
+async function confirmBorrow() {
+  const memberId = parseInt(document.getElementById('b-member').value);
+  const copyId   = parseInt(document.getElementById('b-copy').value);
+  const days     = parseInt(document.getElementById('b-days').value);
+  if (!memberId || !copyId) { alert('Select a member and a copy.'); return; }
+  try {
+    await ipcRenderer.invoke('loans:borrow', memberId, copyId, 1, days); // issuedBy=1 (admin)
+    closeModal('borrow-modal');
+    await load();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+// ── Return Modal ──────────────────────────────────────────────
+function openReturnModal() {
+  // Quick form without pre-selected loan
+  document.getElementById('return-book').textContent   = 'Select a loan from the table.';
+  document.getElementById('return-member').textContent = '';
+  returnLoanId = null; returnCopyId = null;
+  document.getElementById('return-modal').classList.add('open');
+}
+
+function openReturnForLoan(loanId, copyId, bookTitle, memberName, isOverdue) {
+  returnLoanId = loanId;
+  returnCopyId = copyId;
+  document.getElementById('return-book').textContent   = bookTitle;
+  document.getElementById('return-member').textContent = `Borrowed by ${memberName} · Loan #${loanId}`;
+  document.getElementById('overdue-warning').style.display = isOverdue ? 'block' : 'none';
+  document.getElementById('return-modal').classList.add('open');
+}
+
+async function confirmReturn() {
+  if (!returnLoanId) { alert('No loan selected.'); return; }
+  const condition = document.getElementById('r-condition').value;
+  try {
+    await ipcRenderer.invoke('loans:return', returnLoanId, returnCopyId, condition);
+    closeModal('return-modal');
+    returnLoanId = null; returnCopyId = null;
+    await load();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+['borrow-modal','return-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id); });
+});
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+load();
 </script>
 </body>
 </html>
