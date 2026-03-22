@@ -109,7 +109,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Phone</label>
-          <input class="form-input" type="text" id="f-phone" placeholder="09XXXXXXXXX"/>
+          <input class="form-input" type="text" id="f-phone" placeholder="09XXXXXXXXX" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
         </div>
         <div class="form-group full">
           <label class="form-label">Address</label>
@@ -149,7 +149,7 @@
             <th>Due</th>
             <th>Returned</th>
             <th>Status</th>
-            <th>Fine</th>
+
           </tr>
         </thead>
         <tbody id="history-tbody">
@@ -260,7 +260,6 @@ async function showHistory(id, name) {
   try {
     const rows = await ipcRenderer.invoke('members:history', id);
     const STATUS_B = { Borrowed: 'badge-blue', Returned: 'badge-green', Overdue: 'badge-red' };
-    const FINE_B   = { Paid: 'badge-green', Unpaid: 'badge-red', Waived: 'badge-gray' };
     if (!rows.length) {
       document.getElementById('history-tbody').innerHTML =
         '<tr><td colspan="7" class="loading-row">No borrow history.</td></tr>';
@@ -274,7 +273,6 @@ async function showHistory(id, name) {
         <td class="td-muted">${fmtDate(r.DueDate)}</td>
         <td class="td-muted">${fmtDate(r.DateReturned)}</td>
         <td><span class="badge ${STATUS_B[r.LoanStatus] || 'badge-gray'}">${r.LoanStatus}</span></td>
-        <td>${r.FineAmount ? `<span class="badge ${FINE_B[r.FineStatus]||'badge-gray'}">₱${r.FineAmount}</span>` : '—'}</td>
       </tr>`).join('');
   } catch (err) {
     document.getElementById('history-tbody').innerHTML =
@@ -324,7 +322,14 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Numeric input validator
+function allowNumericOnly(event) {
+  let value = event.target.value;
+  event.target.value = value.replace(/[^0-9]/g, '');
+}
+
 load();
 </script>
+<script src="authCheck.js"></script>
 </body>
 </html>

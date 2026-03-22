@@ -89,13 +89,11 @@ const Borrowing = {
       l.DateBorrowed, l.DueDate, l.DateReturned, l.LoanStatus,
       m.FirstName & ' ' & m.LastName AS MemberName, m.Email,
       bk.Title AS BookTitle, bk.BookID,
-      bc.AccessionNumber,
-      f.FineID, f.FineAmount, f.FineStatus
+      bc.AccessionNumber
     FROM (((Loans_Table l
       INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
       INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
       INNER JOIN Books_Table bk ON bc.BookID = bk.BookID)
-      LEFT JOIN Fines_Table f ON f.LoanID = l.LoanID
     WHERE l.LoanID = ?
   `, [loanId]),
 
@@ -107,15 +105,19 @@ const Borrowing = {
    * @param {number} dueDays
    */
   borrow: async (memberId, copyId, issuedBy, dueDays = 14) => {
-    await db.execute(`
-      INSERT INTO Loans_Table (MemberID, CopyID, IssuedBy, DateBorrowed, DueDate, LoanStatus)
-      VALUES (?, ?, ?, Date(), DateAdd('d', ?, Date()), 'Borrowed')
-    `, [memberId, copyId, issuedBy, dueDays]);
+    try {
+      await db.BeginTrans();
+      await db.execute(`
+        INSERT INTO Loans_Table (MemberID, CopyID, IssuedBy, DateBorrowed, DueDate, LoanStatus)
+        VALUES (?, ?, ?, Date(), DateAdd('d', ?, Date()), 'Borrowed')
+      `, [memberId, copyId, issuedBy, dueDays]);
 
-    await db.execute(
-      "UPDATE BookCopies_Table SET CopyStatus='Borrowed' WHERE CopyID=?",
-      [copyId]
-    );
+      // A loan inherently marks the copy as borrowed (via dynamic querying)
+      await db.CommitTrans();
+    } catch (err) {
+      await db.Rollback();
+      throw err;
+    }
   },
 
   /**
@@ -125,49 +127,27 @@ const Borrowing = {
    * @param {string} condition  - new ConditionNotes for the copy
    */
   returnBook: async (loanId, copyId, condition = '') => {
-    // Mark loan returned
-    await db.execute(`
-      UPDATE Loans_Table SET DateReturned=Date(), LoanStatus='Returned' WHERE LoanID=?
-    `, [loanId]);
-
-    // Restore copy to Available
-    await db.execute(
-      "UPDATE BookCopies_Table SET CopyStatus='Available', ConditionNotes=? WHERE CopyID=?",
-      [condition, copyId]
-    );
-
-    // Check if overdue and auto-create fine (₱5/day example rate)
-    const rows = await db.query(`
-      SELECT DateDiff('d', DueDate, Date()) AS DaysLate
-      FROM Loans_Table WHERE LoanID=? AND DueDate < Date()
-    `, [loanId]);
-
-    if (rows.length && rows[0].DaysLate > 0) {
-      const fineAmount = rows[0].DaysLate * 5; // configurable rate
+    try {
+      await db.BeginTrans();
+      // Mark loan returned
       await db.execute(`
-        INSERT INTO Fines_Table (LoanID, FineAmount, FineStatus, DateIssued)
-        VALUES (?, ?, 'Unpaid', Date())
-      `, [loanId, fineAmount]);
+        UPDATE Loans_Table SET DateReturned=Date(), LoanStatus='Returned' WHERE LoanID=?
+      `, [loanId]);
+
+      // Restore copy condition notes
+      await db.execute(
+        "UPDATE BookCopies_Table SET ConditionNotes=? WHERE CopyID=?",
+        [condition, copyId]
+      );
+
+      await db.CommitTrans();
+    } catch (err) {
+      await db.Rollback();
+      throw err;
     }
   },
 
-  // ── Fines ──
-  payFine: (fineId) =>
-    db.execute("UPDATE Fines_Table SET FineStatus='Paid', DatePaid=Date() WHERE FineID=?", [fineId]),
 
-  waiveFine: (fineId) =>
-    db.execute("UPDATE Fines_Table SET FineStatus='Waived' WHERE FineID=?", [fineId]),
-
-  getFinesByMember: (memberId) => db.query(`
-    SELECT f.FineID, f.FineAmount, f.FineStatus, f.DateIssued, f.DatePaid,
-           bk.Title AS BookTitle, l.DueDate, l.DateReturned
-    FROM (Fines_Table f
-      INNER JOIN Loans_Table l ON f.LoanID = l.LoanID)
-      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID
-      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID
-    WHERE l.MemberID = ?
-    ORDER BY f.DateIssued DESC
-  `, [memberId]),
 
   // ── Reservations ──
   getReservations: () => db.query(`

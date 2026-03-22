@@ -45,14 +45,6 @@
           <div class="stat-label">Overdue Rate</div>
           <div class="stat-value" id="r-rate" style="color:var(--red)">—</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Fines</div>
-          <div class="stat-value" id="r-fines" style="color:var(--amber)">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Fines Collected</div>
-          <div class="stat-value" id="r-collected" style="color:var(--green)">—</div>
-        </div>
       </div>
 
       <div class="two-col">
@@ -89,17 +81,6 @@
         </div>
       </div>
 
-      <div class="col-card" style="margin-top:16px;">
-        <div class="col-card-header"><h3>Unpaid Fines</h3></div>
-        <div class="col-card-body" style="padding:0;">
-          <table>
-            <thead>
-              <tr><th>Fine ID</th><th>Member</th><th>Book</th><th>Amount</th><th>Issued</th><th>Action</th></tr>
-            </thead>
-            <tbody id="fines-tbody"><tr><td colspan="6" class="loading-row">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
 
     </div>
   </div>
@@ -158,14 +139,6 @@ async function load() {
       : '0%';
     document.getElementById('r-rate').textContent = rate;
 
-    // Fines
-    const allLoansData = await ipcRenderer.invoke('loans:all');
-    // We'll just load from borrowing data
-    let totalFines = 0, collectedFines = 0;
-    const finesEl = document.getElementById('fines-tbody');
-    finesEl.innerHTML = '<tr><td colspan="6" class="loading-row">Data from Fines table — connect DB to view.</td></tr>';
-    document.getElementById('r-fines').textContent = '—';
-    document.getElementById('r-collected').textContent = '—';
 
   } catch (err) {
     console.error(err);
@@ -182,5 +155,6 @@ function esc(s) {
 
 load();
 </script>
+<script src="authCheck.js"></script>
 </body>
 </html>

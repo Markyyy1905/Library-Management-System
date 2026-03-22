@@ -7,11 +7,23 @@ const Auth     = require('./mainapp/services/auth');
 const Books    = require('./mainapp/services/books');
 const Members  = require('./mainapp/services/members');
 const Borrowing = require('./mainapp/services/borrowing');
-const { Authors, Categories, Publishers, Users, Roles, AuditLogs } = require('./mainapp/services/lookup');
+const { Categories, Users, Roles, AuditLogs } = require('./mainapp/services/lookup');
 
 // ── Simple in-process session store ──────────────────────────
-// Stores { UserID, Username, RoleName, ... } after successful login.
+// Stores { UserID, Username, RoleID, RoleName, ... } after successful login.
 let currentSession = null;
+
+const ROLE_IDS = {
+  ADMIN: 1,
+  LIBRARIAN: 2,
+  MEMBER: 3,
+};
+
+function assertLoggedIn() {
+  if (!currentSession || !currentSession.UserID) {
+    throw new Error('Unauthorized');
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -71,13 +83,13 @@ ipcMain.handle('auth:session', async () => {
 
 // ── Dashboard stats ──
 ipcMain.handle('dashboard:stats', async () => {
-  const [totalBooks]    = await db.query('SELECT COUNT(*) AS n FROM Books');
-  const [availCopies]   = await db.query("SELECT COUNT(*) AS n FROM BookCopies WHERE CopyStatus='Available'");
-  const [totalCopies]   = await db.query('SELECT COUNT(*) AS n FROM BookCopies');
-  const [activeMembers] = await db.query("SELECT COUNT(*) AS n FROM Members WHERE MembershipStatus='Active'");
-  const [activeLoans]   = await db.query("SELECT COUNT(*) AS n FROM Loans WHERE LoanStatus='Borrowed'");
-  const [overdueLoans]  = await db.query("SELECT COUNT(*) AS n FROM Loans WHERE LoanStatus='Borrowed' AND DueDate < Date()");
-  const [unpaidFines]   = await db.query("SELECT COUNT(*) AS n FROM Fines WHERE FineStatus='Unpaid'");
+  const [totalBooks]    = await db.query('SELECT COUNT(*) AS n FROM Books_Table');
+  const [availCopies]   = await db.query("SELECT COUNT(*) AS n FROM BookCopies_Table WHERE CopyID NOT IN (SELECT CopyID FROM Loans_Table WHERE LoanStatus='Borrowed')");
+  const [totalCopies]   = await db.query('SELECT COUNT(*) AS n FROM BookCopies_Table');
+  const [activeMembers] = await db.query("SELECT COUNT(*) AS n FROM Members_Table WHERE Status=true");
+  const [activeLoans]   = await db.query("SELECT COUNT(*) AS n FROM Loans_Table WHERE LoanStatus='Borrowed'");
+  const [overdueLoans]  = await db.query("SELECT COUNT(*) AS n FROM Loans_Table WHERE LoanStatus='Borrowed' AND DueDate < Date()");
+
 
   return {
     totalBooks:    totalBooks.n,
@@ -86,7 +98,6 @@ ipcMain.handle('dashboard:stats', async () => {
     activeMembers: activeMembers.n,
     activeLoans:   activeLoans.n,
     overdueLoans:  overdueLoans.n,
-    unpaidFines:   unpaidFines.n,
   };
 });
 
@@ -98,10 +109,10 @@ ipcMain.handle('dashboard:recent', async () => {
       m.FirstName & ' ' & m.LastName AS MemberName,
       bk.Title AS BookTitle,
       l.DateBorrowed, l.DueDate, l.LoanStatus
-    FROM ((Loans l
-      INNER JOIN Members m ON l.MemberID = m.MemberID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
-      INNER JOIN Books bk ON bc.BookID = bk.BookID
+    FROM (((Loans_Table l
+      INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID)
     ORDER BY l.DateBorrowed DESC
   `);
 
@@ -109,11 +120,11 @@ ipcMain.handle('dashboard:recent', async () => {
     SELECT TOP 5
       bk.BookID, bk.Title,
       COUNT(l.LoanID) AS BorrowCount
-    FROM Loans l
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
-      INNER JOIN Books bk ON bc.BookID = bk.BookID
+    FROM ((Loans_Table l
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID)
     GROUP BY bk.BookID, bk.Title
-    ORDER BY BorrowCount DESC
+    ORDER BY 3 DESC
   `);
 
   return { recentLoans, topBooks };
@@ -126,36 +137,79 @@ ipcMain.handle('books:authors', (e, id) => Books.getAuthors(id));
 ipcMain.handle('books:categories', (e, id) => Books.getCategories(id));
 ipcMain.handle('books:copies', (e, id) => Books.getCopies(id));
 ipcMain.handle('books:search', (e, kw) => Books.search(kw));
-ipcMain.handle('books:add', (e, data) => Books.add(data));
-ipcMain.handle('books:update', (e, id, data) => Books.update(id, data));
-ipcMain.handle('books:delete', (e, id) => Books.delete(id));
-ipcMain.handle('books:addCopy', (e, bookId, accNum, notes) => Books.addCopy(bookId, accNum, notes));
-ipcMain.handle('books:updateCopyStatus', (e, copyId, status) => Books.updateCopyStatus(copyId, status));
+ipcMain.handle('books:add', (e, data) => {
+  return Books.add(data);
+});
+ipcMain.handle('books:update', (e, id, data) => {
+  return Books.update(id, data);
+});
+ipcMain.handle('books:delete', (e, id) => {
+  return Books.delete(id);
+});
+ipcMain.handle('books:addCopy', (e, bookId, accNum, notes) => {
+  return Books.addCopy(bookId, accNum, notes);
+});
+ipcMain.handle('books:updateCopyStatus', (e, copyId, status) => {
+  return Books.updateCopyStatus(copyId, status);
+});
 
 // ── Members ──
-ipcMain.handle('members:all', () => Members.getAll());
-ipcMain.handle('members:byId', (e, id) => Members.getById(id));
-ipcMain.handle('members:search', (e, kw) => Members.search(kw));
-ipcMain.handle('members:add', (e, data) => Members.add(data));
-ipcMain.handle('members:update', (e, id, data) => Members.update(id, data));
-ipcMain.handle('members:updateStatus', (e, id, status) => Members.updateStatus(id, status));
-ipcMain.handle('members:delete', (e, id) => Members.delete(id));
-ipcMain.handle('members:history', (e, id) => Members.getBorrowHistory(id));
+ipcMain.handle('members:all', () => {
+  return Members.getAll();
+});
+ipcMain.handle('members:byId', (e, id) => {
+  return Members.getById(id);
+});
+ipcMain.handle('members:search', (e, kw) => {
+  return Members.search(kw);
+});
+ipcMain.handle('members:add', (e, data) => {
+  return Members.add(data);
+});
+ipcMain.handle('members:update', (e, id, data) => {
+  return Members.update(id, data);
+});
+ipcMain.handle('members:updateStatus', (e, id, status) => {
+  return Members.updateStatus(id, status);
+});
+ipcMain.handle('members:delete', (e, id) => {
+  return Members.delete(id);
+});
+ipcMain.handle('members:history', (e, id) => {
+  return Members.getBorrowHistory(id);
+});
 
 // ── Borrowing ──
-ipcMain.handle('loans:all', () => Borrowing.getAll());
-ipcMain.handle('loans:active', () => Borrowing.getActive());
-ipcMain.handle('loans:overdue', () => Borrowing.getOverdue());
-ipcMain.handle('loans:returned', () => Borrowing.getReturned());
-ipcMain.handle('loans:byId', (e, id) => Borrowing.getById(id));
-ipcMain.handle('loans:borrow', (e, memberId, copyId, issuedBy, days) => Borrowing.borrow(memberId, copyId, issuedBy, days));
-ipcMain.handle('loans:return', (e, loanId, copyId, condition) => Borrowing.returnBook(loanId, copyId, condition));
-ipcMain.handle('loans:payFine', (e, fineId) => Borrowing.payFine(fineId));
-ipcMain.handle('loans:waiveFine', (e, fineId) => Borrowing.waiveFine(fineId));
+ipcMain.handle('loans:all', () => {
+  return Borrowing.getAll();
+});
+ipcMain.handle('loans:active', () => {
+  return Borrowing.getActive();
+});
+ipcMain.handle('loans:overdue', () => {
+  return Borrowing.getOverdue();
+});
+ipcMain.handle('loans:returned', () => {
+  return Borrowing.getReturned();
+});
+ipcMain.handle('loans:byId', (e, id) => {
+  return Borrowing.getById(id);
+});
+ipcMain.handle('loans:borrow', (e, memberId, copyId, issuedBy, days) => {
+  return Borrowing.borrow(memberId, copyId, issuedBy, days);
+});
+ipcMain.handle('loans:return', (e, loanId, copyId, condition) => {
+  return Borrowing.returnBook(loanId, copyId, condition);
+});
+
 
 // ── Lookups ──
 ipcMain.handle('authors:all', () => Authors.getAll());
 ipcMain.handle('categories:all', () => Categories.getAll());
-ipcMain.handle('publishers:all', () => Publishers.getAll());
-ipcMain.handle('users:all', () => Users.getAll());
-ipcMain.handle('roles:all', () => Roles.getAll());
+
+ipcMain.handle('users:all', () => {
+  return Users.getAll();
+});
+ipcMain.handle('roles:all', () => {
+  return Roles.getAll();
+});

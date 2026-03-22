@@ -41,7 +41,7 @@
         <div class="stat-card"><div class="stat-label">Active Loans</div><div class="stat-value" id="s-active">—</div></div>
         <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" id="s-overdue" style="color:var(--red)">—</div></div>
         <div class="stat-card"><div class="stat-label">Returned Today</div><div class="stat-value" id="s-today" style="color:var(--green)">—</div></div>
-        <div class="stat-card"><div class="stat-label">Unpaid Fines</div><div class="stat-value" id="s-fines" style="color:var(--amber)">—</div></div>
+
       </div>
 
       <div class="alert-bar" id="overdue-alert" style="display:none;">
@@ -358,7 +358,14 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Numeric input validator
+function allowNumericOnly(event) {
+  let value = event.target.value;
+  event.target.value = value.replace(/[^0-9]/g, '');
+}
+
 load();
 </script>
+<script src="authCheck.js"></script>
 </body>
 </html>

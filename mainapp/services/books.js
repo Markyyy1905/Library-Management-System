@@ -14,37 +14,26 @@ const Books = {
     SELECT
       b.BookID,
       b.Title,
+      b.Author,
       b.ISBN,
       b.YearPublished,
-      b.Edition,
       b.Language,
-      b.BookDescription,
-      p.PublisherName,
+      b.Publisher,
       (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyStatus = 'Available') AS AvailableCopies
-    FROM (Books_Table b LEFT JOIN Publishers_Table p ON b.PublisherID = p.PublisherID)
+      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
+    FROM Books_Table b
     ORDER BY b.Title ASC
   `),
 
   getById: (id) => db.query(`
-    SELECT
-      b.BookID, b.Title, b.ISBN, b.YearPublished, b.Edition,
-      b.Language, b.BookDescription, b.PublisherID,
-      p.PublisherName,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyStatus = 'Available') AS AvailableCopies
-    FROM (Books_Table b LEFT JOIN Publishers_Table p ON b.PublisherID = p.PublisherID)
-    WHERE b.BookID = ?
-  `, [id]),
-
-  /**
-   * Authors for a book (from BookAuthors junction).
-   */
-  getAuthors: (bookId) => db.query(`
-    SELECT a.AuthorID, a.AuthorName, a.AuthorCountry
-    FROM BookAuthors_Table ba INNER JOIN Authors_Table a ON ba.AuthorID = a.AuthorID
-    WHERE ba.BookID = ?
-  `, [bookId]),
+      SELECT
+        b.BookID, b.Title, b.Author, b.ISBN, b.YearPublished,
+        b.Language, b.Publisher,
+        (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
+        (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
+      FROM Books_Table b
+      WHERE b.BookID = ?
+    `, [id]),
 
   /**
    * Categories for a book (from BookCategories junction).
@@ -59,62 +48,55 @@ const Books = {
    * All copies for a book.
    */
   getCopies: (bookId) => db.query(`
-    SELECT CopyID, AccessionNumber, CopyStatus, DateAdded, ConditionNotes
-    FROM BookCopies_Table
-    WHERE BookID = ?
-    ORDER BY AccessionNumber ASC
+    SELECT bc.CopyID, bc.AccessionNumber, bc.ConditionNotes,
+           IIF(l.LoanID IS NULL, 'Available', 'Borrowed') AS CopyStatus
+    FROM BookCopies_Table bc
+      LEFT JOIN Loans_Table l ON (bc.CopyID = l.CopyID AND l.LoanStatus = 'Borrowed')
+    WHERE bc.BookID = ?
+    ORDER BY bc.AccessionNumber ASC
   `, [bookId]),
 
   search: (keyword) => db.query(`
-    SELECT
-      b.BookID, b.Title, b.ISBN, b.YearPublished,
-      p.PublisherName,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyStatus = 'Available') AS AvailableCopies
-    FROM (Books_Table b LEFT JOIN Publishers_Table p ON b.PublisherID = p.PublisherID)
-    WHERE b.Title LIKE ? OR b.ISBN LIKE ?
-    ORDER BY b.Title ASC
-  `, [`%${keyword}%`, `%${keyword}%`]),
+      SELECT
+        b.BookID, b.Title, b.Author, b.ISBN, b.YearPublished,
+        b.Publisher,
+        (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
+        (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
+      FROM Books_Table b
+      WHERE b.Title LIKE ? OR b.Author LIKE ? OR b.ISBN LIKE ?
+      ORDER BY b.Title ASC
+    `, [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`]),
 
   /**
    * Add a new book record.
    */
   add: (book) => db.execute(`
-    INSERT INTO Books_Table (Title, ISBN, PublisherID, YearPublished, Edition, Language, BookDescription)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `, [
-    book.title,
-    book.isbn || '',
-    book.publisherId || null,
-    book.yearPublished || null,
-    book.edition || '',
-    book.language || 'English',
-    book.description || ''
-  ]),
+      INSERT INTO Books_Table (Title, Author, ISBN, Publisher, YearPublished, Language)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+      book.title,
+      book.author || '',
+      book.isbn || '',
+      book.publisher || '',
+      book.yearPublished || null,
+      book.language || 'English'
+    ]),
 
   update: (id, book) => db.execute(`
-    UPDATE Books_Table
-    SET Title=?, ISBN=?, PublisherID=?, YearPublished=?, Edition=?, Language=?, BookDescription=?
-    WHERE BookID=?
-  `, [
-    book.title,
-    book.isbn || '',
-    book.publisherId || null,
-    book.yearPublished || null,
-    book.edition || '',
-    book.language || 'English',
-    book.description || '',
-    id
-  ]),
+      UPDATE Books_Table
+      SET Title=?, Author=?, ISBN=?, Publisher=?, YearPublished=?, Language=?
+      WHERE BookID=?
+    `, [
+      book.title,
+      book.author || '',
+      book.isbn || '',
+      book.publisher || '',
+      book.yearPublished || null,
+      book.language || 'English',
+      id
+    ]),
 
   delete: (id) => db.execute('DELETE FROM Books_Table WHERE BookID=?', [id]),
-
-  // ── BookAuthors ──
-  addAuthor: (bookId, authorId) =>
-    db.execute('INSERT INTO BookAuthors_Table (BookID, AuthorID) VALUES (?, ?)', [bookId, authorId]),
-
-  removeAuthor: (bookId, authorId) =>
-    db.execute('DELETE FROM BookAuthors_Table WHERE BookID=? AND AuthorID=?', [bookId, authorId]),
 
   // ── BookCategories ──
   addCategory: (bookId, categoryId) =>
@@ -126,12 +108,9 @@ const Books = {
   // ── BookCopies ──
   addCopy: (bookId, accessionNumber, conditionNotes = '') =>
     db.execute(`
-      INSERT INTO BookCopies_Table (BookID, AccessionNumber, CopyStatus, DateAdded, ConditionNotes)
-      VALUES (?, ?, 'Available', Date(), ?)
+      INSERT INTO BookCopies_Table (BookID, AccessionNumber, ConditionNotes)
+      VALUES (?, ?, ?)
     `, [bookId, accessionNumber, conditionNotes]),
-
-  updateCopyStatus: (copyId, status) =>
-    db.execute('UPDATE BookCopies_Table SET CopyStatus=? WHERE CopyID=?', [status, copyId]),
 };
 
 module.exports = Books;

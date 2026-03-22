@@ -96,31 +96,25 @@
           <label class="form-label">Title *</label>
           <input class="form-input" type="text" id="f-title" placeholder="Book title"/>
         </div>
+        <div class="form-group full">
+          <label class="form-label">Author(s)</label>
+          <input class="form-input" type="text" id="f-author" placeholder="Author name(s)"/>
+        </div>
         <div class="form-group">
           <label class="form-label">ISBN</label>
           <input class="form-input" type="text" id="f-isbn" placeholder="978-…"/>
         </div>
         <div class="form-group">
           <label class="form-label">Year Published</label>
-          <input class="form-input" type="number" id="f-year" placeholder="e.g. 2024"/>
+          <input class="form-input" type="text" id="f-year" placeholder="e.g. 2024" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
         </div>
         <div class="form-group">
           <label class="form-label">Publisher</label>
-          <select class="form-select" id="f-publisher">
-            <option value="">— Select —</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Edition</label>
-          <input class="form-input" type="text" id="f-edition" placeholder="e.g. 2nd"/>
+          <input class="form-input" type="text" id="f-publisher" placeholder="Publisher name"/>
         </div>
         <div class="form-group">
           <label class="form-label">Language</label>
           <input class="form-input" type="text" id="f-lang" placeholder="English" value="English"/>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Description</label>
-          <textarea class="form-textarea" id="f-desc" placeholder="Brief description…"></textarea>
         </div>
       </div>
     </div>
@@ -136,26 +130,24 @@ const { ipcRenderer } = require('electron');
 
 let allBooks = [];
 
+function populateCategoryFilter(categories) {
+  const catSel = document.getElementById('cat-filter');
+  catSel.innerHTML = '<option value="">All Categories</option>';
+  categories.forEach(c => {
+    catSel.innerHTML += `<option value="${c.CategoryID}">${c.CategoryName}</option>`;
+  });
+}
+
 async function load() {
   try {
-    const [books, publishers, categories] = await Promise.all([
+    const [books, categories] = await Promise.all([
       ipcRenderer.invoke('books:all'),
-      ipcRenderer.invoke('publishers:all'),
       ipcRenderer.invoke('categories:all'),
     ]);
 
     allBooks = books;
 
-    // Populate filters
-    const catSel = document.getElementById('cat-filter');
-    categories.forEach(c => {
-      catSel.innerHTML += `<option value="${c.CategoryID}">${c.CategoryName}</option>`;
-    });
-
-    const pubSel = document.getElementById('f-publisher');
-    publishers.forEach(p => {
-      pubSel.innerHTML += `<option value="${p.PublisherID}">${p.PublisherName}</option>`;
-    });
+    populateCategoryFilter(categories);
 
     renderTable(books);
     updateStats(books);
@@ -184,9 +176,9 @@ function renderTable(books) {
   tbody.innerHTML = books.map(b => `
     <tr>
       <td><strong>${esc(b.Title)}</strong></td>
-      <td class="td-muted">${esc(b.AuthorNames || '—')}</td>
+      <td class="td-muted">${esc(b.Author || '—')}</td>
       <td class="td-mono">${esc(b.ISBN || '—')}</td>
-      <td class="td-muted">${esc(b.PublisherName || '—')}</td>
+      <td class="td-muted">${esc(b.Publisher || '—')}</td>
       <td class="td-mono">${b.YearPublished || '—'}</td>
       <td class="td-mono">${b.TotalCopies || 0}</td>
       <td>
@@ -225,12 +217,11 @@ function openModal(mode, book = null) {
   document.getElementById('modal-title').textContent = mode === 'add' ? 'ADD BOOK' : 'EDIT BOOK';
   document.getElementById('edit-id').value = book ? book.BookID : '';
   document.getElementById('f-title').value   = book ? book.Title : '';
+  document.getElementById('f-author').value  = book ? (book.Author || '') : '';
   document.getElementById('f-isbn').value    = book ? (book.ISBN || '') : '';
   document.getElementById('f-year').value    = book ? (book.YearPublished || '') : '';
-  document.getElementById('f-edition').value = book ? (book.Edition || '') : '';
   document.getElementById('f-lang').value    = book ? (book.Language || 'English') : 'English';
-  document.getElementById('f-desc').value    = book ? (book.BookDescription || '') : '';
-  if (book && book.PublisherID) document.getElementById('f-publisher').value = book.PublisherID;
+  document.getElementById('f-publisher').value = book ? (book.Publisher || '') : '';
   document.getElementById('book-modal').classList.add('open');
 }
 
@@ -255,12 +246,11 @@ async function deleteBook(id) {
 async function saveBook() {
   const data = {
     title:       document.getElementById('f-title').value.trim(),
+    author:      document.getElementById('f-author').value.trim(),
     isbn:        document.getElementById('f-isbn').value.trim(),
     yearPublished: parseInt(document.getElementById('f-year').value) || null,
-    publisherId: parseInt(document.getElementById('f-publisher').value) || null,
-    edition:     document.getElementById('f-edition').value.trim(),
+    publisher:   document.getElementById('f-publisher').value.trim(),
     language:    document.getElementById('f-lang').value.trim() || 'English',
-    description: document.getElementById('f-desc').value.trim(),
   };
   if (!data.title) { alert('Title is required.'); return; }
   try {
@@ -277,7 +267,7 @@ async function saveBook() {
 
 function exportCSV() {
   const rows = [['Title','ISBN','Publisher','Year','TotalCopies','Available']];
-  allBooks.forEach(b => rows.push([`"${b.Title}"`, b.ISBN||'', `"${b.PublisherName||''}"`, b.YearPublished||'', b.TotalCopies||0, b.AvailableCopies||0]));
+  allBooks.forEach(b => rows.push([`"${b.Title}"`, b.ISBN||'', `"${b.Publisher||''}"`, b.YearPublished||'', b.TotalCopies||0, b.AvailableCopies||0]));
   const csv = rows.map(r => r.join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -289,7 +279,14 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Numeric input validator
+function allowNumericOnly(event) {
+  let value = event.target.value;
+  event.target.value = value.replace(/[^0-9]/g, '');
+}
+
 load();
 </script>
+<script src="authCheck.js"></script>
 </body>
 </html>

@@ -34,10 +34,10 @@ const Auth = {
     let rows;
     try {
       rows = await db.query(
-        `SELECT u.UserID, u.Username, u.PasswordHash, u.FirstName, u.LastName,
-                u.Email, u.AccountStatus, u.RoleID, r.RoleName
-         FROM Users_Table u LEFT JOIN Roles_Table r ON u.RoleID = r.RoleID
-         WHERE u.Username = ?`,
+        `SELECT UserID, Username, Password, FirstName, LastName,
+                Email, Status, RoleID
+         FROM Users_Table
+         WHERE Username = ?`,
         [username]
       );
     } catch (err) {
@@ -51,11 +51,27 @@ const Auth = {
 
     const user = rows[0];
 
-    if (user.AccountStatus !== 'Active') {
+    try {
+      if (user.RoleID) {
+        const roleRows = await db.query(
+          `SELECT RoleName FROM Roles_Table WHERE RoleID = ?`,
+          [user.RoleID]
+        );
+        user.RoleName = roleRows && roleRows.length > 0 ? roleRows[0].RoleName : null;
+      } else {
+        user.RoleName = null;
+      }
+    } catch (err) {
+      console.error('Role query error:', err.message);
+      user.RoleName = null;
+    }
+
+    // Status is boolean based on schema. true/false or 1/0 or -1/0. Assuming JS true/1
+    if (!user.Status) {
       return { success: false, message: 'Your account is inactive. Contact an administrator.' };
     }
 
-    if (!verifyPassword(password, user.PasswordHash)) {
+    if (!verifyPassword(password, user.Password)) {
       return { success: false, message: 'Invalid username or password.' };
     }
 
@@ -78,8 +94,9 @@ const Auth = {
    * Register a new user account.
    * Returns { success: true } or { success: false, message: '...' }
    */
-  register: async ({ firstName, lastName, email, username, roleId, password }) => {
-    if (!firstName || !lastName || !username || !password || !roleId) {
+  register: async ({ firstName, lastName, email, username, password, roleId = 3 }) => {
+
+    if (!firstName || !lastName || !username || !password) {
       return { success: false, message: 'All required fields must be filled.' };
     }
     if (password.length < 6) {
@@ -101,13 +118,27 @@ const Auth = {
     const passwordHash = hashPassword(password);
 
     try {
+      await db.BeginTrans();
+
       await db.execute(
-        `INSERT INTO Users_Table (Username, PasswordHash, RoleID, FirstName, LastName, Email, AccountStatus, DateCreated)
-         VALUES (?, ?, ?, ?, ?, ?, 'Active', Date())`,
+        `INSERT INTO Users_Table (Username, Password, RoleID, FirstName, LastName, Email, Status, DateCreated)
+         VALUES (?, ?, ?, ?, ?, ?, true, Date())`,
         [username, passwordHash, roleId, firstName, lastName, email || '']
       );
+
+      // Only insert into Members_Table if it's a Member role (assumed 3)
+      if (roleId === 3) {
+        await db.execute(
+          `INSERT INTO Members_Table (FirstName, LastName, Email, Phone, Address, DateRegistered, Status)
+           VALUES (?, ?, ?, ?, ?, Date(), true)`,
+          [firstName, lastName, email || '', '', '']
+        );
+      }
+
+      await db.CommitTrans();
       return { success: true };
     } catch (err) {
+      await db.Rollback();
       console.error('Register error:', err.message);
       return { success: false, message: 'Failed to create account: ' + err.message };
     }
