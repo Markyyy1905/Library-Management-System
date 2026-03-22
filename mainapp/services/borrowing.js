@@ -24,10 +24,10 @@ const Borrowing = {
       l.DateReturned,
       l.LoanStatus,
       u.FirstName & ' ' & u.LastName AS IssuedByName
-    FROM (((Loans l
-      INNER JOIN Members m ON l.MemberID = m.MemberID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
-      INNER JOIN Books bk ON bc.BookID = bk.BookID)
+    FROM (((Loans_Table l
+      INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID)
       LEFT JOIN Users_Table u ON l.IssuedBy = u.UserID
     ORDER BY l.DateBorrowed DESC
   `),
@@ -43,10 +43,10 @@ const Borrowing = {
       bc.AccessionNumber,
       l.DateBorrowed,
       l.DueDate
-    FROM ((Loans l
-      INNER JOIN Members m ON l.MemberID = m.MemberID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
-      INNER JOIN Books bk ON bc.BookID = bk.BookID
+    FROM ((Loans_Table l
+      INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID
     WHERE l.LoanStatus = 'Borrowed'
     ORDER BY l.DueDate ASC
   `),
@@ -60,10 +60,10 @@ const Borrowing = {
       bc.AccessionNumber,
       l.DueDate,
       DateDiff('d', l.DueDate, Date()) AS DaysOverdue
-    FROM ((Loans l
-      INNER JOIN Members m ON l.MemberID = m.MemberID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
-      INNER JOIN Books bk ON bc.BookID = bk.BookID
+    FROM ((Loans_Table l
+      INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID
     WHERE l.LoanStatus = 'Borrowed' AND l.DueDate < Date()
     ORDER BY l.DueDate ASC
   `),
@@ -75,10 +75,10 @@ const Borrowing = {
       bk.Title AS BookTitle,
       bc.AccessionNumber,
       l.DateBorrowed, l.DueDate, l.DateReturned
-    FROM ((Loans l
-      INNER JOIN Members m ON l.MemberID = m.MemberID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
-      INNER JOIN Books bk ON bc.BookID = bk.BookID
+    FROM ((Loans_Table l
+      INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID
     WHERE l.LoanStatus = 'Returned'
     ORDER BY l.DateReturned DESC
   `),
@@ -91,11 +91,11 @@ const Borrowing = {
       bk.Title AS BookTitle, bk.BookID,
       bc.AccessionNumber,
       f.FineID, f.FineAmount, f.FineStatus
-    FROM (((Loans l
-      INNER JOIN Members m ON l.MemberID = m.MemberID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID)
-      INNER JOIN Books bk ON bc.BookID = bk.BookID)
-      LEFT JOIN Fines f ON f.LoanID = l.LoanID
+    FROM (((Loans_Table l
+      INNER JOIN Members_Table m ON l.MemberID = m.MemberID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID)
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID)
+      LEFT JOIN Fines_Table f ON f.LoanID = l.LoanID
     WHERE l.LoanID = ?
   `, [loanId]),
 
@@ -108,12 +108,12 @@ const Borrowing = {
    */
   borrow: async (memberId, copyId, issuedBy, dueDays = 14) => {
     await db.execute(`
-      INSERT INTO Loans (MemberID, CopyID, IssuedBy, DateBorrowed, DueDate, LoanStatus)
+      INSERT INTO Loans_Table (MemberID, CopyID, IssuedBy, DateBorrowed, DueDate, LoanStatus)
       VALUES (?, ?, ?, Date(), DateAdd('d', ?, Date()), 'Borrowed')
     `, [memberId, copyId, issuedBy, dueDays]);
 
     await db.execute(
-      "UPDATE BookCopies SET CopyStatus='Borrowed' WHERE CopyID=?",
+      "UPDATE BookCopies_Table SET CopyStatus='Borrowed' WHERE CopyID=?",
       [copyId]
     );
   },
@@ -127,25 +127,25 @@ const Borrowing = {
   returnBook: async (loanId, copyId, condition = '') => {
     // Mark loan returned
     await db.execute(`
-      UPDATE Loans SET DateReturned=Date(), LoanStatus='Returned' WHERE LoanID=?
+      UPDATE Loans_Table SET DateReturned=Date(), LoanStatus='Returned' WHERE LoanID=?
     `, [loanId]);
 
     // Restore copy to Available
     await db.execute(
-      "UPDATE BookCopies SET CopyStatus='Available', ConditionNotes=? WHERE CopyID=?",
+      "UPDATE BookCopies_Table SET CopyStatus='Available', ConditionNotes=? WHERE CopyID=?",
       [condition, copyId]
     );
 
     // Check if overdue and auto-create fine (₱5/day example rate)
     const rows = await db.query(`
       SELECT DateDiff('d', DueDate, Date()) AS DaysLate
-      FROM Loans WHERE LoanID=? AND DueDate < Date()
+      FROM Loans_Table WHERE LoanID=? AND DueDate < Date()
     `, [loanId]);
 
     if (rows.length && rows[0].DaysLate > 0) {
       const fineAmount = rows[0].DaysLate * 5; // configurable rate
       await db.execute(`
-        INSERT INTO Fines (LoanID, FineAmount, FineStatus, DateIssued)
+        INSERT INTO Fines_Table (LoanID, FineAmount, FineStatus, DateIssued)
         VALUES (?, ?, 'Unpaid', Date())
       `, [loanId, fineAmount]);
     }
@@ -153,18 +153,18 @@ const Borrowing = {
 
   // ── Fines ──
   payFine: (fineId) =>
-    db.execute("UPDATE Fines SET FineStatus='Paid', DatePaid=Date() WHERE FineID=?", [fineId]),
+    db.execute("UPDATE Fines_Table SET FineStatus='Paid', DatePaid=Date() WHERE FineID=?", [fineId]),
 
   waiveFine: (fineId) =>
-    db.execute("UPDATE Fines SET FineStatus='Waived' WHERE FineID=?", [fineId]),
+    db.execute("UPDATE Fines_Table SET FineStatus='Waived' WHERE FineID=?", [fineId]),
 
   getFinesByMember: (memberId) => db.query(`
     SELECT f.FineID, f.FineAmount, f.FineStatus, f.DateIssued, f.DatePaid,
            bk.Title AS BookTitle, l.DueDate, l.DateReturned
-    FROM (Fines f
-      INNER JOIN Loans l ON f.LoanID = l.LoanID)
-      INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
-      INNER JOIN Books bk ON bc.BookID = bk.BookID
+    FROM (Fines_Table f
+      INNER JOIN Loans_Table l ON f.LoanID = l.LoanID)
+      INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID
+      INNER JOIN Books_Table bk ON bc.BookID = bk.BookID
     WHERE l.MemberID = ?
     ORDER BY f.DateIssued DESC
   `, [memberId]),
@@ -177,8 +177,8 @@ const Borrowing = {
       bk.Title AS BookTitle,
       r.ReservationDate, r.ExpirationDate, r.ReservationStatus
     FROM (Reservations r
-      INNER JOIN Members m ON r.MemberID = m.MemberID)
-      INNER JOIN Books bk ON r.BookID = bk.BookID
+      INNER JOIN Members_Table m ON r.MemberID = m.MemberID)
+      INNER JOIN Books_Table bk ON r.BookID = bk.BookID
     WHERE r.ReservationStatus = 'Pending'
     ORDER BY r.ReservationDate ASC
   `),
