@@ -135,6 +135,7 @@ ipcMain.handle('books:all', () => Books.getAll());
 ipcMain.handle('books:byId', (e, id) => Books.getById(id));
 ipcMain.handle('books:authors', (e, id) => Books.getAuthors(id));
 ipcMain.handle('books:categories', (e, id) => Books.getCategories(id));
+ipcMain.handle('books:allCategories', () => Books.getAllBookCategories());
 ipcMain.handle('books:copies', (e, id) => Books.getCopies(id));
 ipcMain.handle('books:search', (e, kw) => Books.search(kw));
 ipcMain.handle('books:add', (e, data) => {
@@ -151,6 +152,12 @@ ipcMain.handle('books:addCopy', (e, bookId, accNum, notes) => {
 });
 ipcMain.handle('books:updateCopyStatus', (e, copyId, status) => {
   return Books.updateCopyStatus(copyId, status);
+});
+ipcMain.handle('books:addCategory', (e, bookId, categoryId) => {
+  return Books.addCategory(bookId, categoryId);
+});
+ipcMain.handle('books:removeCategory', (e, bookId, categoryId) => {
+  return Books.removeCategory(bookId, categoryId);
 });
 
 // ── Members ──

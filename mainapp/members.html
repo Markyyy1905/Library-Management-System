@@ -55,17 +55,23 @@
           <option value="Suspended">Suspended</option>
           <option value="Inactive">Inactive</option>
         </select>
+        <select class="select-filter" id="page-size" onchange="changePageSize(this.value)">
+          <option value="25">25 / page</option>
+          <option value="50">50 / page</option>
+          <option value="100" selected>100 / page</option>
+          <option value="250">250 / page</option>
+        </select>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
           <h3>Member Registry</h3>
-          <span style="font-size:11px;color:var(--muted);">Showing <strong id="row-count">0</strong> members</span>
+          <span id="row-count-label" style="font-size:11px;color:var(--muted);">Showing 0–0 of 0</span>
         </div>
         <table id="members-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>#</th>
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
@@ -79,6 +85,14 @@
             <tr><td colspan="8" class="loading-row">Loading…</td></tr>
           </tbody>
         </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);">
+          <span id="page-meta" style="font-size:11px;color:var(--muted);">Showing 0-0 of 0</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="prev-page-btn" class="btn btn-outline btn-sm" onclick="goToPage(currentPage - 1)">Prev</button>
+            <span id="page-info" style="font-size:11px;color:var(--muted);">Page 1 of 1</span>
+            <button id="next-page-btn" class="btn btn-outline btn-sm" onclick="goToPage(currentPage + 1)">Next</button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -97,11 +111,11 @@
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">First Name *</label>
-          <input class="form-input" type="text" id="f-first" placeholder="First name"/>
+          <input class="form-input" type="text" id="f-first" placeholder="First name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '')"/>
         </div>
         <div class="form-group">
           <label class="form-label">Last Name *</label>
-          <input class="form-input" type="text" id="f-last" placeholder="Last name"/>
+          <input class="form-input" type="text" id="f-last" placeholder="Last name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '')"/>
         </div>
         <div class="form-group">
           <label class="form-label">Email</label>
@@ -126,6 +140,7 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="delete-member-btn" style="display:none;margin-right:auto;" onclick="deleteMember()">Delete</button>
       <button class="btn btn-outline" onclick="closeModal('member-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveMember()">Save</button>
     </div>
@@ -166,6 +181,9 @@
 <script>
 const { ipcRenderer } = require('electron');
 let allMembers = [];
+let currentMembers = [];
+let pageSize = 100;
+let currentPage = 1;
 
 const STATUS_BADGE = { Active: 'badge-green', Suspended: 'badge-red', Inactive: 'badge-gray' };
 
@@ -173,7 +191,9 @@ async function load() {
   try {
     const members = await ipcRenderer.invoke('members:all');
     allMembers = members;
-    renderTable(members);
+    currentMembers = members;
+    currentPage = 1;
+    renderTable();
     updateStats(members);
   } catch (err) {
     document.getElementById('members-tbody').innerHTML =
@@ -183,27 +203,44 @@ async function load() {
 
 function updateStats(members) {
   document.getElementById('s-total').textContent     = members.length;
-  document.getElementById('s-active').textContent    = members.filter(m => m.MembershipStatus === 'Active').length;
-  document.getElementById('s-suspended').textContent = members.filter(m => m.MembershipStatus === 'Suspended').length;
+  document.getElementById('s-active').textContent    = members.filter(m => m.Status === 'Active').length;
+  document.getElementById('s-suspended').textContent = members.filter(m => m.Status === 'Suspended').length;
   document.getElementById('s-loans').textContent     = members.filter(m => (m.ActiveLoans || 0) > 0).length;
 }
 
-function renderTable(members) {
-  document.getElementById('row-count').textContent = members.length;
+function renderTable() {
   const tbody = document.getElementById('members-tbody');
-  if (!members.length) {
+  const total = currentMembers.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const startIdx = total === 0 ? 0 : (currentPage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, total);
+  const pageRows = currentMembers.slice(startIdx, endIdx);
+
+  const displayFrom = total === 0 ? 0 : startIdx + 1;
+  document.getElementById('row-count-label').innerHTML = `Showing <strong>${displayFrom}–${endIdx}</strong> of <strong>${total}</strong>`;
+  document.getElementById('page-meta').textContent = `Showing ${displayFrom}-${endIdx} of ${total}`;
+  document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+
+  if (total === 0) {
     tbody.innerHTML = '<tr><td colspan="8" class="loading-row">No members found.</td></tr>';
     return;
   }
-  tbody.innerHTML = members.map(m => `
+  tbody.innerHTML = pageRows.map((m, i) => `
     <tr>
-      <td class="td-mono">#${m.MemberID}</td>
+      <td class="td-mono">${startIdx + i + 1}</td>
       <td><strong>${esc(m.LastName)}, ${esc(m.FirstName)}</strong></td>
       <td class="td-muted">${esc(m.Email || '—')}</td>
-      <td class="td-muted">${esc(m.PhoneNumber || '—')}</td>
+      <td class="td-muted">${esc(m.Phone || '—')}</td>
       <td class="td-mono">${m.ActiveLoans || 0}</td>
       <td class="td-muted">${fmtDate(m.DateRegistered)}</td>
-      <td><span class="badge ${STATUS_BADGE[m.MembershipStatus] || 'badge-gray'}">${m.MembershipStatus}</span></td>
+      <td><span class="badge ${STATUS_BADGE[m.Status] || 'badge-gray'}">${m.Status || '—'}</span></td>
       <td>
         <div style="display:flex;gap:5px;">
           <button class="btn btn-outline btn-sm" onclick="editMember(${m.MemberID})">Edit</button>
@@ -213,21 +250,39 @@ function renderTable(members) {
     </tr>`).join('');
 }
 
+function setCurrentMembers(members) {
+  currentMembers = members;
+  currentPage = 1;
+  renderTable();
+}
+
+function changePageSize(value) {
+  pageSize = parseInt(value, 10) || 100;
+  currentPage = 1;
+  renderTable();
+}
+
+function goToPage(page) {
+  const totalPages = Math.max(1, Math.ceil(currentMembers.length / pageSize));
+  currentPage = Math.min(totalPages, Math.max(1, page));
+  renderTable();
+}
+
 let searchTimer;
 function search(val) {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(async () => {
-    if (val.trim().length < 2) { renderTable(allMembers); return; }
+    if (val.trim().length < 2) { setCurrentMembers(allMembers); return; }
     try {
       const r = await ipcRenderer.invoke('members:search', val.trim());
-      renderTable(r);
+      setCurrentMembers(r);
     } catch {}
   }, 300);
 }
 
 function filterStatus(status) {
-  if (!status) { renderTable(allMembers); return; }
-  renderTable(allMembers.filter(m => m.MembershipStatus === status));
+  if (!status) { setCurrentMembers(allMembers); return; }
+  setCurrentMembers(allMembers.filter(m => m.Status === status));
 }
 
 function openModal(mode, member = null) {
@@ -236,10 +291,11 @@ function openModal(mode, member = null) {
   document.getElementById('f-first').value  = member ? member.FirstName : '';
   document.getElementById('f-last').value   = member ? member.LastName : '';
   document.getElementById('f-email').value  = member ? (member.Email || '') : '';
-  document.getElementById('f-phone').value  = member ? (member.PhoneNumber || '') : '';
+  document.getElementById('f-phone').value  = member ? (member.Phone || '') : '';
   document.getElementById('f-addr').value   = member ? (member.Address || '') : '';
   document.getElementById('status-group').style.display = member ? 'flex' : 'none';
-  if (member) document.getElementById('f-status').value = member.MembershipStatus || 'Active';
+  if (member) document.getElementById('f-status').value = member.Status || 'Active';
+  document.getElementById('delete-member-btn').style.display = member ? 'inline-flex' : 'none';
   document.getElementById('member-modal').classList.add('open');
 }
 
@@ -251,6 +307,17 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 async function editMember(id) {
   const rows = await ipcRenderer.invoke('members:byId', id);
   if (rows && rows.length) openModal('edit', rows[0]);
+}
+
+async function deleteMember() {
+  const editId = document.getElementById('edit-id').value;
+  if (!editId) return;
+  if (!confirm('Delete this member? This cannot be undone.')) return;
+  try {
+    await ipcRenderer.invoke('members:delete', parseInt(editId));
+    closeModal('member-modal');
+    await load();
+  } catch (err) { alert('Error: ' + err.message); }
 }
 
 async function showHistory(id, name) {
@@ -285,7 +352,7 @@ async function saveMember() {
     firstName:   document.getElementById('f-first').value.trim(),
     lastName:    document.getElementById('f-last').value.trim(),
     email:       document.getElementById('f-email').value.trim(),
-    phoneNumber: document.getElementById('f-phone').value.trim(),
+    phone:       document.getElementById('f-phone').value.trim(),
     address:     document.getElementById('f-addr').value.trim(),
   };
   if (!data.firstName || !data.lastName) { alert('First and Last name are required.'); return; }
@@ -304,9 +371,9 @@ async function saveMember() {
 }
 
 function exportCSV() {
-  const rows = [['ID','LastName','FirstName','Email','Phone','ActiveLoans','Registered','Status']];
-  allMembers.forEach(m => rows.push([m.MemberID, `"${m.LastName}"`, `"${m.FirstName}"`,
-    m.Email||'', m.PhoneNumber||'', m.ActiveLoans||0, m.DateRegistered||'', m.MembershipStatus]));
+  const rows = [['#','LastName','FirstName','Email','Phone','ActiveLoans','Registered','Status']];
+  allMembers.forEach((m, i) => rows.push([i + 1, `"${m.LastName}"`, `"${m.FirstName}"`,
+    m.Email||'', m.Phone||'', m.ActiveLoans||0, m.DateRegistered||'', m.Status]));
   const csv = rows.map(r => r.join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -320,12 +387,6 @@ function fmtDate(d) {
 }
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// Numeric input validator
-function allowNumericOnly(event) {
-  let value = event.target.value;
-  event.target.value = value.replace(/[^0-9]/g, '');
 }
 
 load();

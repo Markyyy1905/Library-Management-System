@@ -52,12 +52,18 @@
         <select class="select-filter" id="cat-filter" onchange="filterCat(this.value)">
           <option value="">All Categories</option>
         </select>
+        <select class="select-filter" id="page-size" onchange="changePageSize(this.value)">
+          <option value="25">25 / page</option>
+          <option value="50">50 / page</option>
+          <option value="100" selected>100 / page</option>
+          <option value="250">250 / page</option>
+        </select>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
           <h3>Book Catalog</h3>
-          <span style="font-size:11px;color:var(--muted);">Showing <strong id="row-count">0</strong> titles</span>
+          <span id="row-count-label" style="font-size:11px;color:var(--muted);">Showing 0–0 of 0</span>
         </div>
         <table id="books-table">
           <thead>
@@ -67,6 +73,7 @@
               <th>ISBN</th>
               <th>Publisher</th>
               <th>Year</th>
+              <th>Categories</th>
               <th>Copies</th>
               <th>Avail</th>
               <th>Actions</th>
@@ -76,6 +83,14 @@
             <tr><td colspan="8" class="loading-row">Loading…</td></tr>
           </tbody>
         </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);">
+          <span id="page-meta" style="font-size:11px;color:var(--muted);">Showing 0-0 of 0</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="prev-page-btn" class="btn btn-outline btn-sm" onclick="goToPage(currentPage - 1)">Prev</button>
+            <span id="page-info" style="font-size:11px;color:var(--muted);">Page 1 of 1</span>
+            <button id="next-page-btn" class="btn btn-outline btn-sm" onclick="goToPage(currentPage + 1)">Next</button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -98,11 +113,11 @@
         </div>
         <div class="form-group full">
           <label class="form-label">Author(s)</label>
-          <input class="form-input" type="text" id="f-author" placeholder="Author name(s)"/>
+          <input class="form-input" type="text" id="f-author" placeholder="Author name(s)" oninput="this.value = this.value.replace(/[^a-zA-Z\u00C0-\u00ff\s\-'.,]/g, '')"/>
         </div>
         <div class="form-group">
           <label class="form-label">ISBN</label>
-          <input class="form-input" type="text" id="f-isbn" placeholder="978-…"/>
+          <input class="form-input" type="text" id="f-isbn" placeholder="978-…" oninput="this.value = this.value.replace(/[^0-9\-X]/g, '')"/>
         </div>
         <div class="form-group">
           <label class="form-label">Year Published</label>
@@ -110,12 +125,16 @@
         </div>
         <div class="form-group">
           <label class="form-label">Publisher</label>
-          <input class="form-input" type="text" id="f-publisher" placeholder="Publisher name"/>
+          <input class="form-input" type="text" id="f-publisher" placeholder="Publisher name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-'.,&]/g, '')"/>
         </div>
         <div class="form-group">
           <label class="form-label">Language</label>
           <input class="form-input" type="text" id="f-lang" placeholder="English" value="English"/>
         </div>
+      </div>
+      <div style="margin-top:16px;">
+        <label class="form-label">Categories</label>
+        <div id="categories-list" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -129,6 +148,12 @@
 const { ipcRenderer } = require('electron');
 
 let allBooks = [];
+let currentBooks = [];
+let pageSize = 100;
+let currentPage = 1;
+let allCategories = [];
+let selectedCategories = [];
+let loadGen = 0;
 
 function populateCategoryFilter(categories) {
   const catSel = document.getElementById('cat-filter');
@@ -138,22 +163,76 @@ function populateCategoryFilter(categories) {
   });
 }
 
+function populateCategoryCheckboxes(categories) {
+  const list = document.getElementById('categories-list');
+  list.innerHTML = categories.map(c => `
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+      <input type="checkbox" class="cat-checkbox" value="${c.CategoryID}" data-name="${c.CategoryName}"/>
+      ${c.CategoryName}
+    </label>
+  `).join('');
+}
+
+async function fetchCategoriesForBooks(books, gen) {
+  // One query for ALL book-category pairs instead of one per book
+  const allPairs = await ipcRenderer.invoke('books:allCategories');
+  if (gen !== loadGen) return; // abort if a newer load started
+
+  // Group by BookID
+  const map = {};
+  for (const row of allPairs) {
+    if (!map[row.BookID]) map[row.BookID] = { ids: [], names: [] };
+    map[row.BookID].ids.push(row.CategoryID);
+    map[row.BookID].names.push(row.CategoryName);
+  }
+  for (const book of books) {
+    const entry = map[book.BookID] || { ids: [], names: [] };
+    book.CategoryIDs   = entry.ids;
+    book.CategoryNames = entry.names;
+  }
+}
+
 async function load() {
+  const gen = ++loadGen;
   try {
-    const [books, categories] = await Promise.all([
+    const [books, categories, ] = await Promise.all([
       ipcRenderer.invoke('books:all'),
       ipcRenderer.invoke('categories:all'),
+      ipcRenderer.invoke('books:allCategories').then(pairs => {
+        // Pre-populate categories onto books as soon as both resolve
+        // (stored temporarily; applied after books array is assigned below)
+        load._pendingPairs = pairs;
+      }),
     ]);
 
+    if (gen !== loadGen) return;
+
+    // Apply pre-fetched category pairs to book objects
+    const map = {};
+    for (const row of (load._pendingPairs || [])) {
+      if (!map[row.BookID]) map[row.BookID] = { ids: [], names: [] };
+      map[row.BookID].ids.push(row.CategoryID);
+      map[row.BookID].names.push(row.CategoryName);
+    }
+    for (const book of books) {
+      const entry = map[book.BookID] || { ids: [], names: [] };
+      book.CategoryIDs   = entry.ids;
+      book.CategoryNames = entry.names;
+    }
+
     allBooks = books;
+    currentBooks = books;
+    currentPage = 1;
+    allCategories = categories;
 
     populateCategoryFilter(categories);
+    populateCategoryCheckboxes(categories);
 
-    renderTable(books);
+    renderTable();
     updateStats(books);
   } catch (err) {
     document.getElementById('books-tbody').innerHTML =
-      `<tr><td colspan="8" class="error-row">Error: ${err.message}</td></tr>`;
+      `<tr><td colspan="9" class="error-row">Error: ${err.message}</td></tr>`;
   }
 }
 
@@ -166,20 +245,38 @@ function updateStats(books) {
   document.getElementById('s-loan').textContent   = (totalCopies - availCopies).toLocaleString();
 }
 
-function renderTable(books) {
+function renderTable() {
   const tbody = document.getElementById('books-tbody');
-  document.getElementById('row-count').textContent = books.length;
-  if (books.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">No books found.</td></tr>';
+  const total = currentBooks.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const startIdx = total === 0 ? 0 : (currentPage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, total);
+  const pageRows = currentBooks.slice(startIdx, endIdx);
+
+  const displayFrom = total === 0 ? 0 : startIdx + 1;
+  document.getElementById('row-count-label').innerHTML = `Showing <strong>${displayFrom}–${endIdx}</strong> of <strong>${total}</strong>`;
+  document.getElementById('page-meta').textContent = `Showing ${displayFrom}-${endIdx} of ${total}`;
+  document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+
+  if (total === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No books found.</td></tr>';
     return;
   }
-  tbody.innerHTML = books.map(b => `
+  tbody.innerHTML = pageRows.map(b => `
     <tr>
       <td><strong>${esc(b.Title)}</strong></td>
       <td class="td-muted">${esc(b.Author || '—')}</td>
       <td class="td-mono">${esc(b.ISBN || '—')}</td>
       <td class="td-muted">${esc(b.Publisher || '—')}</td>
       <td class="td-mono">${b.YearPublished || '—'}</td>
+      <td class="td-muted" style="font-size:12px;">${b.CategoryNames && b.CategoryNames.length > 0 ? b.CategoryNames.join(', ') : '—'}</td>
       <td class="td-mono">${b.TotalCopies || 0}</td>
       <td>
         <span class="badge ${(b.AvailableCopies||0) > 0 ? 'badge-green' : 'badge-red'}">
@@ -195,22 +292,40 @@ function renderTable(books) {
     </tr>`).join('');
 }
 
+function setCurrentBooks(books) {
+  currentBooks = books;
+  currentPage = 1;
+  renderTable();
+}
+
+function changePageSize(value) {
+  pageSize = parseInt(value, 10) || 100;
+  currentPage = 1;
+  renderTable();
+}
+
+function goToPage(page) {
+  const totalPages = Math.max(1, Math.ceil(currentBooks.length / pageSize));
+  currentPage = Math.min(totalPages, Math.max(1, page));
+  renderTable();
+}
+
 let searchTimer;
 function search(val) {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(async () => {
-    if (val.trim().length < 2) { renderTable(allBooks); return; }
+    if (val.trim().length < 2) { setCurrentBooks(allBooks); return; }
     try {
       const results = await ipcRenderer.invoke('books:search', val.trim());
-      renderTable(results);
+      setCurrentBooks(results);
     } catch {}
   }, 300);
 }
 
 function filterCat(catId) {
-  if (!catId) { renderTable(allBooks); return; }
-  // Client-side filter by category name for now
-  renderTable(allBooks.filter(b => b.CategoryIDs && String(b.CategoryIDs).includes(catId)));
+  if (!catId) { setCurrentBooks(allBooks); return; }
+  // Filter books that have the selected category
+  setCurrentBooks(allBooks.filter(b => b.CategoryIDs && b.CategoryIDs.includes(parseInt(catId))));
 }
 
 function openModal(mode, book = null) {
@@ -222,6 +337,13 @@ function openModal(mode, book = null) {
   document.getElementById('f-year').value    = book ? (book.YearPublished || '') : '';
   document.getElementById('f-lang').value    = book ? (book.Language || 'English') : 'English';
   document.getElementById('f-publisher').value = book ? (book.Publisher || '') : '';
+  
+  // Set category checkboxes
+  selectedCategories = book ? (book.CategoryIDs || []) : [];
+  document.querySelectorAll('.cat-checkbox').forEach(cb => {
+    cb.checked = selectedCategories.includes(parseInt(cb.value));
+  });
+  
   document.getElementById('book-modal').classList.add('open');
 }
 
@@ -230,7 +352,14 @@ document.getElementById('book-modal').addEventListener('click', e => { if (e.tar
 
 async function editBook(id) {
   const rows = await ipcRenderer.invoke('books:byId', id);
-  if (rows && rows.length) openModal('edit', rows[0]);
+  if (rows && rows.length) {
+    const book = rows[0];
+    // Fetch categories for the book
+    const categories = await ipcRenderer.invoke('books:categories', id);
+    book.CategoryIDs = categories.map(c => c.CategoryID);
+    book.CategoryNames = categories.map(c => c.CategoryName);
+    openModal('edit', book);
+  }
 }
 
 async function deleteBook(id) {
@@ -238,7 +367,8 @@ async function deleteBook(id) {
   try {
     await ipcRenderer.invoke('books:delete', id);
     allBooks = allBooks.filter(b => b.BookID !== id);
-    renderTable(allBooks);
+    currentBooks = currentBooks.filter(b => b.BookID !== id);
+    renderTable();
     updateStats(allBooks);
   } catch (err) { alert('Error: ' + err.message); }
 }
@@ -253,12 +383,56 @@ async function saveBook() {
     language:    document.getElementById('f-lang').value.trim() || 'English',
   };
   if (!data.title) { alert('Title is required.'); return; }
+  
+  // Get selected categories
+  const newCategoryIds = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => parseInt(cb.value));
+  
   try {
     const editId = document.getElementById('edit-id').value;
     if (editId) {
-      await ipcRenderer.invoke('books:update', parseInt(editId), data);
+      const bookId = parseInt(editId);
+      // Update book
+      await ipcRenderer.invoke('books:update', bookId, data);
+      
+      // Remove old categories
+      for (let catId of (selectedCategories || [])) {
+        if (!newCategoryIds.includes(catId)) {
+          try {
+            await ipcRenderer.invoke('books:removeCategory', bookId, catId);
+          } catch (err) {
+            console.error(`Failed to remove category ${catId}:`, err);
+          }
+        }
+      }
+      
+      // Add new categories
+      for (let catId of newCategoryIds) {
+        if (!selectedCategories.includes(catId)) {
+          try {
+            await ipcRenderer.invoke('books:addCategory', bookId, catId);
+          } catch (err) {
+            console.error(`Failed to add category ${catId}:`, err);
+          }
+        }
+      }
     } else {
+      // Add new book
       await ipcRenderer.invoke('books:add', data);
+      
+      // After adding, we need to get the new book ID
+      // For now, just reload and find the book by title
+      const newBooks = await ipcRenderer.invoke('books:all');
+      const newBook = newBooks.find(b => b.Title === data.title);
+      
+      if (newBook && newCategoryIds.length > 0) {
+        for (let catId of newCategoryIds) {
+          try {
+            await ipcRenderer.invoke('books:addCategory', newBook.BookID, catId);
+          } catch (err) {
+            console.error(`Failed to add category ${catId}:`, err);
+          }
+        }
+      }
     }
     closeModal();
     await load();

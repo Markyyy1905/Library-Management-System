@@ -8,6 +8,14 @@
 const db     = require('./db');
 const crypto = require('crypto');
 
+const VALID_ROLES = new Set(['Admin', 'Librarian', 'Member']);
+
+function normalizeRole(inputRole) {
+  if (typeof inputRole !== 'string') return 'Member';
+  const role = inputRole.trim();
+  return VALID_ROLES.has(role) ? role : 'Member';
+}
+
 /**
  * Hash a plain-text password with SHA-256 + a static salt prefix.
  * To use bcrypt instead: npm install bcryptjs  and replace these two functions.
@@ -35,7 +43,7 @@ const Auth = {
     try {
       rows = await db.query(
         `SELECT UserID, Username, Password, FirstName, LastName,
-                Email, Status, RoleID
+                Email, Status, Role
          FROM Users_Table
          WHERE Username = ?`,
         [username]
@@ -50,22 +58,6 @@ const Auth = {
     }
 
     const user = rows[0];
-
-    try {
-      if (user.RoleID) {
-        const roleRows = await db.query(
-          `SELECT RoleName FROM Roles_Table WHERE RoleID = ?`,
-          [user.RoleID]
-        );
-        user.RoleName = roleRows && roleRows.length > 0 ? roleRows[0].RoleName : null;
-      } else {
-        user.RoleName = null;
-      }
-    } catch (err) {
-      console.error('Role query error:', err.message);
-      user.RoleName = null;
-    }
-
     // Status is boolean based on schema. true/false or 1/0 or -1/0. Assuming JS true/1
     if (!user.Status) {
       return { success: false, message: 'Your account is inactive. Contact an administrator.' };
@@ -84,8 +76,7 @@ const Auth = {
         FirstName: user.FirstName,
         LastName:  user.LastName,
         Email:     user.Email,
-        RoleID:    user.RoleID,
-        RoleName:  user.RoleName,
+        Role:      normalizeRole(user.Role),
       }
     };
   },
@@ -94,7 +85,7 @@ const Auth = {
    * Register a new user account.
    * Returns { success: true } or { success: false, message: '...' }
    */
-  register: async ({ firstName, lastName, email, username, password, roleId = 3 }) => {
+  register: async ({ firstName, lastName, email, username, password, role = 'Member' }) => {
 
     if (!firstName || !lastName || !username || !password) {
       return { success: false, message: 'All required fields must be filled.' };
@@ -116,21 +107,22 @@ const Auth = {
     }
 
     const passwordHash = hashPassword(password);
+    const normalizedRole = normalizeRole(role);
 
     try {
       await db.BeginTrans();
 
       await db.execute(
-        `INSERT INTO Users_Table (Username, Password, RoleID, FirstName, LastName, Email, Status, DateCreated)
-         VALUES (?, ?, ?, ?, ?, ?, true, Date())`,
-        [username, passwordHash, roleId, firstName, lastName, email || '']
+        `INSERT INTO Users_Table (Username, Password, Role, FirstName, LastName, Email, Status, DateCreated)
+         VALUES (?, ?, ?, ?, ?, ?, 'Active', Date())`,  
+        [username, passwordHash, normalizedRole, firstName, lastName, email || '']
       );
 
-      // Only insert into Members_Table if it's a Member role (assumed 3)
-      if (roleId === 3) {
+      // Only insert into Members_Table if role is Member.
+      if (normalizedRole === 'Member') {
         await db.execute(
           `INSERT INTO Members_Table (FirstName, LastName, Email, Phone, Address, DateRegistered, Status)
-           VALUES (?, ?, ?, ?, ?, Date(), true)`,
+           VALUES (?, ?, ?, ?, ?, Date(), 'Active')`,
           [firstName, lastName, email || '', '', '']
         );
       }

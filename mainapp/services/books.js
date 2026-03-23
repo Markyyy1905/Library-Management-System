@@ -45,6 +45,14 @@ const Books = {
   `, [bookId]),
 
   /**
+   * All book-category pairs in one query — use this to populate categories for all books at once.
+   */
+  getAllBookCategories: () => db.query(`
+    SELECT bc.BookID, c.CategoryID, c.CategoryName
+    FROM BookCategories bc INNER JOIN Categories_Table c ON bc.CategoryID = c.CategoryID
+  `),
+
+  /**
    * All copies for a book.
    */
   getCopies: (bookId) => db.query(`

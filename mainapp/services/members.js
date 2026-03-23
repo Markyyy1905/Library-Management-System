@@ -36,7 +36,7 @@ const Members = {
 
   add: (member) => db.execute(`
     INSERT INTO Members_Table (FirstName, LastName, Email, Phone, Address, DateRegistered, Status)
-    VALUES (?, ?, ?, ?, ?, Date(), true)
+    VALUES (?, ?, ?, ?, ?, Date(), 'Active')
   `, [
     member.firstName,
     member.lastName,
