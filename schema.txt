@@ -38,6 +38,7 @@ TABLE: Members_Table
   Address
   DateRegistered
   Status
+  UserID
 TABLE: Users_Table
   UserID
   Username
