@@ -84,19 +84,26 @@ const Categories = {
 // ── Users / Roles ────────────────────────────────────────────
 const Users = {
   getAll: () => db.query(`
-    SELECT u.UserID, u.Username, u.FirstName, u.LastName,
-           u.Email, u.Status, u.DateCreated, r.RoleName
-    FROM Users_Table u LEFT JOIN Roles_Table r ON u.RoleID = r.RoleID
-    ORDER BY u.LastName ASC
+    SELECT UserID, Username, FirstName, LastName,
+           Email, Status, DateCreated, Role
+    FROM Users_Table
+    ORDER BY LastName ASC, FirstName ASC
   `),
 
   getById: (id) => db.query(`
-    SELECT u.UserID, u.Username, u.FirstName, u.LastName,
-           u.Email, u.AccountStatus, u.DateCreated,
-           u.RoleID, r.RoleName
-    FROM Users_Table u LEFT JOIN Roles_Table r ON u.RoleID = r.RoleID
-    WHERE u.UserID = ?
+    SELECT UserID, Username, FirstName, LastName,
+           Email, Status, DateCreated, Role
+    FROM Users_Table
+    WHERE UserID = ?
   `, [id]),
+
+  getByRole: (role) => db.query(`
+    SELECT UserID, Username, FirstName, LastName,
+           Email, Status, DateCreated, Role
+    FROM Users_Table
+    WHERE Role = ?
+    ORDER BY LastName ASC, FirstName ASC
+  `, [role]),
 
   findByUsername: (username) => db.query(
     'SELECT * FROM Users_Table WHERE Username=?',
@@ -107,13 +114,15 @@ const Users = {
    * Add user. passwordHash should already be hashed by caller.
    */
   add: (user) => db.execute(`
-    INSERT INTO Users_Table (Username, Password, RoleID, FirstName, LastName, Email, Status, DateCreated)
+    INSERT INTO Users_Table (Username, Password, Role, FirstName, LastName, Email, Status, DateCreated)
     VALUES (?, ?, ?, ?, ?, ?, true, Date())
-  `, [user.username, user.passwordHash, user.roleId, user.firstName, user.lastName, user.email || '']),
+  `, [user.username, user.passwordHash, user.role, user.firstName, user.lastName, user.email || '']),
 
   update: (id, user) => db.execute(`
-    UPDATE Users_Table SET FirstName=?, LastName=?, Email=?, RoleID=? WHERE UserID=?
-  `, [user.firstName, user.lastName, user.email || '', user.roleId, id]),
+    UPDATE Users_Table
+    SET Username=?, FirstName=?, LastName=?, Email=?, Role=?, Status=?
+    WHERE UserID=?
+  `, [user.username, user.firstName, user.lastName, user.email || '', user.role, user.status, id]),
 
   updateStatus: (id, status) =>
     db.execute('UPDATE Users_Table SET Status=? WHERE UserID=?', [status, id]),

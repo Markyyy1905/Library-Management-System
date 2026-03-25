@@ -9,6 +9,9 @@ const db     = require('./db');
 const crypto = require('crypto');
 
 const VALID_ROLES = new Set(['Admin', 'Librarian', 'Member']);
+const NAME_REGEX = /^[A-Za-zÀ-ÿ\s\-']+$/;
+const USERNAME_REGEX = /^[A-Za-z0-9]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeRole(inputRole) {
   if (typeof inputRole !== 'string') return 'Member';
@@ -87,17 +90,32 @@ const Auth = {
    */
   register: async ({ firstName, lastName, email, username, password, role = 'Member' }) => {
 
-    if (!firstName || !lastName || !username || !password) {
+    const safeFirstName = String(firstName || '').trim();
+    const safeLastName = String(lastName || '').trim();
+    const safeEmail = String(email || '').trim();
+    const safeUsername = String(username || '').trim();
+    const safePassword = String(password || '');
+
+    if (!safeFirstName || !safeLastName || !safeUsername || !safePassword) {
       return { success: false, message: 'All required fields must be filled.' };
     }
-    if (password.length < 6) {
+    if (!NAME_REGEX.test(safeFirstName) || !NAME_REGEX.test(safeLastName)) {
+      return { success: false, message: 'First and last name must contain text only.' };
+    }
+    if (!USERNAME_REGEX.test(safeUsername)) {
+      return { success: false, message: 'Username must be alphanumeric only.' };
+    }
+    if (safeEmail && !EMAIL_REGEX.test(safeEmail)) {
+      return { success: false, message: 'Email format is invalid.' };
+    }
+    if (safePassword.length < 6) {
       return { success: false, message: 'Password must be at least 6 characters.' };
     }
 
     // Check username uniqueness
     let existing;
     try {
-      existing = await db.query('SELECT UserID FROM Users_Table WHERE Username = ?', [username]);
+      existing = await db.query('SELECT UserID FROM Users_Table WHERE Username = ?', [safeUsername]);
     } catch (err) {
       return { success: false, message: 'Database error checking username.' };
     }
@@ -106,7 +124,7 @@ const Auth = {
       return { success: false, message: 'Username is already taken. Please choose another.' };
     }
 
-    const passwordHash = hashPassword(password);
+    const passwordHash = hashPassword(safePassword);
     const normalizedRole = normalizeRole(role);
 
     try {
@@ -115,7 +133,7 @@ const Auth = {
       await db.execute(
         `INSERT INTO Users_Table (Username, Password, Role, FirstName, LastName, Email, Status, DateCreated)
          VALUES (?, ?, ?, ?, ?, ?, 1, Date())`,  
-        [username, passwordHash, normalizedRole, firstName, lastName, email || '']
+        [safeUsername, passwordHash, normalizedRole, safeFirstName, safeLastName, safeEmail]
       );
 
       // Only insert into Members_Table if role is Member.
@@ -123,7 +141,7 @@ const Auth = {
         await db.execute(
           `INSERT INTO Members_Table (FirstName, LastName, Email, Phone, Address, DateRegistered, Status)
            VALUES (?, ?, ?, ?, ?, Date(), 'Active')`,
-          [firstName, lastName, email || '', '', '']
+          [safeFirstName, safeLastName, safeEmail, '', '']
         );
       }
 

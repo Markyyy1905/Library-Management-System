@@ -42,6 +42,8 @@
       <a href="books.html"     class="nav-item">Books</a>
       <a href="members.html"   class="nav-item">Members</a>
       <a href="borrowing.html" class="nav-item active">Borrowing <span class="nav-badge" id="overdue-badge">0</span></a>
+      <div class="nav-section-label">Accounts</div>
+      <a href="librarian-register.html" class="nav-item">Librarian Management</a>
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
@@ -246,7 +248,7 @@
   </div>
 </div>
 
-<script src="popup.js"></script>
+<script src="services/popup.js"></script>
 <script>
 const { ipcRenderer } = require('electron');
 
@@ -782,6 +784,7 @@ async function populateFooter() {
 load();
 populateFooter();
 </script>
-<script src="authCheck.js"></script>
+<script src="services/authCheck.js"></script>
+<script src="services/roleAccess.js"></script>
 </body>
 </html>

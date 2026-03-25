@@ -185,6 +185,9 @@ ipcMain.handle('members:update', (e, id, data) => {
 ipcMain.handle('members:updateStatus', (e, id, status) => {
   return Members.updateStatus(id, status);
 });
+ipcMain.handle('members:updatePassword', (e, id, password) => {
+  return Members.updatePassword(id, Auth.hashPassword(password));
+});
 ipcMain.handle('members:delete', (e, id) => {
   return Members.delete(id);
 });
@@ -234,6 +237,29 @@ ipcMain.handle('categories:all', () => Categories.getAll());
 
 ipcMain.handle('users:all', () => {
   return Users.getAll();
+});
+ipcMain.handle('users:byRole', (e, role) => {
+  return Users.getByRole(role);
+});
+ipcMain.handle('users:byId', (e, id) => {
+  return Users.getById(id);
+});
+ipcMain.handle('users:update', async (e, id, data) => {
+  const existing = await Users.findByUsername(data.username);
+  if (existing.some(user => Number(user.UserID) !== Number(id))) {
+    return { success: false, message: 'Username is already taken. Please choose another.' };
+  }
+
+  await Users.update(id, data);
+  return { success: true };
+});
+ipcMain.handle('users:updateStatus', async (e, id, status) => {
+  await Users.updateStatus(id, status);
+  return { success: true };
+});
+ipcMain.handle('users:updatePassword', async (e, id, password) => {
+  await Users.updatePassword(id, Auth.hashPassword(password));
+  return { success: true };
 });
 ipcMain.handle('roles:all', () => {
   return Roles.getAll();

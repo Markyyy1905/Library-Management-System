@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LMS — Librarian Account Management</title>
+  <link rel="stylesheet" href="style/style.css"/>
+  <style>
+    .page-grid,
+    .management-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .management-grid {
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .status-banner {
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .status-banner.show { display: block; }
+    .status-banner.error {
+      background: var(--red-soft);
+      border: 1px solid rgba(220,38,38,0.2);
+      color: var(--red);
+    }
+    .status-banner.success {
+      background: var(--green-soft);
+      border: 1px solid rgba(22,163,74,0.2);
+      color: var(--green);
+    }
+
+    .view-switch {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .view-switch .btn {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .view-switch .btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .view-section {
+      display: none;
+    }
+    .view-section.active {
+      display: block;
+    }
+
+    .panel-copy {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.7;
+    }
+
+    .hint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hint-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--bg2);
+    }
+    .hint-item strong {
+      display: block;
+      font-size: 12px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .hint-item span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .editor-placeholder {
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--bg2);
+      border: 1px dashed var(--border2);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill.active {
+      background: var(--green-soft);
+      color: var(--green);
+      border: 1px solid rgba(22,163,74,0.18);
+    }
+    .pill.inactive {
+      background: var(--red-soft);
+      color: var(--red);
+      border: 1px solid rgba(220,38,38,0.18);
+    }
+
+    .mono-cell {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1100px) {
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 980px) {
+      .page-grid,
+      .management-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="index.html" class="nav-item">Dashboard</a>
+      <a href="books.html" class="nav-item">Books</a>
+      <a href="members.html" class="nav-item">Members</a>
+      <a href="borrowing.html" class="nav-item">Borrowing</a>
+      <div class="nav-section-label">Accounts</div>
+      <a href="librarian-register.html" class="nav-item active">Create Librarian</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html" class="nav-item">Reports</a>
+    </nav>
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>LIBRARIAN ACCOUNT MANAGEMENT</h2>
+        <p id="view-subtitle">View and modify existing librarian accounts</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="view-switch">
+          <button class="btn btn-outline btn-sm" id="create-view-btn" onclick="setView('create')">Create Account</button>
+          <button class="btn btn-outline btn-sm active" id="accounts-view-btn" onclick="setView('accounts')">Accounts View</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="create-view" class="view-section">
+      <div class="page-grid">
+        <div class="col-card">
+          <div class="col-card-header">
+            <h3>Create Librarian Account</h3>
+          </div>
+          <div class="col-card-body">
+            <div id="reg-error" class="status-banner error"></div>
+            <div id="reg-success" class="status-banner success"></div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">First Name *</label>
+                <input class="form-input" type="text" id="firstName" placeholder="First name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '')"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name *</label>
+                <input class="form-input" type="text" id="lastName" placeholder="Last name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '')"/>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Email</label>
+                <input class="form-input" type="email" id="email" placeholder="email@example.com"/>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Username *</label>
+                <input class="form-input" type="text" id="username" placeholder="Letters and numbers only" autocomplete="username" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password *</label>
+                <input class="form-input" type="password" id="password" placeholder="At least 6 characters" autocomplete="new-password"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password *</label>
+                <input class="form-input" type="password" id="confirmPassword" placeholder="Repeat password" autocomplete="new-password"/>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-outline" type="button" onclick="resetCreateForm()">Clear</button>
+              <button class="btn btn-primary" id="reg-btn" type="button" onclick="doLibrarianRegister()">Save Librarian Account</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-card">
+          <div class="col-card-header">
+            <h3>Management Notes</h3>
+          </div>
+          <div class="col-card-body">
+            <p class="panel-copy">Use the creation form for new librarian accounts. Use the table below to open an existing librarian record and modify profile details, account status, and password.</p>
+            <div class="hint-list">
+              <div class="hint-item">
+                <strong>Name Fields</strong>
+                <span>First name and last name accept letters, spaces, hyphens, and apostrophes only.</span>
+              </div>
+              <div class="hint-item">
+                <strong>Username</strong>
+                <span>Usernames must be alphanumeric only and remain unique across all users.</span>
+              </div>
+              <div class="hint-item">
+                <strong>Status Changes</strong>
+                <span>You can mark librarian accounts active or inactive from the edit modal.</span>
+              </div>
+              <div class="hint-item">
+                <strong>Password Updates</strong>
+                <span>Leave password fields empty when editing if you do not want to replace the current password.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div id="accounts-view" class="view-section active">
+      <div class="summary-grid">
+        <div class="stat-card"><div class="stat-label">Total Librarians</div><div class="stat-value" id="s-total">0</div></div>
+        <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="s-active" style="color:var(--green)">0</div></div>
+        <div class="stat-card"><div class="stat-label">Inactive</div><div class="stat-value" id="s-inactive" style="color:var(--red)">0</div></div>
+      </div>
+
+      <div class="management-grid">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Librarian Accounts</h3>
+            <span id="row-count-label" style="font-size:11px;color:var(--muted);">Showing 0 librarians</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="librarians-tbody">
+              <tr><td colspan="6" class="loading-row">Loading librarian accounts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="librarian-edit-modal">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <h3>EDIT LIBRARIAN ACCOUNT</h3>
+      <button class="modal-close" onclick="clearEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="edit-error" class="status-banner error"></div>
+      <div id="edit-success" class="status-banner success"></div>
+      <input type="hidden" id="edit-id"/>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" type="text" id="edit-firstName" placeholder="First name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '')"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" type="text" id="edit-lastName" placeholder="Last name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '')"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="edit-email" placeholder="email@example.com"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Username *</label>
+          <input class="form-input" type="text" id="edit-username" placeholder="Letters and numbers only" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="edit-status">
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input class="form-input" type="password" id="edit-password" placeholder="Leave blank to keep current password" autocomplete="new-password"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input class="form-input" type="password" id="edit-confirmPassword" placeholder="Repeat new password" autocomplete="new-password"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" type="button" onclick="clearEditor()">Close</button>
+      <button class="btn btn-primary" id="edit-btn" type="button" onclick="saveLibrarianUpdate()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="services/popup.js"></script>
+<script>
+const { ipcRenderer } = require('electron');
+
+const NAME_REGEX = /^[A-Za-zÀ-ÿ\s\-']+$/;
+const USERNAME_REGEX = /^[A-Za-z0-9]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+let librarians = [];
+let currentView = 'create';
+
+function setView(view) {
+  currentView = view === 'accounts' ? 'accounts' : 'create';
+
+  const createView = document.getElementById('create-view');
+  const accountsView = document.getElementById('accounts-view');
+  const createBtn = document.getElementById('create-view-btn');
+  const accountsBtn = document.getElementById('accounts-view-btn');
+  const subtitle = document.getElementById('view-subtitle');
+
+  if (currentView === 'create') {
+    createView.classList.add('active');
+    accountsView.classList.remove('active');
+    createBtn.classList.add('active');
+    accountsBtn.classList.remove('active');
+    subtitle.textContent = 'Create a new librarian account';
+    clearEditor();
+    document.getElementById('firstName').focus();
+    return;
+  }
+
+  createView.classList.remove('active');
+  accountsView.classList.add('active');
+  createBtn.classList.remove('active');
+  accountsBtn.classList.add('active');
+  subtitle.textContent = 'View and modify existing librarian accounts';
+  clearEditor();
+  loadLibrarians();
+}
+
+function isActiveStatus(value) {
+  return value === true || value === 1 || value === '1' || value === -1 || value === '-1';
+}
+
+function hideMessages(prefix) {
+  document.getElementById(`${prefix}-error`).classList.remove('show');
+  document.getElementById(`${prefix}-success`).classList.remove('show');
+}
+
+function showError(prefix, message) {
+  const errorEl = document.getElementById(`${prefix}-error`);
+  const successEl = document.getElementById(`${prefix}-success`);
+  successEl.classList.remove('show');
+  errorEl.textContent = message;
+  errorEl.classList.add('show');
+}
+
+function showSuccess(prefix, message) {
+  const errorEl = document.getElementById(`${prefix}-error`);
+  const successEl = document.getElementById(`${prefix}-success`);
+  errorEl.classList.remove('show');
+  successEl.textContent = message;
+  successEl.classList.add('show');
+}
+
+function resetCreateForm(options = {}) {
+  const preserveMessages = options.preserveMessages === true;
+  document.getElementById('firstName').value = '';
+  document.getElementById('lastName').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('confirmPassword').value = '';
+  if (!preserveMessages) hideMessages('reg');
+  document.getElementById('firstName').focus();
+}
+
+function clearEditor() {
+  document.getElementById('edit-id').value = '';
+  document.getElementById('edit-firstName').value = '';
+  document.getElementById('edit-lastName').value = '';
+  document.getElementById('edit-email').value = '';
+  document.getElementById('edit-username').value = '';
+  document.getElementById('edit-status').value = '1';
+  document.getElementById('edit-password').value = '';
+  document.getElementById('edit-confirmPassword').value = '';
+  document.getElementById('librarian-edit-modal').classList.remove('open');
+  hideMessages('edit');
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function updateSummary() {
+  const activeCount = librarians.filter(item => isActiveStatus(item.Status)).length;
+  document.getElementById('s-total').textContent = librarians.length;
+  document.getElementById('s-active').textContent = activeCount;
+  document.getElementById('s-inactive').textContent = librarians.length - activeCount;
+  document.getElementById('row-count-label').textContent = `Showing ${librarians.length} librarian${librarians.length === 1 ? '' : 's'}`;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('librarians-tbody');
+  if (!librarians.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="loading-row">No librarian accounts found.</td></tr>';
+    updateSummary();
+    return;
+  }
+
+  tbody.innerHTML = librarians.map(librarian => {
+    const active = isActiveStatus(librarian.Status);
+    return `
+      <tr>
+        <td><strong>${escapeHtml(librarian.LastName)}, ${escapeHtml(librarian.FirstName)}</strong></td>
+        <td class="mono-cell">${escapeHtml(librarian.Username)}</td>
+        <td class="td-muted">${escapeHtml(librarian.Email || '—')}</td>
+        <td><span class="pill ${active ? 'active' : 'inactive'}">${active ? 'Active' : 'Inactive'}</span></td>
+        <td class="td-muted">${formatDate(librarian.DateCreated)}</td>
+        <td><button class="btn btn-outline btn-sm" type="button" onclick="startEdit(${librarian.UserID})">Edit</button></td>
+      </tr>`;
+  }).join('');
+
+  updateSummary();
+}
+
+async function loadLibrarians() {
+  try {
+    librarians = await ipcRenderer.invoke('users:byRole', 'Librarian');
+    renderTable();
+
+    const currentEditId = Number(document.getElementById('edit-id').value || 0);
+    if (currentEditId) {
+      const current = librarians.find(item => Number(item.UserID) === currentEditId);
+      if (current) startEdit(currentEditId, false);
+      else clearEditor();
+    }
+  } catch (err) {
+    document.getElementById('librarians-tbody').innerHTML = `<tr><td colspan="6" class="error-row">Error: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function startEdit(id, clearMessages = true) {
+  const librarian = librarians.find(item => Number(item.UserID) === Number(id));
+  if (!librarian) return;
+
+  document.getElementById('edit-id').value = librarian.UserID;
+  document.getElementById('edit-firstName').value = librarian.FirstName || '';
+  document.getElementById('edit-lastName').value = librarian.LastName || '';
+  document.getElementById('edit-email').value = librarian.Email || '';
+  document.getElementById('edit-username').value = librarian.Username || '';
+  document.getElementById('edit-status').value = isActiveStatus(librarian.Status) ? '1' : '0';
+  document.getElementById('edit-password').value = '';
+  document.getElementById('edit-confirmPassword').value = '';
+  document.getElementById('librarian-edit-modal').classList.add('open');
+  if (clearMessages) hideMessages('edit');
+}
+
+async function doLibrarianRegister() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirmPassword').value;
+  const btn = document.getElementById('reg-btn');
+
+  hideMessages('reg');
+
+  if (!firstName || !lastName) return showError('reg', 'First and last name are required.');
+  if (!NAME_REGEX.test(firstName) || !NAME_REGEX.test(lastName)) return showError('reg', 'First and last name must contain text only.');
+  if (!username) return showError('reg', 'Username is required.');
+  if (!USERNAME_REGEX.test(username)) return showError('reg', 'Username must contain letters and numbers only.');
+  if (email && !EMAIL_REGEX.test(email)) return showError('reg', 'Email format is invalid.');
+  if (!password) return showError('reg', 'Password is required.');
+  if (password.length < 6) return showError('reg', 'Password must be at least 6 characters.');
+  if (password !== confirm) return showError('reg', 'Passwords do not match.');
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const result = await ipcRenderer.invoke('auth:register', {
+      firstName,
+      lastName,
+      email,
+      username,
+      password,
+      role: 'Librarian'
+    });
+
+    if (result.success) {
+      showSuccess('reg', 'Librarian account created successfully. You can add another account now.');
+      await showAlert('Librarian account created successfully!', 'success');
+      resetCreateForm({ preserveMessages: true });
+      await loadLibrarians();
+    } else {
+      showError('reg', result.message || 'Registration failed. Please try again.');
+    }
+  } catch (err) {
+    showError('reg', 'Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Librarian Account';
+  }
+}
+
+async function saveLibrarianUpdate() {
+  const id = Number(document.getElementById('edit-id').value || 0);
+  const firstName = document.getElementById('edit-firstName').value.trim();
+  const lastName = document.getElementById('edit-lastName').value.trim();
+  const email = document.getElementById('edit-email').value.trim();
+  const username = document.getElementById('edit-username').value.trim();
+  const statusValue = document.getElementById('edit-status').value;
+  const password = document.getElementById('edit-password').value;
+  const confirm = document.getElementById('edit-confirmPassword').value;
+  const btn = document.getElementById('edit-btn');
+
+  hideMessages('edit');
+
+  if (!id) return showError('edit', 'Select a librarian account to edit.');
+  if (!firstName || !lastName) return showError('edit', 'First and last name are required.');
+  if (!NAME_REGEX.test(firstName) || !NAME_REGEX.test(lastName)) return showError('edit', 'First and last name must contain text only.');
+  if (!username) return showError('edit', 'Username is required.');
+  if (!USERNAME_REGEX.test(username)) return showError('edit', 'Username must contain letters and numbers only.');
+  if (email && !EMAIL_REGEX.test(email)) return showError('edit', 'Email format is invalid.');
+  if (password && password.length < 6) return showError('edit', 'New password must be at least 6 characters.');
+  if (password && password !== confirm) return showError('edit', 'New passwords do not match.');
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const updateResult = await ipcRenderer.invoke('users:update', id, {
+      username,
+      firstName,
+      lastName,
+      email,
+      role: 'Librarian',
+      status: statusValue === '1' ? 1 : 0
+    });
+
+    if (!updateResult.success) {
+      showError('edit', updateResult.message || 'Failed to update librarian account.');
+      return;
+    }
+
+    if (password) {
+      await ipcRenderer.invoke('users:updatePassword', id, password);
+    }
+
+    showSuccess('edit', 'Librarian account updated successfully.');
+    await showAlert('Librarian account updated successfully!', 'success');
+    await loadLibrarians();
+    startEdit(id, false);
+  } catch (err) {
+    showError('edit', 'Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+}
+
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.Role || 'Administrator';
+    const footerUsername = document.getElementById('footer-username');
+    const footerRole = document.getElementById('footer-role');
+    if (footerUsername) footerUsername.textContent = name;
+    if (footerRole) footerRole.textContent = role;
+  } catch (_) {}
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const activeElement = document.activeElement;
+    if (activeElement && activeElement.closest('#librarian-edit-modal')) {
+      saveLibrarianUpdate();
+    } else if (currentView === 'create') {
+      doLibrarianRegister();
+    }
+  }
+});
+
+document.getElementById('librarian-edit-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) clearEditor();
+});
+
+setView('accounts');
+populateFooter();
+</script>
+<script src="services/authCheck.js"></script>
+<script src="services/roleAccess.js"></script>
+</body>
+</html>

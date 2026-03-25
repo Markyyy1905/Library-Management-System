@@ -10,7 +10,7 @@ const Members = {
   getAll: () => db.query(`
     SELECT
       m.MemberID, m.FirstName, m.LastName, m.Email,
-      m.Phone, m.Address, m.DateRegistered, m.Status,
+      m.Phone, m.Address, m.DateRegistered, m.Status, m.UserID,
       (SELECT COUNT(*) FROM Loans_Table l WHERE l.MemberID = m.MemberID AND l.LoanStatus = 'Borrowed') AS ActiveLoans,
       (SELECT COUNT(*) FROM Loans_Table l WHERE l.MemberID = m.MemberID) AS TotalBorrows
     FROM Members_Table m
@@ -20,7 +20,7 @@ const Members = {
   getById: (id) => db.query(`
     SELECT
       m.MemberID, m.FirstName, m.LastName, m.Email,
-      m.Phone, m.Address, m.DateRegistered, m.Status,
+      m.Phone, m.Address, m.DateRegistered, m.Status, m.UserID,
       (SELECT COUNT(*) FROM Loans_Table l WHERE l.MemberID = m.MemberID AND l.LoanStatus = 'Borrowed') AS ActiveLoans,
       (SELECT COUNT(*) FROM Loans_Table l WHERE l.MemberID = m.MemberID) AS TotalBorrows
     FROM Members_Table m
@@ -60,6 +60,21 @@ const Members = {
 
   updateStatus: (id, status) =>
     db.execute('UPDATE Members_Table SET Status=? WHERE MemberID=?', [status, id]),
+
+  updatePassword: async (memberId, passwordHash) => {
+    const rows = await db.query('SELECT UserID FROM Members_Table WHERE MemberID = ?', [memberId]);
+    if (!rows || rows.length === 0) {
+      throw new Error('Member record not found.');
+    }
+
+    const userId = rows[0].UserID;
+    if (!userId) {
+      throw new Error('This member does not have a linked login account.');
+    }
+
+    await db.execute('UPDATE Users_Table SET Password=? WHERE UserID=?', [passwordHash, userId]);
+    return { success: true };
+  },
 
   delete: async (id) => {
     try {

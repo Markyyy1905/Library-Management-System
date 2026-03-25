@@ -17,6 +17,8 @@
       <a href="books.html"     class="nav-item">Books</a>
       <a href="members.html"   class="nav-item active">Members</a>
       <a href="borrowing.html" class="nav-item">Borrowing</a>
+      <div class="nav-section-label">Accounts</div>
+      <a href="librarian-register.html" class="nav-item">Librarian Management</a>
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
@@ -134,6 +136,14 @@
         <div class="form-group full">
           <label class="form-label">Address</label>
           <input class="form-input" type="text" id="f-addr" placeholder="Full address"/>
+        </div>
+        <div class="form-group" id="password-group" style="display:none;">
+          <label class="form-label">New Password</label>
+          <input class="form-input" type="password" id="f-password" placeholder="Leave blank to keep current password" autocomplete="new-password"/>
+        </div>
+        <div class="form-group" id="confirm-password-group" style="display:none;">
+          <label class="form-label">Confirm New Password</label>
+          <input class="form-input" type="password" id="f-confirm-password" placeholder="Repeat new password" autocomplete="new-password"/>
         </div>
         <div class="form-group" id="status-group" style="display:none;">
           <label class="form-label">Status</label>
@@ -299,6 +309,10 @@ function openModal(mode, member = null) {
   document.getElementById('f-email').value  = member ? (member.Email || '') : '';
   document.getElementById('f-phone').value  = member ? (member.Phone || '') : '';
   document.getElementById('f-addr').value   = member ? (member.Address || '') : '';
+  document.getElementById('f-password').value = '';
+  document.getElementById('f-confirm-password').value = '';
+  document.getElementById('password-group').style.display = member ? 'flex' : 'none';
+  document.getElementById('confirm-password-group').style.display = member ? 'flex' : 'none';
   document.getElementById('status-group').style.display = member ? 'flex' : 'none';
   if (member) document.getElementById('f-status').value = member.Status || 'Active';
   document.getElementById('delete-member-btn').style.display = member ? 'inline-flex' : 'none';
@@ -354,6 +368,9 @@ async function showHistory(id, name) {
 }
 
 async function saveMember() {
+  const newPassword = document.getElementById('f-password').value;
+  const confirmPassword = document.getElementById('f-confirm-password').value;
+
   const data = {
     firstName:   document.getElementById('f-first').value.trim(),
     lastName:    document.getElementById('f-last').value.trim(),
@@ -362,12 +379,17 @@ async function saveMember() {
     address:     document.getElementById('f-addr').value.trim(),
   };
   if (!data.firstName || !data.lastName) { await showAlert('First and Last name are required.', 'warning'); return; }
+  if (newPassword && newPassword.length < 6) { await showAlert('New password must be at least 6 characters.', 'warning'); return; }
+  if (newPassword && newPassword !== confirmPassword) { await showAlert('New passwords do not match.', 'warning'); return; }
   try {
     const editId = document.getElementById('edit-id').value;
     if (editId) {
       await ipcRenderer.invoke('members:update', parseInt(editId), data);
       const newStatus = document.getElementById('f-status').value;
       await ipcRenderer.invoke('members:updateStatus', parseInt(editId), newStatus);
+      if (newPassword) {
+        await ipcRenderer.invoke('members:updatePassword', parseInt(editId), newPassword);
+      }
     } else {
       await ipcRenderer.invoke('members:add', data);
     }
@@ -416,7 +438,8 @@ async function populateFooter() {
 load();
 populateFooter();
 </script>
-<script src="popup.js"></script>
-<script src="authCheck.js"></script>
+<script src="services/popup.js"></script>
+<script src="services/authCheck.js"></script>
+<script src="services/roleAccess.js"></script>
 </body>
 </html>
