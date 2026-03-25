@@ -114,7 +114,7 @@ const Auth = {
 
       await db.execute(
         `INSERT INTO Users_Table (Username, Password, Role, FirstName, LastName, Email, Status, DateCreated)
-         VALUES (?, ?, ?, ?, ?, ?, 'Active', Date())`,  
+         VALUES (?, ?, ?, ?, ?, ?, 1, Date())`,  
         [username, passwordHash, normalizedRole, firstName, lastName, email || '']
       );
 

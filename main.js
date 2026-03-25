@@ -159,6 +159,12 @@ ipcMain.handle('books:addCategory', (e, bookId, categoryId) => {
 ipcMain.handle('books:removeCategory', (e, bookId, categoryId) => {
   return Books.removeCategory(bookId, categoryId);
 });
+ipcMain.handle('books:addCopies', (e, bookId, count) => {
+  return Books.addCopies(bookId, count);
+});
+ipcMain.handle('books:checkDuplicate', (e, title, excludeBookId) => {
+  return Books.checkDuplicate(title, excludeBookId);
+});
 
 // ── Members ──
 ipcMain.handle('members:all', () => {
@@ -199,14 +205,26 @@ ipcMain.handle('loans:overdue', () => {
 ipcMain.handle('loans:returned', () => {
   return Borrowing.getReturned();
 });
+ipcMain.handle('loans:formMembers', () => {
+  return Borrowing.getBorrowFormMembers();
+});
+ipcMain.handle('loans:formBooks', () => {
+  return Borrowing.getBorrowFormBooks();
+});
+ipcMain.handle('loans:modalBooks', (e, search) => {
+  return Borrowing.getModalBooks(search);
+});
 ipcMain.handle('loans:byId', (e, id) => {
   return Borrowing.getById(id);
 });
 ipcMain.handle('loans:borrow', (e, memberId, copyId, issuedBy, days) => {
   return Borrowing.borrow(memberId, copyId, issuedBy, days);
 });
-ipcMain.handle('loans:return', (e, loanId, copyId, condition) => {
-  return Borrowing.returnBook(loanId, copyId, condition);
+ipcMain.handle('loans:return', (e, loanId, copyId, conditionStatus, conditionNotes) => {
+  return Borrowing.returnBook(loanId, copyId, conditionStatus, conditionNotes);
+});
+ipcMain.handle('loans:availableCopies', (e, bookId, search, limit) => {
+  return Borrowing.getAvailableCopiesByBook(bookId, search, limit);
 });
 
 

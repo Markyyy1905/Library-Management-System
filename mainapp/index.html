@@ -23,9 +23,12 @@
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer">
-      <strong>Admin User</strong>
-      Administrator
+    <div class="sidebar-footer" style="display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px; color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding: 4px 8px; font-size: 11px;">Logout</button>
     </div>
   </aside>
 
@@ -78,6 +81,24 @@ const { ipcRenderer } = require('electron');
 
 document.getElementById('today-date').textContent =
   new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch(_) {}
+  window.location.href = 'login.html';
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.Role || 'Administrator';
+    const fUser = document.getElementById('footer-username');
+    const fRole = document.getElementById('footer-role');
+    if (fUser) fUser.textContent = name;
+    if (fRole) fRole.textContent = role;
+  } catch(_) {}
+}
 
 const STATUS_BADGE = { Borrowed: 'badge-blue', Returned: 'badge-green', Overdue: 'badge-red' };
 
@@ -141,6 +162,7 @@ function fmtDate(d) {
 }
 
 load();
+populateFooter();
 </script>
 <script src="authCheck.js"></script>
 </body>

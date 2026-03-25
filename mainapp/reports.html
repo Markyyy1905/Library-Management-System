@@ -20,7 +20,13 @@
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item active">Reports</a>
     </nav>
-    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
+    </div>
   </aside>
 
   <div class="main">
@@ -115,7 +121,7 @@ async function load() {
         <td class="td-mono" style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
         <td><strong>${esc(m.LastName)}, ${esc(m.FirstName)}</strong></td>
         <td class="td-mono">${m.TotalBorrows || 0}</td>
-        <td><span class="badge ${STATUS_B[m.MembershipStatus]||'badge-gray'}">${m.MembershipStatus}</span></td>
+        <td><span class="badge ${STATUS_B[m.Status]||'badge-gray'}">${m.Status}</span></td>
       </tr>`).join('') : '<tr><td colspan="4" class="loading-row">No data.</td></tr>';
 
     // Overdue
@@ -153,7 +159,26 @@ function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.RoleName || session.Role || 'Administrator';
+    const footerUsername = document.getElementById('footer-username');
+    const footerRole = document.getElementById('footer-role');
+    if (footerUsername) footerUsername.textContent = name;
+    if (footerRole) footerRole.textContent = role;
+  } catch (_) {}
+}
+
 load();
+populateFooter();
 </script>
 <script src="authCheck.js"></script>
 </body>

@@ -20,7 +20,13 @@
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
+    </div>
   </aside>
 
   <div class="main">
@@ -312,12 +318,12 @@ async function editMember(id) {
 async function deleteMember() {
   const editId = document.getElementById('edit-id').value;
   if (!editId) return;
-  if (!confirm('Delete this member? This cannot be undone.')) return;
+  if (!await showConfirm('Delete this member? This cannot be undone.')) return;
   try {
     await ipcRenderer.invoke('members:delete', parseInt(editId));
     closeModal('member-modal');
     await load();
-  } catch (err) { alert('Error: ' + err.message); }
+  } catch (err) { await showAlert('Error: ' + err.message, 'error'); }
 }
 
 async function showHistory(id, name) {
@@ -355,7 +361,7 @@ async function saveMember() {
     phone:       document.getElementById('f-phone').value.trim(),
     address:     document.getElementById('f-addr').value.trim(),
   };
-  if (!data.firstName || !data.lastName) { alert('First and Last name are required.'); return; }
+  if (!data.firstName || !data.lastName) { await showAlert('First and Last name are required.', 'warning'); return; }
   try {
     const editId = document.getElementById('edit-id').value;
     if (editId) {
@@ -367,7 +373,7 @@ async function saveMember() {
     }
     closeModal('member-modal');
     await load();
-  } catch (err) { alert('Error: ' + err.message); }
+  } catch (err) { await showAlert('Error: ' + err.message, 'error'); }
 }
 
 function exportCSV() {
@@ -389,8 +395,28 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.RoleName || session.Role || 'Administrator';
+    const footerUsername = document.getElementById('footer-username');
+    const footerRole = document.getElementById('footer-role');
+    if (footerUsername) footerUsername.textContent = name;
+    if (footerRole) footerRole.textContent = role;
+  } catch (_) {}
+}
+
 load();
+populateFooter();
 </script>
+<script src="popup.js"></script>
 <script src="authCheck.js"></script>
 </body>
 </html>

@@ -61,7 +61,29 @@ const Members = {
   updateStatus: (id, status) =>
     db.execute('UPDATE Members_Table SET Status=? WHERE MemberID=?', [status, id]),
 
-  delete: (id) => db.execute('DELETE FROM Members_Table WHERE MemberID=?', [id]),
+  delete: async (id) => {
+    try {
+      await db.BeginTrans();
+
+      // Get the member's UserID
+      const memberRows = await db.query('SELECT UserID FROM Members_Table WHERE MemberID = ?', [id]);
+      
+      if (memberRows && memberRows.length > 0) {
+        const userID = memberRows[0].UserID;
+        // Delete the corresponding user record using UserID
+        await db.execute('DELETE FROM Users_Table WHERE UserID = ?', [userID]);
+      }
+
+      // Delete the member record
+      await db.execute('DELETE FROM Members_Table WHERE MemberID = ?', [id]);
+
+      await db.CommitTrans();
+      return { success: true };
+    } catch (err) {
+      await db.Rollback();
+      throw err;
+    }
+  },
 
   getBorrowHistory: (memberId) => db.query(`
     SELECT

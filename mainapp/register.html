@@ -297,6 +297,7 @@
   </div>
 </div>
 
+<script src="popup.js"></script>
 <script>
 const { ipcRenderer } = require('electron');
 
@@ -333,9 +334,8 @@ async function doRegister() {
     });
 
     if (result.success) {
-      successEl.textContent = 'Account created! Redirecting to login…';
-      successEl.classList.add('show');
-      setTimeout(() => { window.location = 'login.html'; }, 1800);
+      await showAlert('Account created successfully!', 'success');
+      window.location = 'login.html';
     } else {
       showError(result.message || 'Registration failed. Please try again.');
     }

@@ -8,10 +8,74 @@ const db = require('./db');
 const Borrowing = {
 
   /**
+   * Lightweight member list for borrow form.
+   */
+  getBorrowFormMembers: () => db.query(`
+    SELECT MemberID, FirstName, LastName
+    FROM Members_Table
+    WHERE Status = 'Active'
+    ORDER BY LastName ASC, FirstName ASC
+  `),
+
+  /**
+   * Lightweight book list for borrow form.
+   */
+  getBorrowFormBooks: () => db.query(`
+    SELECT b.BookID, b.Title
+    FROM Books_Table b
+    ORDER BY b.Title ASC
+  `),
+
+  /**
+   * Search books for the New Loan modal table (search-on-type, max 50 results).
+   * Empty search returns top 5 borrowed books that still have available copies.
+   */
+  getModalBooks: (search = '') => {
+    const kw = String(search || '').trim();
+
+    if (!kw) {
+      return db.query(`
+        SELECT TOP 5 bk.BookID, bk.Title, bk.Author, bk.ISBN, bk.YearPublished, bk.Publisher,
+          COUNT(l.LoanID) AS TotalBorrows,
+          (SELECT COUNT(*) FROM BookCopies_Table bc2
+            WHERE bc2.BookID = bk.BookID
+              AND bc2.CopyID NOT IN (
+                SELECT l2.CopyID FROM Loans_Table l2 WHERE l2.LoanStatus = 'Borrowed'
+              )
+          ) AS AvailableCopies
+        FROM (Books_Table bk
+          INNER JOIN BookCopies_Table bc ON bk.BookID = bc.BookID)
+          INNER JOIN Loans_Table l ON bc.CopyID = l.CopyID
+        GROUP BY bk.BookID, bk.Title, bk.Author, bk.ISBN, bk.YearPublished, bk.Publisher
+        HAVING (SELECT COUNT(*) FROM BookCopies_Table bc3
+                  WHERE bc3.BookID = bk.BookID
+                    AND bc3.CopyID NOT IN (
+                      SELECT l3.CopyID FROM Loans_Table l3 WHERE l3.LoanStatus = 'Borrowed'
+                    )) > 0
+        ORDER BY COUNT(l.LoanID) DESC
+      `);
+    }
+
+    if (kw.length < 2) return Promise.resolve([]);
+
+    return db.query(
+      `SELECT TOP 50 b.BookID, b.Title, b.Author, b.ISBN, b.YearPublished, b.Publisher,
+         (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID
+            AND bc.CopyID NOT IN (SELECT l.CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')
+         ) AS AvailableCopies
+       FROM Books_Table b
+       WHERE b.Title LIKE ? OR b.Author LIKE ? OR b.ISBN LIKE ?
+       ORDER BY b.Title ASC`,
+      [`%${kw}%`, `%${kw}%`, `%${kw}%`]
+    );
+  },
+
+  /**
    * All loans with member name, book title, accession number.
    */
   getAll: () => db.query(`
     SELECT
+      TOP 1000
       l.LoanID,
       m.FirstName & ' ' & m.LastName AS MemberName,
       m.MemberID,
@@ -19,6 +83,8 @@ const Borrowing = {
       bk.BookID,
       bc.CopyID,
       bc.AccessionNumber,
+      bc.CopyStatus,
+      bc.ConditionNotes,
       l.DateBorrowed,
       l.DueDate,
       l.DateReturned,
@@ -121,24 +187,58 @@ const Borrowing = {
   },
 
   /**
-   * Process a return. Updates loan + copy status. Creates fine if overdue.
+   * Process a return. Updates loan + copy status. Notes are only updated when provided.
    * @param {number} loanId
    * @param {number} copyId
-   * @param {string} condition  - new ConditionNotes for the copy
+   * @param {string} conditionStatus - new CopyStatus for the copy
+   * @param {string} conditionNotes  - optional new ConditionNotes for the copy
    */
-  returnBook: async (loanId, copyId, condition = '') => {
+  returnBook: async (loanId, copyId, conditionStatus = '', conditionNotes = '') => {
     try {
       await db.BeginTrans();
+
+      const copyRows = await db.query(`
+        SELECT CopyStatus, ConditionNotes
+        FROM BookCopies_Table
+        WHERE CopyID = ?
+      `, [copyId]);
+
+      if (!copyRows.length) {
+        throw new Error('Book copy not found.');
+      }
+
+      const currentStatus = String(copyRows[0].CopyStatus || 'Good');
+      const requestedStatus = String(conditionStatus || currentStatus);
+      const allowedTransitions = {
+        Good: ['Good', 'Fair', 'Damaged'],
+        Fair: ['Fair', 'Damaged'],
+        Damaged: ['Damaged'],
+      };
+
+      if (!allowedTransitions[currentStatus] || !allowedTransitions[currentStatus].includes(requestedStatus)) {
+        throw new Error(`Invalid copy condition change. Current status is ${currentStatus}.`);
+      }
+
       // Mark loan returned
       await db.execute(`
         UPDATE Loans_Table SET DateReturned=Date(), LoanStatus='Returned' WHERE LoanID=?
       `, [loanId]);
 
-      // Restore copy condition notes
-      await db.execute(
-        "UPDATE BookCopies_Table SET ConditionNotes=? WHERE CopyID=?",
-        [condition, copyId]
-      );
+      if (String(conditionNotes || '').trim()) {
+        await db.execute(
+          `UPDATE BookCopies_Table
+           SET CopyStatus=?, ConditionNotes=?
+           WHERE CopyID=?`,
+          [requestedStatus, conditionNotes.trim(), copyId]
+        );
+      } else {
+        await db.execute(
+          `UPDATE BookCopies_Table
+           SET CopyStatus=?
+           WHERE CopyID=?`,
+          [requestedStatus, copyId]
+        );
+      }
 
       await db.CommitTrans();
     } catch (err) {
@@ -148,6 +248,37 @@ const Borrowing = {
   },
 
 
+
+  /**
+   * Get available (not currently borrowed) copies for a specific book.
+   */
+  getAvailableCopiesByBook: (bookId, search = '', limit = 200) => {
+    const cappedLimit = Math.max(1, Math.min(Number(limit) || 200, 500));
+    const keyword = String(search || '').trim();
+
+    if (keyword) {
+      return db.query(`
+        SELECT TOP ${cappedLimit} bc.CopyID, bc.AccessionNumber, bc.ConditionNotes
+        FROM BookCopies_Table bc
+        WHERE bc.BookID = ?
+          AND bc.AccessionNumber LIKE ?
+          AND bc.CopyID NOT IN (
+            SELECT l.CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed'
+          )
+        ORDER BY bc.AccessionNumber ASC
+      `, [bookId, `%${keyword}%`]);
+    }
+
+    return db.query(`
+      SELECT TOP ${cappedLimit} bc.CopyID, bc.AccessionNumber, bc.ConditionNotes
+      FROM BookCopies_Table bc
+      WHERE bc.BookID = ?
+        AND bc.CopyID NOT IN (
+          SELECT l.CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed'
+        )
+      ORDER BY bc.AccessionNumber ASC
+    `, [bookId]);
+  },
 
   // ── Reservations ──
   getReservations: () => db.query(`

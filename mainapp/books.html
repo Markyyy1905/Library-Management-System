@@ -20,7 +20,13 @@
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
+    </div>
   </aside>
 
   <div class="main">
@@ -130,6 +136,10 @@
         <div class="form-group">
           <label class="form-label">Language</label>
           <input class="form-input" type="text" id="f-lang" placeholder="English" value="English"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="f-copies-label">Number of Copies</label>
+          <input class="form-input" type="number" id="f-copies" min="0" value="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
         </div>
       </div>
       <div style="margin-top:16px;">
@@ -338,6 +348,10 @@ function openModal(mode, book = null) {
   document.getElementById('f-lang').value    = book ? (book.Language || 'English') : 'English';
   document.getElementById('f-publisher').value = book ? (book.Publisher || '') : '';
   
+  // Copies field: defaults to 1 for add, 0 for edit (add additional copies)
+  document.getElementById('f-copies').value = mode === 'add' ? 1 : 0;
+  document.getElementById('f-copies-label').textContent = mode === 'add' ? 'Number of Copies' : 'Additional Copies';
+  
   // Set category checkboxes
   selectedCategories = book ? (book.CategoryIDs || []) : [];
   document.querySelectorAll('.cat-checkbox').forEach(cb => {
@@ -363,14 +377,14 @@ async function editBook(id) {
 }
 
 async function deleteBook(id) {
-  if (!confirm('Delete this book and all its copies?')) return;
+  if (!await showConfirm('Delete this book and all its copies?')) return;
   try {
     await ipcRenderer.invoke('books:delete', id);
     allBooks = allBooks.filter(b => b.BookID !== id);
     currentBooks = currentBooks.filter(b => b.BookID !== id);
     renderTable();
     updateStats(allBooks);
-  } catch (err) { alert('Error: ' + err.message); }
+  } catch (err) { await showAlert('Error: ' + err.message, 'error'); }
 }
 
 async function saveBook() {
@@ -382,13 +396,27 @@ async function saveBook() {
     publisher:   document.getElementById('f-publisher').value.trim(),
     language:    document.getElementById('f-lang').value.trim() || 'English',
   };
-  if (!data.title) { alert('Title is required.'); return; }
+  if (!data.title) { await showAlert('Title is required.', 'warning'); return; }
+  
+  const copyCount = parseInt(document.getElementById('f-copies').value) || 0;
+  const editId = document.getElementById('edit-id').value;
+  
+  // Check for duplicate title
+  try {
+    const dup = await ipcRenderer.invoke('books:checkDuplicate', data.title, editId ? parseInt(editId) : null);
+    if (dup) {
+      await showAlert(`A book with the title "${data.title}" already exists.`, 'warning');
+      return;
+    }
+  } catch (err) {
+    await showAlert('Error checking for duplicates: ' + err.message, 'error');
+    return;
+  }
   
   // Get selected categories
   const newCategoryIds = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => parseInt(cb.value));
   
   try {
-    const editId = document.getElementById('edit-id').value;
     if (editId) {
       const bookId = parseInt(editId);
       // Update book
@@ -415,28 +443,45 @@ async function saveBook() {
           }
         }
       }
+      
+      // Add additional copies
+      if (copyCount > 0) {
+        await ipcRenderer.invoke('books:addCopies', bookId, copyCount);
+      }
+      
+      await showAlert('Book updated successfully!', 'success');
     } else {
       // Add new book
       await ipcRenderer.invoke('books:add', data);
       
       // After adding, we need to get the new book ID
-      // For now, just reload and find the book by title
       const newBooks = await ipcRenderer.invoke('books:all');
       const newBook = newBooks.find(b => b.Title === data.title);
       
-      if (newBook && newCategoryIds.length > 0) {
-        for (let catId of newCategoryIds) {
-          try {
-            await ipcRenderer.invoke('books:addCategory', newBook.BookID, catId);
-          } catch (err) {
-            console.error(`Failed to add category ${catId}:`, err);
+      if (newBook) {
+        // Add categories
+        if (newCategoryIds.length > 0) {
+          for (let catId of newCategoryIds) {
+            try {
+              await ipcRenderer.invoke('books:addCategory', newBook.BookID, catId);
+            } catch (err) {
+              console.error(`Failed to add category ${catId}:`, err);
+            }
           }
         }
+        // Add copies
+        if (copyCount > 0) {
+          await ipcRenderer.invoke('books:addCopies', newBook.BookID, copyCount);
+        }
       }
+      
+      await showAlert('Book saved successfully!', 'success');
     }
     closeModal();
     await load();
-  } catch (err) { alert('Error: ' + err.message); }
+  } catch (err) {
+    await showAlert('Error saving book: ' + err.message, 'error');
+  }
 }
 
 function exportCSV() {
@@ -453,6 +498,24 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.RoleName || session.Role || 'Administrator';
+    const footerUsername = document.getElementById('footer-username');
+    const footerRole = document.getElementById('footer-role');
+    if (footerUsername) footerUsername.textContent = name;
+    if (footerRole) footerRole.textContent = role;
+  } catch (_) {}
+}
+
 // Numeric input validator
 function allowNumericOnly(event) {
   let value = event.target.value;
@@ -460,7 +523,9 @@ function allowNumericOnly(event) {
 }
 
 load();
+populateFooter();
 </script>
+<script src="popup.js"></script>
 <script src="authCheck.js"></script>
 </body>
 </html>

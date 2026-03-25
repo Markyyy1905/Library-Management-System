@@ -5,6 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LMS — Borrowing</title>
   <link rel="stylesheet" href="style/style.css"/>
+  <style>
+    .bm-row { cursor: pointer; }
+    .bm-row:hover td { background: var(--bg3); }
+    .bm-row-disabled { opacity: 0.45; cursor: not-allowed; }
+    .combobox { position: relative; }
+    .combo-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      z-index: 1000;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+      display: none;
+    }
+    .combo-list.open { display: block; }
+    .combo-item { padding: 7px 10px; cursor: pointer; font-size: 13px; line-height: 1.4; }
+    .combo-item:hover { background: var(--bg3); }
+    .combo-badge { color: var(--muted); font-size: 11px; margin-left: 4px; }
+    .combo-empty { padding: 10px; text-align: center; font-size: 12px; color: var(--muted); }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -20,7 +45,13 @@
       <div class="nav-section-label">Analytics</div>
       <a href="reports.html"   class="nav-item">Reports</a>
     </nav>
-    <div class="sidebar-footer"><strong>Admin User</strong>Administrator</div>
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
+    </div>
   </aside>
 
   <div class="main">
@@ -70,10 +101,9 @@
         <table id="loans-table">
           <thead>
             <tr>
-              <th>Loan ID</th>
               <th>Member</th>
               <th>Book</th>
-              <th>Copy #</th>
+              <th>Accession #</th>
               <th>Borrowed</th>
               <th>Due</th>
               <th>Returned</th>
@@ -82,7 +112,7 @@
             </tr>
           </thead>
           <tbody id="loans-tbody">
-            <tr><td colspan="9" class="loading-row">Loading…</td></tr>
+            <tr><td colspan="8" class="loading-row">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -93,27 +123,70 @@
 
 <!-- New Borrow Modal -->
 <div class="modal-overlay" id="borrow-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:900px;width:96vw;">
     <div class="modal-header">
       <h3>NEW LOAN</h3>
       <button class="modal-close" onclick="closeModal('borrow-modal')">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- ① Member -->
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">① Member *</label>
+        <div class="combobox">
+          <input class="form-input" type="text" id="b-member-input"
+            placeholder="Loading members…" autocomplete="off"
+            oninput="onMemberInput(this.value)"
+            onfocus="openCombobox('b-member')"
+            onblur="scheduleCloseCombobox('b-member')"
+            disabled/>
+          <div class="combo-list" id="b-member-list"></div>
+        </div>
+        <input type="hidden" id="b-member-id"/>
+      </div>
+
+      <!-- ② Book search table -->
+      <div style="margin-bottom:14px;">
+        <label class="form-label">② Book *</label>
+        <div class="search-wrap" style="margin-bottom:6px;">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" type="text" id="b-book-search"
+            placeholder="Search by title, author, or ISBN…"
+            oninput="onBookSearchInput()" autocomplete="off"/>
+        </div>
+        <div id="book-search-wrap" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+          <div id="book-search-results" style="max-height:200px;overflow-y:auto;background:var(--bg2);">
+            <div style="padding:22px;text-align:center;color:var(--muted);font-size:12px;">Type at least 2 characters to search for a book…</div>
+          </div>
+        </div>
+        <div id="b-book-selected" style="display:none;margin-top:6px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:var(--muted);">Selected:</span>
+            <strong id="b-book-selected-title" style="flex:1;"></strong>
+            <button class="btn btn-outline btn-sm" onclick="clearBookSelection()" style="padding:2px 10px;font-size:11px;">Change</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ Book Copy -->
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">③ Book Copy (Accession #) *</label>
+        <div class="combobox">
+          <input class="form-input" type="text" id="b-copy-input"
+            placeholder="Select a book first…" autocomplete="off"
+            oninput="onCopyInput(this.value)"
+            onfocus="openCombobox('b-copy')"
+            onblur="scheduleCloseCombobox('b-copy')"
+            disabled/>
+          <div class="combo-list" id="b-copy-list"></div>
+        </div>
+        <input type="hidden" id="b-copy-id"/>
+      </div>
+
+      <!-- ④ Loan details -->
       <div class="form-grid">
-        <div class="form-group full">
-          <label class="form-label">Member *</label>
-          <select class="form-select" id="b-member">
-            <option value="">— Select member —</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Book Copy (Accession #) *</label>
-          <select class="form-select" id="b-copy">
-            <option value="">— Select available copy —</option>
-          </select>
-        </div>
         <div class="form-group">
-          <label class="form-label">Loan Period</label>
+          <label class="form-label">④ Loan Period</label>
           <select class="form-select" id="b-days" onchange="updateDueDate(this.value)">
             <option value="7">7 days</option>
             <option value="14" selected>14 days</option>
@@ -126,6 +199,7 @@
           <input class="form-input" type="date" id="b-due" readonly/>
         </div>
       </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('borrow-modal')">Cancel</button>
@@ -155,7 +229,12 @@
             <option value="Damaged">Damaged</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Condition Notes</label>
+          <input class="form-input" type="text" id="r-condition-notes" placeholder="Optional notes about the returned copy"/>
+        </div>
       </div>
+      <div id="return-condition-hint" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
       <div id="overdue-warning" style="display:none;margin-top:12px;background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.2);border-radius:var(--radius);padding:10px;font-size:12px;color:var(--red);">
         ⚠ This loan is overdue. A fine will be created automatically.
       </div>
@@ -167,12 +246,22 @@
   </div>
 </div>
 
+<script src="popup.js"></script>
 <script>
 const { ipcRenderer } = require('electron');
 
 let allLoans = [];
 let currentTab = 'all';
 let returnLoanId = null, returnCopyId = null;
+let returnCurrentCopyStatus = 'Good';
+let copySearchTimer = null;
+let bookSearchTimer = null;
+let selectedBookId = null;
+let modalBookCategories = {}; // BookID -> string[]
+let modalBookMap = {};        // BookID -> book row object
+let allMembers = [];
+let allCopies = [];
+let comboCloseTimer = {};
 
 const STATUS_BADGE = { Borrowed: 'badge-blue', Returned: 'badge-green', Overdue: 'badge-red' };
 
@@ -185,7 +274,7 @@ async function load() {
     updateOverdueBadge(loans);
   } catch (err) {
     document.getElementById('loans-tbody').innerHTML =
-      `<tr><td colspan="9" class="error-row">Error: ${err.message}</td></tr>`;
+      `<tr><td colspan="8" class="error-row">Error: ${esc(err.message)}</td></tr>`;
   }
 }
 
@@ -203,6 +292,9 @@ function updateStats(loans) {
     document.getElementById('overdue-alert').style.display = 'flex';
     document.getElementById('overdue-msg').textContent = `${overdue} overdue loan${overdue !== 1 ? 's' : ''}`;
     document.getElementById('overdue-badge').textContent = overdue;
+  } else {
+    document.getElementById('overdue-alert').style.display = 'none';
+    document.getElementById('overdue-badge').textContent = '0';
   }
 }
 
@@ -215,7 +307,7 @@ function renderTable(loans) {
   document.getElementById('row-count').textContent = loans.length;
   const tbody = document.getElementById('loans-tbody');
   if (!loans.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No records.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">No records.</td></tr>';
     return;
   }
   tbody.innerHTML = loans.map(l => {
@@ -223,7 +315,6 @@ function renderTable(loans) {
     const status = isOverdue ? 'Overdue' : l.LoanStatus;
     return `
       <tr>
-        <td class="td-mono">#${l.LoanID}</td>
         <td><strong>${esc(l.MemberName)}</strong></td>
         <td>${esc(l.BookTitle)}</td>
         <td class="td-mono">${esc(l.AccessionNumber || '—')}</td>
@@ -233,7 +324,7 @@ function renderTable(loans) {
         <td><span class="badge ${STATUS_BADGE[status] || 'badge-gray'}">${status}</span></td>
         <td>
           ${l.LoanStatus === 'Borrowed'
-            ? `<button class="btn btn-success btn-sm" onclick="openReturnForLoan(${l.LoanID},${l.CopyID},'${esc(l.BookTitle)}','${esc(l.MemberName)}',${isOverdue})">↩ Return</button>`
+            ? `<button class="btn btn-success btn-sm" onclick="openReturnForLoan(${l.LoanID},${l.CopyID},'${attr(l.BookTitle)}','${attr(l.MemberName)}',${isOverdue},'${attr(l.CopyStatus || 'Good')}','${attr(l.ConditionNotes || '')}')">↩ Return</button>`
             : `<span style="font-size:11px;color:var(--muted);">—</span>`}
         </td>
       </tr>`;
@@ -268,34 +359,309 @@ function applyTabFilter(loans) {
 }
 
 // ── Borrow Modal ──────────────────────────────────────────────
-async function openBorrowModal() {
+function openBorrowModal() {
   document.getElementById('borrow-modal').classList.add('open');
   updateDueDate(14);
+  resetBorrowForm();
+  loadMembersForModal();
+  loadInitialModalState();
+}
+
+function resetBorrowForm() {
+  selectedBookId = null;
+  modalBookMap = {};
+  allCopies = [];
+
+  const mInput = document.getElementById('b-member-input');
+  mInput.value = '';
+  mInput.disabled = true;
+  mInput.placeholder = 'Loading members…';
+  document.getElementById('b-member-id').value = '';
+  document.getElementById('b-member-list').classList.remove('open');
+
+  const bSearch = document.getElementById('b-book-search');
+  bSearch.value = '';
+  bSearch.disabled = false;
+  document.getElementById('book-search-wrap').style.display = '';
+  document.getElementById('book-search-results').innerHTML =
+    '<div style="padding:22px;text-align:center;color:var(--muted);font-size:12px;">Loading top books…</div>';
+  document.getElementById('b-book-selected').style.display = 'none';
+  document.getElementById('b-book-selected-title').textContent = '';
+
+  const cInput = document.getElementById('b-copy-input');
+  cInput.value = '';
+  cInput.disabled = true;
+  cInput.placeholder = 'Select a book first…';
+  document.getElementById('b-copy-id').value = '';
+  document.getElementById('b-copy-list').classList.remove('open');
+}
+
+async function loadInitialModalState() {
+  await loadBookCategoriesForModal();
+  await loadModalBooks('');
+}
+
+async function loadMembersForModal() {
+  const mInput = document.getElementById('b-member-input');
+  try {
+    const members = await ipcRenderer.invoke('loans:formMembers');
+    allMembers = members;
+    mInput.disabled = false;
+    mInput.placeholder = `Search from ${members.length} members…`;
+  } catch (err) {
+    mInput.placeholder = 'Error loading members';
+    await showAlert('Error loading members: ' + err.message, 'error');
+  }
+}
+
+async function loadBookCategoriesForModal() {
+  try {
+    const pairs = await ipcRenderer.invoke('books:allCategories');
+    modalBookCategories = {};
+    for (const row of pairs) {
+      if (!modalBookCategories[row.BookID]) modalBookCategories[row.BookID] = [];
+      modalBookCategories[row.BookID].push(row.CategoryName);
+    }
+  } catch (e) { /* non-critical — categories will show '—' */ }
+}
+
+function onBookSearchInput() {
+  if (bookSearchTimer) clearTimeout(bookSearchTimer);
+  bookSearchTimer = setTimeout(async () => {
+    const q = document.getElementById('b-book-search').value.trim();
+    await loadModalBooks(q);
+  }, 300);
+}
+
+function openCombobox(id) {
+  const input = document.getElementById(id + '-input');
+  if (!input || input.disabled) return;
+  cancelCloseCombobox(id);
+  document.getElementById(id + '-list').classList.add('open');
+  if (id === 'b-member') renderMemberDropdown(input.value);
+  if (id === 'b-copy') renderCopyDropdown(input.value);
+}
+
+function scheduleCloseCombobox(id) {
+  comboCloseTimer[id] = setTimeout(() => {
+    const list = document.getElementById(id + '-list');
+    if (list) list.classList.remove('open');
+  }, 150);
+}
+
+function cancelCloseCombobox(id) {
+  if (comboCloseTimer[id]) {
+    clearTimeout(comboCloseTimer[id]);
+    comboCloseTimer[id] = null;
+  }
+}
+
+function onMemberInput(val) {
+  document.getElementById('b-member-id').value = '';
+  renderMemberDropdown(val);
+  document.getElementById('b-member-list').classList.add('open');
+}
+
+function renderMemberDropdown(filter) {
+  const list = document.getElementById('b-member-list');
+  const f = String(filter || '').toLowerCase().trim();
+  const matches = f
+    ? allMembers.filter(m =>
+      (m.LastName + ' ' + m.FirstName).toLowerCase().includes(f) ||
+      (m.FirstName + ' ' + m.LastName).toLowerCase().includes(f) ||
+      String(m.MemberID).includes(f)
+    )
+    : allMembers;
+
+  if (!matches.length) {
+    list.innerHTML = '<div class="combo-empty">No matching members</div>';
+    return;
+  }
+
+  list.innerHTML = matches.slice(0, 100).map(m => `
+    <div class="combo-item"
+      data-id="${m.MemberID}"
+      data-label="${attr(m.LastName)}, ${attr(m.FirstName)}"
+      onmousedown="selectMemberFromEl(this)">
+      ${esc(m.LastName)}, ${esc(m.FirstName)}
+      <span class="combo-badge">#${m.MemberID}</span>
+    </div>
+  `).join('');
+}
+
+function selectMemberFromEl(el) {
+  cancelCloseCombobox('b-member');
+  document.getElementById('b-member-id').value = el.dataset.id;
+  document.getElementById('b-member-input').value = el.dataset.label;
+  document.getElementById('b-member-list').classList.remove('open');
+}
+
+async function loadModalBooks(search) {
+  const resultsDiv = document.getElementById('book-search-results');
+  const q = String(search || '').trim();
+
+  if (q.length === 1) {
+    resultsDiv.innerHTML = '<div style="padding:22px;text-align:center;color:var(--muted);font-size:12px;">Type at least 2 characters to search…</div>';
+    return;
+  }
+
+  resultsDiv.innerHTML = `<div style="padding:22px;text-align:center;color:var(--muted);font-size:12px;">${q ? 'Searching…' : 'Loading top books…'}</div>`;
 
   try {
-    const [members, books] = await Promise.all([
-      ipcRenderer.invoke('members:all'),
-      ipcRenderer.invoke('books:all'),
-    ]);
+    const books = await ipcRenderer.invoke('loans:modalBooks', q);
+    modalBookMap = {};
+    books.forEach(b => { modalBookMap[b.BookID] = b; });
 
-    const mSel = document.getElementById('b-member');
-    mSel.innerHTML = '<option value="">— Select member —</option>';
-    members.filter(m => m.MembershipStatus === 'Active').forEach(m => {
-      mSel.innerHTML += `<option value="${m.MemberID}">${m.LastName}, ${m.FirstName} (#${m.MemberID})</option>`;
-    });
-
-    // Populate copies grouped by book
-    const cSel = document.getElementById('b-copy');
-    cSel.innerHTML = '<option value="">— Select available copy —</option>';
-    for (const book of books) {
-      if ((book.AvailableCopies || 0) === 0) continue;
-      const copies = await ipcRenderer.invoke('books:copies', book.BookID);
-      const avail  = copies.filter(c => c.CopyStatus === 'Available');
-      avail.forEach(c => {
-        cSel.innerHTML += `<option value="${c.CopyID}">${book.Title} — #${c.AccessionNumber}</option>`;
-      });
+    if (!books.length) {
+      resultsDiv.innerHTML = `<div style="padding:22px;text-align:center;color:var(--muted);font-size:12px;">${q ? 'No books found.' : 'No available books.'}</div>`;
+      return;
     }
-  } catch (err) { alert('Error loading data: ' + err.message); }
+
+    const rows = books.map(b => {
+      const cats = (modalBookCategories[b.BookID] || []).join(', ') || '—';
+      const avail = b.AvailableCopies || 0;
+      const rowAttr = avail > 0
+        ? `class="bm-row" onclick="selectBook(${b.BookID})"`
+        : `class="bm-row-disabled" title="No available copies"`;
+      return `<tr ${rowAttr}>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);font-weight:500;max-width:195px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${attr(b.Title)}">${esc(b.Title)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(b.Author || '—')}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;">${esc(b.ISBN || '—')}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(b.Publisher || '—')}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:11px;">${b.YearPublished || '—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${attr(cats)}">${esc(cats)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:center;"><span class="badge ${avail > 0 ? 'badge-green' : 'badge-red'}">${avail}</span></td>
+      </tr>`;
+    }).join('');
+
+    resultsDiv.innerHTML = `
+      <div style="padding:4px 8px;font-size:11px;color:var(--muted);background:var(--bg3);border-bottom:1px solid var(--border);">
+        ${q ? 'Search Results' : 'Top 5 Borrowed Books'}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="position:sticky;top:0;z-index:1;background:var(--bg3);">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">Title</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">Author</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">ISBN</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">Publisher</th>
+            <th style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">Year</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);">Categories</th>
+            <th style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);">Avail</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${books.length >= 50 ? '<div style="padding:5px 8px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);">Showing first 50 results — refine your search for more.</div>' : ''}`;
+  } catch (err) {
+    resultsDiv.innerHTML = `<div style="padding:20px;text-align:center;color:var(--red);font-size:12px;">Error: ${esc(err.message)}</div>`;
+  }
+}
+
+async function selectBook(bookId) {
+  const b = modalBookMap[bookId];
+  selectedBookId = bookId;
+  allCopies = [];
+  document.getElementById('b-book-selected').style.display = 'block';
+  document.getElementById('b-book-selected-title').textContent = b ? b.Title : `Book #${bookId}`;
+  document.getElementById('b-book-search').disabled = true;
+  document.getElementById('book-search-wrap').style.display = 'none';
+
+  const cInput = document.getElementById('b-copy-input');
+  cInput.value = '';
+  cInput.disabled = false;
+  cInput.placeholder = 'Loading copies…';
+  document.getElementById('b-copy-id').value = '';
+
+  await loadAvailableCopies(bookId, '');
+}
+
+function clearBookSelection() {
+  selectedBookId = null;
+  allCopies = [];
+  document.getElementById('b-book-selected').style.display = 'none';
+  document.getElementById('b-book-selected-title').textContent = '';
+  const bSearch = document.getElementById('b-book-search');
+  bSearch.disabled = false;
+  bSearch.value = '';
+  document.getElementById('book-search-wrap').style.display = '';
+  loadModalBooks('');
+
+  const cInput = document.getElementById('b-copy-input');
+  cInput.value = '';
+  cInput.disabled = true;
+  cInput.placeholder = 'Select a book first…';
+  document.getElementById('b-copy-id').value = '';
+  document.getElementById('b-copy-list').classList.remove('open');
+}
+
+function onCopyInput(value) {
+  if (!selectedBookId) return;
+  cancelCloseCombobox('b-copy');
+  document.getElementById('b-copy-id').value = '';
+  renderCopyDropdown(value);
+  document.getElementById('b-copy-list').classList.add('open');
+
+  if (copySearchTimer) clearTimeout(copySearchTimer);
+  copySearchTimer = setTimeout(async () => {
+    await loadAvailableCopies(selectedBookId, String(value || '').trim());
+    renderCopyDropdown(document.getElementById('b-copy-input').value);
+  }, 300);
+}
+
+function renderCopyDropdown(filter) {
+  const list = document.getElementById('b-copy-list');
+  if (!allCopies.length) {
+    list.innerHTML = '<div class="combo-empty">No available copies</div>';
+    return;
+  }
+
+  const f = String(filter || '').toLowerCase().trim();
+  const matches = f
+    ? allCopies.filter(c => String(c.AccessionNumber || '').toLowerCase().includes(f))
+    : allCopies;
+
+  if (!matches.length) {
+    list.innerHTML = '<div class="combo-empty">No matching copies</div>';
+    return;
+  }
+
+  list.innerHTML = matches.slice(0, 100).map(c => `
+    <div class="combo-item"
+      data-id="${c.CopyID}"
+      data-acc="${attr(c.AccessionNumber || '')}"
+      data-notes="${attr(c.ConditionNotes || '')}"
+      onmousedown="selectCopyFromEl(this)">
+      #${esc(c.AccessionNumber || '—')}
+      ${c.ConditionNotes ? `<span class="combo-badge">${esc(c.ConditionNotes)}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function selectCopyFromEl(el) {
+  cancelCloseCombobox('b-copy');
+  const notes = el.dataset.notes || '';
+  document.getElementById('b-copy-id').value = el.dataset.id;
+  document.getElementById('b-copy-input').value =
+    '#' + el.dataset.acc + (notes ? ' (' + notes + ')' : '');
+  document.getElementById('b-copy-list').classList.remove('open');
+}
+
+async function loadAvailableCopies(bookId, searchKeyword) {
+  try {
+    const copies = await ipcRenderer.invoke('loans:availableCopies', parseInt(bookId), searchKeyword || '', 200);
+    allCopies = copies;
+    const cInput = document.getElementById('b-copy-input');
+    cInput.disabled = false;
+    cInput.placeholder = copies.length
+      ? `${copies.length}${copies.length >= 200 ? '+' : ''} copies — type to filter…`
+      : 'No available copies for this book';
+    renderCopyDropdown(cInput.value);
+  } catch (err) {
+    allCopies = [];
+    document.getElementById('b-copy-input').placeholder = 'Error loading copies';
+    await showAlert('Error loading copies: ' + err.message, 'error');
+  }
 }
 
 function updateDueDate(days) {
@@ -305,44 +671,73 @@ function updateDueDate(days) {
 }
 
 async function confirmBorrow() {
-  const memberId = parseInt(document.getElementById('b-member').value);
-  const copyId   = parseInt(document.getElementById('b-copy').value);
+  const memberId = parseInt(document.getElementById('b-member-id').value, 10);
+  const copyId   = parseInt(document.getElementById('b-copy-id').value, 10);
   const days     = parseInt(document.getElementById('b-days').value);
-  if (!memberId || !copyId) { alert('Select a member and a copy.'); return; }
+
+  if (!memberId)     { await showAlert('Please select a member.', 'warning'); return; }
+  if (!selectedBookId) { await showAlert('Please select a book from the search table.', 'warning'); return; }
+  if (!copyId)       { await showAlert('Please select a book copy.', 'warning'); return; }
+
   try {
-    await ipcRenderer.invoke('loans:borrow', memberId, copyId, 1, days); // issuedBy=1 (admin)
+    await ipcRenderer.invoke('loans:borrow', memberId, copyId, 1, days);
     closeModal('borrow-modal');
+    await showAlert('Loan issued successfully!', 'success');
     await load();
-  } catch (err) { alert('Error: ' + err.message); }
+  } catch (err) { await showAlert('Failed to issue loan: ' + err.message, 'error'); }
 }
 
 // ── Return Modal ──────────────────────────────────────────────
 function openReturnModal() {
-  // Quick form without pre-selected loan
   document.getElementById('return-book').textContent   = 'Select a loan from the table.';
   document.getElementById('return-member').textContent = '';
-  returnLoanId = null; returnCopyId = null;
+  returnLoanId = null;
+  returnCopyId = null;
+  returnCurrentCopyStatus = 'Good';
+  document.getElementById('r-condition-notes').value = '';
+  applyReturnConditionOptions('Good');
   document.getElementById('return-modal').classList.add('open');
 }
 
-function openReturnForLoan(loanId, copyId, bookTitle, memberName, isOverdue) {
+function applyReturnConditionOptions(currentStatus) {
+  const optionsMap = {
+    Good: ['Good', 'Fair', 'Damaged'],
+    Fair: ['Fair', 'Damaged'],
+    Damaged: ['Damaged'],
+  };
+  const normalized = optionsMap[currentStatus] ? currentStatus : 'Good';
+  const select = document.getElementById('r-condition');
+  const options = optionsMap[normalized];
+  select.innerHTML = options.map(status => `<option value="${status}">${status}</option>`).join('');
+  select.value = normalized;
+  document.getElementById('return-condition-hint').textContent = `Current copy status: ${normalized}. You can keep it the same or downgrade it only.`;
+}
+
+function openReturnForLoan(loanId, copyId, bookTitle, memberName, isOverdue, copyStatus, conditionNotes) {
   returnLoanId = loanId;
   returnCopyId = copyId;
+  returnCurrentCopyStatus = copyStatus || 'Good';
   document.getElementById('return-book').textContent   = bookTitle;
-  document.getElementById('return-member').textContent = `Borrowed by ${memberName} · Loan #${loanId}`;
+  document.getElementById('return-member').textContent = `Borrowed by ${memberName}`;
+  document.getElementById('r-condition-notes').value = conditionNotes || '';
+  applyReturnConditionOptions(returnCurrentCopyStatus);
   document.getElementById('overdue-warning').style.display = isOverdue ? 'block' : 'none';
   document.getElementById('return-modal').classList.add('open');
 }
 
 async function confirmReturn() {
-  if (!returnLoanId) { alert('No loan selected.'); return; }
+  if (!returnLoanId) { await showAlert('No loan selected. Click the Return button on a loan row.', 'warning'); return; }
   const condition = document.getElementById('r-condition').value;
+  const notes = document.getElementById('r-condition-notes').value;
   try {
-    await ipcRenderer.invoke('loans:return', returnLoanId, returnCopyId, condition);
+    await ipcRenderer.invoke('loans:return', returnLoanId, returnCopyId, condition, notes);
     closeModal('return-modal');
-    returnLoanId = null; returnCopyId = null;
+    returnLoanId = null;
+    returnCopyId = null;
+    returnCurrentCopyStatus = 'Good';
+    await showAlert('Book returned successfully!', 'success');
     await load();
-  } catch (err) { alert('Error: ' + err.message); }
+  } catch (err) { await showAlert('Failed to process return: ' + err.message, 'error'); }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -358,13 +753,34 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// Numeric input validator
-function allowNumericOnly(event) {
-  let value = event.target.value;
-  event.target.value = value.replace(/[^0-9]/g, '');
+function attr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.RoleName || session.Role || 'Administrator';
+    const footerUsername = document.getElementById('footer-username');
+    const footerRole = document.getElementById('footer-role');
+    if (footerUsername) footerUsername.textContent = name;
+    if (footerRole) footerRole.textContent = role;
+  } catch (_) {}
 }
 
 load();
+populateFooter();
 </script>
 <script src="authCheck.js"></script>
 </body>
