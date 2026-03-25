@@ -12,6 +12,28 @@ Install ODBC: Install odbc for access connection.
 
 ---
 
+## Role-Based Access Control
+
+The app supports three user roles with different access levels:
+
+| Feature | Member | Librarian | Admin |
+|---|---|---|---|
+| Books (read-only catalog) | ✅ | ✅ | ✅ |
+| Books (add / edit / delete / export) | ❌ | ✅ | ✅ |
+| Dashboard | ❌ | ✅ | ✅ |
+| Members | ❌ | ✅ | ✅ |
+| Borrowing | ❌ | ✅ | ✅ |
+| Reports | ❌ | ✅ | ✅ |
+| Librarian Management | ❌ | ❌ | ✅ |
+
+- **Member** — Can only view the book catalog. The Actions column, Add Book button, and Export button are hidden and disabled.
+- **Librarian** — Full access to all features except Librarian Account Management.
+- **Admin** — Unrestricted access to everything.
+
+Role restrictions are enforced client-side via `mainapp/services/roleAccess.js`. Sidebar navigation items and section labels are dynamically hidden based on the logged-in user's role. Unauthorized page access triggers a redirect to the user's first allowed page.
+
+---
+
 ## Restore main.js
 
 > **Note:** Cloning this repo may overwrite `main.js`. After installing Electron, replace the contents of `main.js` with the code below:
@@ -204,6 +226,9 @@ ipcMain.handle('members:update', (e, id, data) => {
 ipcMain.handle('members:updateStatus', (e, id, status) => {
   return Members.updateStatus(id, status);
 });
+ipcMain.handle('members:updatePassword', (e, id, password) => {
+  return Members.updatePassword(id, Auth.hashPassword(password));
+});
 ipcMain.handle('members:delete', (e, id) => {
   return Members.delete(id);
 });
@@ -254,7 +279,31 @@ ipcMain.handle('categories:all', () => Categories.getAll());
 ipcMain.handle('users:all', () => {
   return Users.getAll();
 });
+ipcMain.handle('users:byRole', (e, role) => {
+  return Users.getByRole(role);
+});
+ipcMain.handle('users:byId', (e, id) => {
+  return Users.getById(id);
+});
+ipcMain.handle('users:update', async (e, id, data) => {
+  const existing = await Users.findByUsername(data.username);
+  if (existing.some(user => Number(user.UserID) !== Number(id))) {
+    return { success: false, message: 'Username is already taken. Please choose another.' };
+  }
+
+  await Users.update(id, data);
+  return { success: true };
+});
+ipcMain.handle('users:updateStatus', async (e, id, status) => {
+  await Users.updateStatus(id, status);
+  return { success: true };
+});
+ipcMain.handle('users:updatePassword', async (e, id, password) => {
+  await Users.updatePassword(id, Auth.hashPassword(password));
+  return { success: true };
+});
 ipcMain.handle('roles:all', () => {
   return Roles.getAll();
 });
+
 ```
