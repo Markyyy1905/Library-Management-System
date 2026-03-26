@@ -166,6 +166,43 @@ let currentPage = 1;
 let allCategories = [];
 let selectedCategories = [];
 let loadGen = 0;
+const BOOKS_PRELOAD_KEY = 'books:preload:v1';
+
+function savePreloadedBooks(books, categories) {
+  try {
+    const payload = {
+      timestamp: Date.now(),
+      books: Array.isArray(books) ? books : [],
+      categories: Array.isArray(categories) ? categories : [],
+    };
+    sessionStorage.setItem(BOOKS_PRELOAD_KEY, JSON.stringify(payload));
+  } catch (_) {}
+}
+
+function restorePreloadedBooks() {
+  try {
+    const raw = sessionStorage.getItem(BOOKS_PRELOAD_KEY);
+    if (!raw) return false;
+
+    const payload = JSON.parse(raw);
+    if (!payload || !Array.isArray(payload.books) || !Array.isArray(payload.categories)) {
+      return false;
+    }
+
+    allBooks = payload.books;
+    currentBooks = payload.books;
+    allCategories = payload.categories;
+    currentPage = 1;
+
+    populateCategoryFilter(allCategories);
+    populateCategoryCheckboxes(allCategories);
+    renderTable();
+    updateStats(allBooks);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
 
 function populateCategoryFilter(categories) {
   const catSel = document.getElementById('cat-filter');
@@ -242,6 +279,7 @@ async function load() {
 
     renderTable();
     updateStats(books);
+    savePreloadedBooks(books, categories);
   } catch (err) {
     document.getElementById('books-tbody').innerHTML =
       `<tr><td colspan="9" class="error-row">Error: ${err.message}</td></tr>`;
@@ -382,10 +420,8 @@ async function deleteBook(id) {
   if (!await showConfirm('Delete this book and all its copies?')) return;
   try {
     await ipcRenderer.invoke('books:delete', id);
-    allBooks = allBooks.filter(b => b.BookID !== id);
-    currentBooks = currentBooks.filter(b => b.BookID !== id);
-    renderTable();
-    updateStats(allBooks);
+    await load();
+    await showAlert('Book deleted successfully!', 'success');
   } catch (err) { await showAlert('Error: ' + err.message, 'error'); }
 }
 
@@ -454,18 +490,15 @@ async function saveBook() {
       await showAlert('Book updated successfully!', 'success');
     } else {
       // Add new book
-      await ipcRenderer.invoke('books:add', data);
+      const addResult = await ipcRenderer.invoke('books:add', data);
+      const newBookId = addResult && addResult.BookID;
       
-      // After adding, we need to get the new book ID
-      const newBooks = await ipcRenderer.invoke('books:all');
-      const newBook = newBooks.find(b => b.Title === data.title);
-      
-      if (newBook) {
+      if (newBookId) {
         // Add categories
         if (newCategoryIds.length > 0) {
           for (let catId of newCategoryIds) {
             try {
-              await ipcRenderer.invoke('books:addCategory', newBook.BookID, catId);
+              await ipcRenderer.invoke('books:addCategory', newBookId, catId);
             } catch (err) {
               console.error(`Failed to add category ${catId}:`, err);
             }
@@ -473,7 +506,7 @@ async function saveBook() {
         }
         // Add copies
         if (copyCount > 0) {
-          await ipcRenderer.invoke('books:addCopies', newBook.BookID, copyCount);
+          await ipcRenderer.invoke('books:addCopies', newBookId, copyCount);
         }
       }
       
@@ -524,6 +557,7 @@ function allowNumericOnly(event) {
   event.target.value = value.replace(/[^0-9]/g, '');
 }
 
+restorePreloadedBooks();
 load();
 populateFooter();
 </script>

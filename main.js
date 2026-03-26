@@ -18,6 +18,11 @@ let currentSession = null;
 let booksCache = null;
 let booksCategoriesCache = null;
 
+function invalidateBooksCaches() {
+  booksCache = null;
+  booksCategoriesCache = null;
+}
+
 const ROLE_IDS = {
   ADMIN: 1,
   LIBRARIAN: 2,
@@ -267,18 +272,15 @@ ipcMain.handle('books:allCategories', async () => {
 ipcMain.handle('books:copies', (e, id) => Books.getCopies(id));
 ipcMain.handle('books:search', (e, kw) => Books.search(kw));
 ipcMain.handle('books:add', (e, data) => {
-  booksCache = null;
-  booksCategoriesCache = null;
+  invalidateBooksCaches();
   return Books.add(data);
 });
 ipcMain.handle('books:update', (e, id, data) => {
-  booksCache = null;
-  booksCategoriesCache = null;
+  invalidateBooksCaches();
   return Books.update(id, data);
 });
 ipcMain.handle('books:delete', (e, id) => {
-  booksCache = null;
-  booksCategoriesCache = null;
+  invalidateBooksCaches();
   return Books.delete(id);
 });
 ipcMain.handle('books:addCopy', (e, bookId, accNum, notes) => {
@@ -288,15 +290,15 @@ ipcMain.handle('books:updateCopyStatus', (e, copyId, status) => {
   return Books.updateCopyStatus(copyId, status);
 });
 ipcMain.handle('books:addCategory', (e, bookId, categoryId) => {
-  booksCategoriesCache = null;
+  invalidateBooksCaches();
   return Books.addCategory(bookId, categoryId);
 });
 ipcMain.handle('books:removeCategory', (e, bookId, categoryId) => {
-  booksCategoriesCache = null;
+  invalidateBooksCaches();
   return Books.removeCategory(bookId, categoryId);
 });
 ipcMain.handle('books:addCopies', (e, bookId, count) => {
-  booksCache = null;
+  invalidateBooksCaches();
   return Books.addCopies(bookId, count);
 });
 ipcMain.handle('books:checkDuplicate', (e, title, excludeBookId) => {
