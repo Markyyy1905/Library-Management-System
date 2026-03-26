@@ -41,7 +41,7 @@
       <a href="index.html"     class="nav-item">Dashboard</a>
       <a href="books.html"     class="nav-item">Books</a>
       <a href="members.html"   class="nav-item">Members</a>
-      <a href="borrowing.html" class="nav-item active">Borrowing <span class="nav-badge" id="overdue-badge">0</span></a>
+      <a href="borrowing.html" class="nav-item active">Borrowing</a>
       <div class="nav-section-label">Accounts</div>
       <a href="librarian-register.html" class="nav-item">Librarian Management</a>
       <div class="nav-section-label">Analytics</div>
@@ -63,7 +63,6 @@
         <p>Loans &amp; returns</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-outline btn-sm" onclick="openReturnModal()">↩ Return</button>
         <button class="btn btn-primary btn-sm" onclick="openBorrowModal()">+ New Loan</button>
       </div>
     </div>
@@ -293,16 +292,13 @@ function updateStats(loans) {
   if (overdue > 0) {
     document.getElementById('overdue-alert').style.display = 'flex';
     document.getElementById('overdue-msg').textContent = `${overdue} overdue loan${overdue !== 1 ? 's' : ''}`;
-    document.getElementById('overdue-badge').textContent = overdue;
   } else {
     document.getElementById('overdue-alert').style.display = 'none';
-    document.getElementById('overdue-badge').textContent = '0';
   }
 }
 
 function updateOverdueBadge(loans) {
-  const overdue = loans.filter(l => l.LoanStatus === 'Borrowed' && new Date(l.DueDate) < new Date()).length;
-  document.getElementById('overdue-badge').textContent = overdue;
+  // Borrowing nav badge removed.
 }
 
 function renderTable(loans) {

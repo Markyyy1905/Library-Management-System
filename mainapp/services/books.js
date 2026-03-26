@@ -5,35 +5,197 @@
 
 const db = require('./db');
 
+function normalizeAuthorName(name) {
+  return String(name || '').replace(/\s+/g, ' ').trim();
+}
+
+function splitAuthorNames(authorInput) {
+  const parts = Array.isArray(authorInput)
+    ? authorInput
+    : String(authorInput || '').split(',');
+
+  const seen = new Set();
+  const names = [];
+
+  for (const part of parts) {
+    const name = normalizeAuthorName(part);
+    if (!name) continue;
+
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    names.push(name);
+  }
+
+  return names;
+}
+
+async function getAuthorRowsByBookIds(bookIds) {
+  const ids = Array.from(new Set((bookIds || []).map(id => Number(id)).filter(Boolean)));
+  if (!ids.length) return [];
+
+  const chunkSize = 100;
+  const rows = [];
+
+  for (let index = 0; index < ids.length; index += chunkSize) {
+    const chunk = ids.slice(index, index + chunkSize);
+    const chunkRows = await db.query(`
+      SELECT ab.BookID, a.AuthorID, a.AuthorName
+      FROM AuthorBooksTable ab
+        INNER JOIN AuthorsTable a ON ab.AuthorID = a.AuthorID
+      WHERE ab.BookID IN (${chunk.join(',')})
+      ORDER BY ab.BookID ASC, a.AuthorName ASC
+    `);
+    rows.push(...chunkRows);
+  }
+
+  return rows;
+}
+
+function attachAuthors(rows, authorRows) {
+  const authorMap = new Map();
+
+  for (const row of authorRows || []) {
+    const bookId = Number(row.BookID);
+    if (!authorMap.has(bookId)) {
+      authorMap.set(bookId, []);
+    }
+
+    authorMap.get(bookId).push({
+      AuthorID: row.AuthorID,
+      AuthorName: row.AuthorName,
+    });
+  }
+
+  return (rows || []).map(row => {
+    const authors = authorMap.get(Number(row.BookID)) || [];
+    return {
+      ...row,
+      Authors: authors,
+      Author: authors.length ? authors.map(author => author.AuthorName).join(', ') : '',
+    };
+  });
+}
+
+async function getBookAuthorDisplayRows(bookId) {
+  return db.query(`
+    SELECT a.AuthorID, a.AuthorName
+    FROM AuthorBooksTable ab
+      INNER JOIN AuthorsTable a ON ab.AuthorID = a.AuthorID
+    WHERE ab.BookID = ?
+    ORDER BY a.AuthorName ASC
+  `, [bookId]);
+}
+
+async function findOrCreateAuthorId(authorName) {
+  const normalized = normalizeAuthorName(authorName);
+  if (!normalized) return null;
+
+  const existing = await db.query(`
+    SELECT TOP 1 AuthorID, AuthorName
+    FROM AuthorsTable
+    WHERE LCase(Trim(AuthorName)) = ?
+    ORDER BY AuthorID ASC
+  `, [normalized.toLowerCase()]);
+
+  if (existing.length) {
+    return existing[0].AuthorID;
+  }
+
+  await db.execute('INSERT INTO AuthorsTable (AuthorName) VALUES (?)', [normalized]);
+
+  const inserted = await db.query(`
+    SELECT TOP 1 AuthorID, AuthorName
+    FROM AuthorsTable
+    WHERE LCase(Trim(AuthorName)) = ?
+    ORDER BY AuthorID DESC
+  `, [normalized.toLowerCase()]);
+
+  if (!inserted.length) {
+    throw new Error(`Failed to create author record for ${normalized}.`);
+  }
+
+  return inserted[0].AuthorID;
+}
+
+async function syncBookAuthors(bookId, authorInput) {
+  const names = splitAuthorNames(authorInput);
+
+  await db.execute('DELETE FROM AuthorBooksTable WHERE BookID=?', [bookId]);
+
+  for (const name of names) {
+    const authorId = await findOrCreateAuthorId(name);
+    await db.execute(
+      'INSERT INTO AuthorBooksTable (AuthorID, BookID) VALUES (?, ?)',
+      [authorId, bookId]
+    );
+  }
+}
+
+async function getInsertedBookId(title, isbn) {
+  try {
+    const identityRows = await db.query('SELECT @@IDENTITY AS NewID');
+    const identity = identityRows.length ? Number(identityRows[0].NewID) : 0;
+    if (identity) return identity;
+  } catch (_) {
+    // Fallback below for Access drivers that do not expose @@IDENTITY consistently.
+  }
+
+  const rows = await db.query(`
+    SELECT TOP 1 BookID
+    FROM Books_Table
+    WHERE Title = ? AND ((ISBN IS NULL AND ? IS NULL) OR ISBN = ?)
+    ORDER BY BookID DESC
+  `, [title, isbn || null, isbn || null]);
+
+  if (!rows.length) {
+    throw new Error('Failed to determine the newly inserted book ID.');
+  }
+
+  return rows[0].BookID;
+}
+
 const Books = {
 
   /**
    * Full book list with author names, categories, publisher, and copy counts.
    */
-  getAll: () => db.query(`
-    SELECT
-      b.BookID,
-      b.Title,
-      b.Author,
-      b.ISBN,
-      b.YearPublished,
-      b.Language,
-      b.Publisher,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
-      (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
-    FROM Books_Table b
-    ORDER BY b.Title ASC
-  `),
-
-  getById: (id) => db.query(`
+  getAll: async () => {
+    const rows = await db.query(`
       SELECT
-        b.BookID, b.Title, b.Author, b.ISBN, b.YearPublished,
+        b.BookID,
+        b.Title,
+        b.ISBN,
+        b.YearPublished,
+        b.Language,
+        b.Publisher,
+        (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
+        (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
+      FROM Books_Table b
+      ORDER BY b.Title ASC
+    `);
+
+    const authorRows = await getAuthorRowsByBookIds(rows.map(row => row.BookID));
+    return attachAuthors(rows, authorRows);
+  },
+
+  getById: async (id) => {
+    const rows = await db.query(`
+      SELECT
+        b.BookID, b.Title, b.ISBN, b.YearPublished,
         b.Language, b.Publisher,
         (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
         (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
       FROM Books_Table b
       WHERE b.BookID = ?
-    `, [id]),
+    `, [id]);
+
+    const authorRows = await getAuthorRowsByBookIds([id]);
+    return attachAuthors(rows, authorRows);
+  },
+
+  getAuthors: (bookId) => getBookAuthorDisplayRows(bookId),
 
   /**
    * Categories for a book (from BookCategories junction).
@@ -64,49 +226,82 @@ const Books = {
     ORDER BY bc.AccessionNumber ASC
   `, [bookId]),
 
-  search: (keyword) => db.query(`
+  search: async (keyword) => {
+    const searchTerm = `%${String(keyword || '').trim()}%`;
+    const rows = await db.query(`
       SELECT
-        b.BookID, b.Title, b.Author, b.ISBN, b.YearPublished,
+        DISTINCT b.BookID, b.Title, b.ISBN, b.YearPublished,
         b.Publisher,
+        b.Language,
         (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID) AS TotalCopies,
         (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID AND bc.CopyID NOT IN (SELECT CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')) AS AvailableCopies
-      FROM Books_Table b
-      WHERE b.Title LIKE ? OR b.Author LIKE ? OR b.ISBN LIKE ?
+      FROM (Books_Table b
+        LEFT JOIN AuthorBooksTable ab ON b.BookID = ab.BookID)
+        LEFT JOIN AuthorsTable a ON ab.AuthorID = a.AuthorID
+      WHERE b.Title LIKE ? OR a.AuthorName LIKE ? OR b.ISBN LIKE ?
       ORDER BY b.Title ASC
-    `, [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`]),
+    `, [searchTerm, searchTerm, searchTerm]);
+
+    const authorRows = await getAuthorRowsByBookIds(rows.map(row => row.BookID));
+    return attachAuthors(rows, authorRows);
+  },
 
   /**
    * Add a new book record.
    */
-  add: (book) => db.execute(`
-      INSERT INTO Books_Table (Title, Author, ISBN, Publisher, YearPublished, Language)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      book.title,
-      book.author || '',
-      book.isbn || '',
-      book.publisher || '',
-      book.yearPublished || null,
-      book.language || 'English'
-    ]),
+  add: async (book) => {
+    await db.BeginTrans();
+    try {
+      await db.execute(`
+        INSERT INTO Books_Table (Title, ISBN, Publisher, YearPublished, Language)
+        VALUES (?, ?, ?, ?, ?)
+      `, [
+        book.title,
+        book.isbn || '',
+        book.publisher || '',
+        book.yearPublished || null,
+        book.language || 'English'
+      ]);
 
-  update: (id, book) => db.execute(`
+      const bookId = await getInsertedBookId(book.title, book.isbn || '');
+      await syncBookAuthors(bookId, book.author);
+      await db.CommitTrans();
+      return { success: true, BookID: bookId };
+    } catch (err) {
+      await db.Rollback();
+      throw err;
+    }
+  },
+
+  update: async (id, book) => {
+    await db.BeginTrans();
+    try {
+      await db.execute(`
       UPDATE Books_Table
-      SET Title=?, Author=?, ISBN=?, Publisher=?, YearPublished=?, Language=?
+      SET Title=?, ISBN=?, Publisher=?, YearPublished=?, Language=?
       WHERE BookID=?
     `, [
-      book.title,
-      book.author || '',
-      book.isbn || '',
-      book.publisher || '',
-      book.yearPublished || null,
-      book.language || 'English',
-      id
-    ]),
+        book.title,
+        book.isbn || '',
+        book.publisher || '',
+        book.yearPublished || null,
+        book.language || 'English',
+        id
+      ]);
+
+      await syncBookAuthors(id, book.author);
+      await db.CommitTrans();
+      return { success: true, BookID: id };
+    } catch (err) {
+      await db.Rollback();
+      throw err;
+    }
+  },
 
   delete: async (id) => {
     await db.BeginTrans();
     try {
+      await db.execute('DELETE FROM AuthorBooksTable WHERE BookID=?', [id]);
       await db.execute('DELETE FROM BookCategories WHERE BookID=?', [id]);
       await db.execute('DELETE FROM BookCopies_Table WHERE BookID=?', [id]);
       await db.execute('DELETE FROM Books_Table WHERE BookID=?', [id]);

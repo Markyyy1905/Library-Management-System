@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LMS - Backup & Recovery</title>
+  <link rel="stylesheet" href="style/style.css"/>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="index.html" class="nav-item">Dashboard</a>
+      <a href="books.html" class="nav-item">Books</a>
+      <a href="members.html" class="nav-item">Members</a>
+      <a href="borrowing.html" class="nav-item">Borrowing</a>
+      <div class="nav-section-label">Accounts</div>
+      <a href="librarian-register.html" class="nav-item">Librarian Management</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="reports.html" class="nav-item">Reports</a>
+      <div class="nav-section-label">System</div>
+      <a href="backup-recovery.html" class="nav-item active">Backup & Recovery</a>
+    </nav>
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <strong id="footer-username">User</strong>
+        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">
+        <h2>BACKUP & RECOVERY</h2>
+        <p>Admin-only database backup tools</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="createBackup()">+ Create Backup</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="alert-bar" style="display:flex; margin-bottom:16px;">
+        Keep regular backups before major updates. Restore will overwrite current data.
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Available Backups</h3>
+          <span id="backup-count" style="font-size:11px;color:var(--muted);">0 backups</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Created</th>
+              <th>Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="backup-tbody">
+            <tr><td colspan="4" class="loading-row">Loading backups...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="services/popup.js"></script>
+<script>
+const { ipcRenderer } = require('electron');
+
+let backups = [];
+
+function fmtDate(value) {
+  if (!value) return '-';
+  return new Date(value).toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function fmtSize(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function esc(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderBackups() {
+  const tbody = document.getElementById('backup-tbody');
+  document.getElementById('backup-count').textContent = `${backups.length} backup${backups.length === 1 ? '' : 's'}`;
+
+  if (!backups.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading-row">No backups found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = backups.map(b => `
+    <tr>
+      <td class="td-mono">${esc(b.fileName)}</td>
+      <td class="td-muted">${fmtDate(b.createdAt)}</td>
+      <td class="td-mono">${fmtSize(b.sizeBytes)}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="restoreBackup('${esc(b.fileName)}')">Restore</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBackup('${esc(b.fileName)}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadBackups() {
+  try {
+    backups = await ipcRenderer.invoke('backup:list');
+    renderBackups();
+  } catch (err) {
+    document.getElementById('backup-tbody').innerHTML = `<tr><td colspan="4" class="error-row">Failed to load backups: ${esc(err.message)}</td></tr>`;
+  }
+}
+
+async function createBackup() {
+  try {
+    const result = await ipcRenderer.invoke('backup:create');
+    await showAlert(`Backup created: ${result.fileName}`, 'success');
+    await loadBackups();
+  } catch (err) {
+    await showAlert(`Backup failed: ${err.message}`, 'error');
+  }
+}
+
+async function restoreBackup(fileName) {
+  const ok = await showConfirm(`Restore backup ${fileName}? This will overwrite current data.`);
+  if (!ok) return;
+
+  try {
+    await ipcRenderer.invoke('backup:restore', fileName);
+    await showAlert('Backup restored successfully. Please reload the app to continue.', 'success');
+  } catch (err) {
+    await showAlert(`Restore failed: ${err.message}`, 'error');
+  }
+}
+
+async function deleteBackup(fileName) {
+  const ok = await showConfirm(`Delete backup ${fileName}?`);
+  if (!ok) return;
+
+  try {
+    await ipcRenderer.invoke('backup:delete', fileName);
+    await showAlert('Backup deleted.', 'success');
+    await loadBackups();
+  } catch (err) {
+    await showAlert(`Delete failed: ${err.message}`, 'error');
+  }
+}
+
+async function populateFooter() {
+  try {
+    const session = await ipcRenderer.invoke('auth:session');
+    if (!session) return;
+    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+    const role = session.RoleName || session.Role || 'Administrator';
+    const footerUser = document.getElementById('footer-username');
+    const footerRole = document.getElementById('footer-role');
+    if (footerUser) footerUser.textContent = name;
+    if (footerRole) footerRole.textContent = role;
+  } catch (_) {}
+}
+
+async function logout() {
+  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+loadBackups();
+populateFooter();
+</script>
+<script src="services/authCheck.js"></script>
+<script src="services/roleAccess.js"></script>
+</body>
+</html>

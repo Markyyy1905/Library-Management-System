@@ -48,7 +48,14 @@ async function getCachedCategories() {
   }
 }
 
-// ── Removed Authors (Moved to Books_Table) ─────────────────────
+// ── Authors ───────────────────────────────────────────────────
+const Authors = {
+  getAll: () => db.query(`
+    SELECT AuthorID, AuthorName
+    FROM AuthorsTable
+    ORDER BY AuthorName ASC
+  `),
+};
 
 // ── Categories ───────────────────────────────────────────────
 const Categories = {
@@ -151,4 +158,4 @@ const AuditLogs = {
   `),
 };
 
-module.exports = { Categories, Users, Roles, AuditLogs };
+module.exports = { Authors, Categories, Users, Roles, AuditLogs };

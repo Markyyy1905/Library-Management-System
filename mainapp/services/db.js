@@ -15,6 +15,9 @@ let _ensureIndexesPromise = null;
 const STARTUP_INDEXES = [
   "CREATE INDEX idx_books_title ON Books_Table ([Title])",
   "CREATE INDEX idx_books_isbn ON Books_Table ([ISBN])",
+  "CREATE INDEX idx_authors_name ON AuthorsTable ([AuthorName])",
+  "CREATE INDEX idx_authorbooks_authorid ON AuthorBooksTable ([AuthorID])",
+  "CREATE INDEX idx_authorbooks_bookid ON AuthorBooksTable ([BookID])",
   "CREATE INDEX idx_copies_bookid ON BookCopies_Table ([BookID])",
   "CREATE INDEX idx_copies_accession ON BookCopies_Table ([AccessionNumber])",
   "CREATE INDEX idx_loans_copyid ON Loans_Table ([CopyID])",

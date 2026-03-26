@@ -15,7 +15,7 @@ const ROLE = { ADMIN: 'Admin', LIBRARIAN: 'Librarian', MEMBER: 'Member' };
 const SIDEBAR_LINKS = {
   [ROLE.MEMBER]:    ['books.html'],
   [ROLE.LIBRARIAN]: ['index.html', 'books.html', 'members.html', 'borrowing.html', 'reports.html'],
-  [ROLE.ADMIN]:     ['index.html', 'books.html', 'members.html', 'borrowing.html', 'librarian-register.html', 'reports.html'],
+  [ROLE.ADMIN]:     ['index.html', 'books.html', 'members.html', 'borrowing.html', 'librarian-register.html', 'reports.html', 'backup-recovery.html'],
 };
 
 // Pages each role is allowed to visit
@@ -34,6 +34,36 @@ function getUserRole() {
 
 function hide(el) {
   if (el) el.style.display = 'none';
+}
+
+function setSidebarVisibility(isVisible) {
+  const nav = document.querySelector('.sidebar-nav');
+  if (!nav) return;
+  nav.style.visibility = isVisible ? 'visible' : 'hidden';
+}
+
+function ensureAdminBackupNav(role) {
+  if (role !== ROLE.ADMIN) return;
+
+  const nav = document.querySelector('.sidebar-nav');
+  if (!nav) return;
+
+  const existing = nav.querySelector('.nav-item[href$="backup-recovery.html"]');
+  if (existing) return;
+
+  const page = getCurrentPage();
+
+  const section = document.createElement('div');
+  section.className = 'nav-section-label';
+  section.textContent = 'System';
+
+  const link = document.createElement('a');
+  link.href = 'backup-recovery.html';
+  link.className = `nav-item${page.endsWith('backup-recovery.html') ? ' active' : ''}`;
+  link.textContent = 'Backup & Recovery';
+
+  nav.appendChild(section);
+  nav.appendChild(link);
 }
 
 /* ── Sidebar ──────────────────────────────────────────────── */
@@ -107,23 +137,22 @@ function applyLibrarianRestrictions(page) {
 /* ── Entry point ─────────────────────────────────────────── */
 
 async function applyRoleRestrictions() {
-  // Wait for authCheck.js to populate window.currentUser
-  let attempts = 0;
-  while (!window.currentUser && attempts < 20) {
-    await new Promise(r => setTimeout(r, 50));
-    attempts++;
-  }
+  setSidebarVisibility(false);
 
-  // Fallback: fetch session directly
-  if (!window.currentUser) {
-    try {
+  // Resolve session immediately to avoid visible role flicker.
+  try {
+    if (!window.currentUser) {
       window.currentUser = await roleIpc.invoke('auth:session');
-    } catch (_) {}
-  }
+    }
+  } catch (_) {}
 
   const role = getUserRole();
-  if (!role) return; // Not logged in — authCheck handles redirect
+  if (!role) {
+    setSidebarVisibility(true);
+    return; // Not logged in — authCheck handles redirect
+  }
 
+  ensureAdminBackupNav(role);
   enforcePageAccess(role);
   applySidebarRestrictions(role);
 
@@ -131,6 +160,8 @@ async function applyRoleRestrictions() {
   if (role === ROLE.MEMBER)    applyMemberRestrictions(page);
   if (role === ROLE.LIBRARIAN) applyLibrarianRestrictions(page);
   // Admin → no restrictions
+
+  setSidebarVisibility(true);
 }
 
 applyRoleRestrictions();

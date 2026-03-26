@@ -5,6 +5,45 @@
 
 const db = require('./db');
 
+async function getAuthorRowsByBookIds(bookIds) {
+  const ids = Array.from(new Set((bookIds || []).map(id => Number(id)).filter(Boolean)));
+  if (!ids.length) return [];
+
+  const chunkSize = 100;
+  const rows = [];
+
+  for (let index = 0; index < ids.length; index += chunkSize) {
+    const chunk = ids.slice(index, index + chunkSize);
+    const chunkRows = await db.query(`
+      SELECT ab.BookID, a.AuthorName
+      FROM AuthorBooksTable ab
+        INNER JOIN AuthorsTable a ON ab.AuthorID = a.AuthorID
+      WHERE ab.BookID IN (${chunk.join(',')})
+      ORDER BY ab.BookID ASC, a.AuthorName ASC
+    `);
+    rows.push(...chunkRows);
+  }
+
+  return rows;
+}
+
+function attachAuthors(rows, authorRows) {
+  const authorMap = new Map();
+
+  for (const row of authorRows || []) {
+    const bookId = Number(row.BookID);
+    if (!authorMap.has(bookId)) {
+      authorMap.set(bookId, []);
+    }
+    authorMap.get(bookId).push(row.AuthorName);
+  }
+
+  return (rows || []).map(row => ({
+    ...row,
+    Author: (authorMap.get(Number(row.BookID)) || []).join(', '),
+  }));
+}
+
 const Borrowing = {
 
   /**
@@ -35,7 +74,7 @@ const Borrowing = {
 
     if (!kw) {
       return db.query(`
-        SELECT TOP 5 bk.BookID, bk.Title, bk.Author, bk.ISBN, bk.YearPublished, bk.Publisher,
+        SELECT TOP 5 bk.BookID, bk.Title, bk.ISBN, bk.YearPublished, bk.Publisher,
           COUNT(l.LoanID) AS TotalBorrows,
           (SELECT COUNT(*) FROM BookCopies_Table bc2
             WHERE bc2.BookID = bk.BookID
@@ -46,28 +85,36 @@ const Borrowing = {
         FROM (Books_Table bk
           INNER JOIN BookCopies_Table bc ON bk.BookID = bc.BookID)
           INNER JOIN Loans_Table l ON bc.CopyID = l.CopyID
-        GROUP BY bk.BookID, bk.Title, bk.Author, bk.ISBN, bk.YearPublished, bk.Publisher
+        GROUP BY bk.BookID, bk.Title, bk.ISBN, bk.YearPublished, bk.Publisher
         HAVING (SELECT COUNT(*) FROM BookCopies_Table bc3
                   WHERE bc3.BookID = bk.BookID
                     AND bc3.CopyID NOT IN (
                       SELECT l3.CopyID FROM Loans_Table l3 WHERE l3.LoanStatus = 'Borrowed'
                     )) > 0
         ORDER BY COUNT(l.LoanID) DESC
-      `);
+      `).then(async rows => {
+        const authorRows = await getAuthorRowsByBookIds(rows.map(row => row.BookID));
+        return attachAuthors(rows, authorRows);
+      });
     }
 
     if (kw.length < 2) return Promise.resolve([]);
 
     return db.query(
-      `SELECT TOP 50 b.BookID, b.Title, b.Author, b.ISBN, b.YearPublished, b.Publisher,
+      `SELECT DISTINCT TOP 50 b.BookID, b.Title, b.ISBN, b.YearPublished, b.Publisher,
          (SELECT COUNT(*) FROM BookCopies_Table bc WHERE bc.BookID = b.BookID
             AND bc.CopyID NOT IN (SELECT l.CopyID FROM Loans_Table l WHERE l.LoanStatus = 'Borrowed')
          ) AS AvailableCopies
-       FROM Books_Table b
-       WHERE b.Title LIKE ? OR b.Author LIKE ? OR b.ISBN LIKE ?
+       FROM (Books_Table b
+         LEFT JOIN AuthorBooksTable ab ON b.BookID = ab.BookID)
+         LEFT JOIN AuthorsTable a ON ab.AuthorID = a.AuthorID
+       WHERE b.Title LIKE ? OR a.AuthorName LIKE ? OR b.ISBN LIKE ?
        ORDER BY b.Title ASC`,
       [`%${kw}%`, `%${kw}%`, `%${kw}%`]
-    );
+    ).then(async rows => {
+      const authorRows = await getAuthorRowsByBookIds(rows.map(row => row.BookID));
+      return attachAuthors(rows, authorRows);
+    });
   },
 
   /**

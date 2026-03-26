@@ -19,7 +19,7 @@
       <a href="index.html"     class="nav-item active">Dashboard</a>
       <a href="books.html"     class="nav-item">Books</a>
       <a href="members.html"   class="nav-item">Members</a>
-      <a href="borrowing.html" class="nav-item">Borrowing <span class="nav-badge" id="overdue-badge">0</span></a>
+      <a href="borrowing.html" class="nav-item">Borrowing</a>
       <div class="nav-section-label">Accounts</div>
       <a href="librarian-register.html" class="nav-item">Librarian Management</a>
       <div class="nav-section-label">Analytics</div>
@@ -114,7 +114,6 @@ async function load() {
     document.getElementById('s-overdue').textContent = stats.overdueLoans;
 
     if (stats.overdueLoans > 0) {
-      document.getElementById('overdue-badge').textContent = stats.overdueLoans;
       const alert = document.getElementById('overdue-alert');
       alert.style.display = 'flex';
       document.getElementById('overdue-msg').textContent =

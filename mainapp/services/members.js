@@ -4,6 +4,11 @@
  */
 
 const db = require('./db');
+const crypto = require('crypto');
+
+function hashPassword(plain) {
+  return crypto.createHash('sha256').update('LMS_SALT_' + plain).digest('hex');
+}
 
 const Members = {
 
@@ -34,16 +39,64 @@ const Members = {
     ORDER BY LastName ASC
   `, [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`]),
 
-  add: (member) => db.execute(`
-    INSERT INTO Members_Table (FirstName, LastName, Email, Phone, Address, DateRegistered, Status)
-    VALUES (?, ?, ?, ?, ?, Date(), 'Active')
-  `, [
-    member.firstName,
-    member.lastName,
-    member.email || '',
-    member.phone || member.phoneNumber || '',
-    member.address || ''
-  ]),
+  add: async (member) => {
+    const username = String(member.username || '').trim();
+    const password = String(member.password || '');
+
+    if (!username || !password) {
+      return { success: false, message: 'Username and password are required.' };
+    }
+    if (password.length < 6) {
+      return { success: false, message: 'Password must be at least 6 characters.' };
+    }
+
+    // Check username uniqueness
+    const existing = await db.query('SELECT UserID FROM Users_Table WHERE Username = ?', [username]);
+    if (existing && existing.length > 0) {
+      return { success: false, message: 'Username is already taken. Please choose another.' };
+    }
+
+    const passwordHash = hashPassword(password);
+
+    try {
+      await db.BeginTrans();
+
+      // Create login account
+      await db.execute(
+        `INSERT INTO Users_Table (Username, Password, Role, FirstName, LastName, Email, Status, DateCreated)
+         VALUES (?, ?, 'Member', ?, ?, ?, 1, Date())`,
+        [username, passwordHash, member.firstName, member.lastName, member.email || '']
+      );
+
+      // Get the newly created UserID
+      const userRows = await db.query(
+        'SELECT TOP 1 UserID FROM Users_Table WHERE Username = ? ORDER BY UserID DESC',
+        [username]
+      );
+      const newUserID = userRows[0].UserID;
+
+      // Create member record linked to the user
+      await db.execute(
+        `INSERT INTO Members_Table (FirstName, LastName, Email, Phone, Address, DateRegistered, Status, UserID)
+         VALUES (?, ?, ?, ?, ?, Date(), 'Active', ?)`,
+        [
+          member.firstName,
+          member.lastName,
+          member.email || '',
+          member.phone || member.phoneNumber || '',
+          member.address || '',
+          newUserID
+        ]
+      );
+
+      await db.CommitTrans();
+      return { success: true };
+    } catch (err) {
+      await db.Rollback();
+      console.error('Member add error:', err.message);
+      return { success: false, message: 'Failed to create member: ' + err.message };
+    }
+  },
 
   update: (id, member) => db.execute(`
     UPDATE Members_Table

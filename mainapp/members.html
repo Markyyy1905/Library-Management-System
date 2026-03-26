@@ -137,6 +137,21 @@
           <label class="form-label">Address</label>
           <input class="form-input" type="text" id="f-addr" placeholder="Full address"/>
         </div>
+        <div class="form-group full" id="add-account-section" style="display:none;">
+          <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 8px;">Account Details</div>
+        </div>
+        <div class="form-group" id="username-group" style="display:none;">
+          <label class="form-label">Username *</label>
+          <input class="form-input" type="text" id="f-username" placeholder="Choose a username" autocomplete="username" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')"/>
+        </div>
+        <div class="form-group" id="add-password-group" style="display:none;">
+          <label class="form-label">Password *</label>
+          <input class="form-input" type="password" id="f-add-password" placeholder="At least 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="form-group" id="add-confirm-password-group" style="display:none;">
+          <label class="form-label">Confirm Password *</label>
+          <input class="form-input" type="password" id="f-add-confirm-password" placeholder="Repeat password" autocomplete="new-password"/>
+        </div>
         <div class="form-group" id="password-group" style="display:none;">
           <label class="form-label">New Password</label>
           <input class="form-input" type="password" id="f-password" placeholder="Leave blank to keep current password" autocomplete="new-password"/>
@@ -302,13 +317,23 @@ function filterStatus(status) {
 }
 
 function openModal(mode, member = null) {
-  document.getElementById('modal-title').textContent = mode === 'add' ? 'ADD MEMBER' : 'EDIT MEMBER';
+  const isAdd = mode === 'add';
+  document.getElementById('modal-title').textContent = isAdd ? 'ADD MEMBER' : 'EDIT MEMBER';
   document.getElementById('edit-id').value  = member ? member.MemberID : '';
   document.getElementById('f-first').value  = member ? member.FirstName : '';
   document.getElementById('f-last').value   = member ? member.LastName : '';
   document.getElementById('f-email').value  = member ? (member.Email || '') : '';
   document.getElementById('f-phone').value  = member ? (member.Phone || '') : '';
   document.getElementById('f-addr').value   = member ? (member.Address || '') : '';
+  // Add-mode account fields
+  document.getElementById('f-username').value = '';
+  document.getElementById('f-add-password').value = '';
+  document.getElementById('f-add-confirm-password').value = '';
+  document.getElementById('add-account-section').style.display = isAdd ? 'flex' : 'none';
+  document.getElementById('username-group').style.display = isAdd ? 'flex' : 'none';
+  document.getElementById('add-password-group').style.display = isAdd ? 'flex' : 'none';
+  document.getElementById('add-confirm-password-group').style.display = isAdd ? 'flex' : 'none';
+  // Edit-mode password reset fields
   document.getElementById('f-password').value = '';
   document.getElementById('f-confirm-password').value = '';
   document.getElementById('password-group').style.display = member ? 'flex' : 'none';
@@ -368,9 +393,6 @@ async function showHistory(id, name) {
 }
 
 async function saveMember() {
-  const newPassword = document.getElementById('f-password').value;
-  const confirmPassword = document.getElementById('f-confirm-password').value;
-
   const data = {
     firstName:   document.getElementById('f-first').value.trim(),
     lastName:    document.getElementById('f-last').value.trim(),
@@ -379,11 +401,16 @@ async function saveMember() {
     address:     document.getElementById('f-addr').value.trim(),
   };
   if (!data.firstName || !data.lastName) { await showAlert('First and Last name are required.', 'warning'); return; }
-  if (newPassword && newPassword.length < 6) { await showAlert('New password must be at least 6 characters.', 'warning'); return; }
-  if (newPassword && newPassword !== confirmPassword) { await showAlert('New passwords do not match.', 'warning'); return; }
+
   try {
     const editId = document.getElementById('edit-id').value;
     if (editId) {
+      // ── Edit mode ──
+      const newPassword = document.getElementById('f-password').value;
+      const confirmPassword = document.getElementById('f-confirm-password').value;
+      if (newPassword && newPassword.length < 6) { await showAlert('New password must be at least 6 characters.', 'warning'); return; }
+      if (newPassword && newPassword !== confirmPassword) { await showAlert('New passwords do not match.', 'warning'); return; }
+
       await ipcRenderer.invoke('members:update', parseInt(editId), data);
       const newStatus = document.getElementById('f-status').value;
       await ipcRenderer.invoke('members:updateStatus', parseInt(editId), newStatus);
@@ -391,7 +418,24 @@ async function saveMember() {
         await ipcRenderer.invoke('members:updatePassword', parseInt(editId), newPassword);
       }
     } else {
-      await ipcRenderer.invoke('members:add', data);
+      // ── Add mode — require username & password ──
+      const username = document.getElementById('f-username').value.trim();
+      const password = document.getElementById('f-add-password').value;
+      const confirmPw = document.getElementById('f-add-confirm-password').value;
+
+      if (!username) { await showAlert('Username is required.', 'warning'); return; }
+      if (!/^[A-Za-z0-9]+$/.test(username)) { await showAlert('Username must be alphanumeric only.', 'warning'); return; }
+      if (!password) { await showAlert('Password is required.', 'warning'); return; }
+      if (password.length < 6) { await showAlert('Password must be at least 6 characters.', 'warning'); return; }
+      if (password !== confirmPw) { await showAlert('Passwords do not match.', 'warning'); return; }
+
+      data.username = username;
+      data.password = password;
+      const result = await ipcRenderer.invoke('members:add', data);
+      if (result && !result.success) {
+        await showAlert(result.message || 'Failed to add member.', 'error');
+        return;
+      }
     }
     closeModal('member-modal');
     await load();
