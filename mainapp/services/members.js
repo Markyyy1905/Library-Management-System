@@ -112,8 +112,9 @@ const Members = {
   ]),
 
   updateStatus: async (id, status) => {
-    // Sync the login-account flag so Suspended/Inactive members cannot log in.
-    const loginEnabled = status === 'Active';
+    // Sync the login-account flag so Suspended members cannot log in.
+    // Active and Inactive members are allowed to log in.
+    const loginEnabled = status !== 'Suspended' ? -1 : false;
 
     await db.execute('UPDATE Members_Table SET Status=? WHERE MemberID=?', [status, id]);
 
@@ -145,7 +146,7 @@ const Members = {
 
       // Get the member's UserID
       const memberRows = await db.query('SELECT UserID FROM Members_Table WHERE MemberID = ?', [id]);
-      
+
       if (memberRows && memberRows.length > 0) {
         const userID = memberRows[0].UserID;
         // Delete the corresponding user record using UserID

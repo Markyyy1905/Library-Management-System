@@ -33,7 +33,7 @@ Used to remove duplicate rows when searching books across the author join table,
 
 | File | Line | Usage |
 |------|------|-------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L233) | L233 | `DISTINCT` in book search query to collapse duplicates from the author join |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L281) | L281 | `DISTINCT` in book search query to collapse duplicates from the author join |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L104) | L104 | `SELECT DISTINCT TOP 50` in modal book search |
 
 #### `IN`
@@ -42,12 +42,13 @@ Used to filter rows whose ID appears in a set. Also used with a negative form (`
 
 | File | Line | Usage |
 |------|------|-------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L47) | L47 | `WHERE ab.BookID IN (${chunk.join(',')})` — batched author lookup |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L47) | L47 | `WHERE ab.BookID IN (…)` — batched author lookup |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L94) | L94 | `WHERE bc.BookID IN (…)` — batched category lookup |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L21) | L21 | `WHERE ab.BookID IN (…)` — same pattern in borrowing |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L174) | L174 | `bc.CopyID NOT IN (SELECT CopyID …)` — available copy count |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L218) | L218 | `bc.CopyID NOT IN (SELECT CopyID …)` — available copy count |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L81) | L81 | `bc2.CopyID NOT IN (…)` — availability in modal (empty-search path) |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L106) | L106 | `bc.CopyID NOT IN (…)` — availability in modal (keyword-search path) |
-| [`main.js`](main.js#L208) | L208 | Dashboard available-copy count via `NOT IN` subquery |
+| [`main.js`](main.js#L452) | L452 | Dashboard available-copy count via `NOT IN` subquery |
 
 #### `NULL` Handling
 
@@ -55,9 +56,9 @@ NULL values are handled at two levels: in the SQL where nullable columns require
 
 | File | Line | Usage |
 |------|------|-------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L148) | L148 | `(ISBN IS NULL AND ? IS NULL) OR ISBN = ?` — nullable ISBN in duplicate check |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L222) | L222 | `IIF(l.LoanID IS NULL, 'Available', 'Borrowed')` — copy status derived from NULL loan |
-| [`mainapp/services/db.js`](mainapp/services/db.js#L84) | L84 | `val = 'NULL'` — JavaScript `null`/`undefined` mapped to SQL `NULL` in the query builder |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L192) | L192 | `(ISBN IS NULL AND ? IS NULL) OR ISBN = ?` — nullable ISBN in duplicate check |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L270) | L270 | `IIF(l.LoanID IS NULL, 'Available', 'Borrowed')` — copy status derived from NULL loan |
+| [`mainapp/services/db.js`](mainapp/services/db.js#L106) | L106 | `val = 'NULL'` — JavaScript `null`/`undefined` mapped to SQL `NULL` in the query builder |
 
 #### `BETWEEN`
 
@@ -79,7 +80,8 @@ Mandatory relationships are expressed as INNER JOINs so only rows with matching 
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L192) | L192–L194 | Returned loans chain |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L207) | L207–L209 | Loan detail by ID chain |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L86) | L86–L87 | `Books ⟶ BookCopies ⟶ Loans` for top-borrowed book ranking |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L205) | L205 | `BookCategories ⟶ Categories_Table` |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L253) | L253 | `BookCategories ⟶ Categories_Table` (detail) |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L92) | L92 | `BookCategories ⟶ Categories_Table` (batched) |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L338) | L338–L339 | `Reservations ⟶ Members`, `Reservations ⟶ Books` |
 | [`main.js`](main.js#L234) | L234–L236 | Dashboard recent loans: `Loans ⟶ Members ⟶ BookCopies ⟶ Books` |
 | [`main.js`](main.js#L245) | L245–L246 | Dashboard top books: `Loans ⟶ BookCopies ⟶ Books` |
@@ -92,10 +94,10 @@ Optional relationships use LEFT JOINs so the primary row is always returned even
 | File | Line | Purpose |
 |------|------|---------|
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L144) | L144 | `LEFT JOIN Users_Table` — loans where IssuedBy may be null |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L239) | L239–L240 | `LEFT JOIN AuthorBooksTable / AuthorsTable` — books that may have no author entry |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L287) | L287–L288 | `LEFT JOIN AuthorBooksTable / AuthorsTable` — books that may have no author entry |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L109) | L109–L110 | Same author left-join pattern in the modal keyword search |
 | [`mainapp/services/lookup.js`](mainapp/services/lookup.js#L156) | L156 | `LEFT JOIN Users_Table` — audit log entries where user may have been deleted |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L224) | L224 | `LEFT JOIN Loans_Table` — copies, showing Available when no matching loan exists |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L272) | L272 | `LEFT JOIN Loans_Table` — copies, showing Available when no matching loan exists |
 
 #### `RIGHT JOIN`
 
@@ -109,9 +111,9 @@ Correlated and non-correlated subqueries are used extensively for per-row aggreg
 
 | File | Lines | What It Computes |
 |------|-------|-----------------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L173) | L173–L174 | Per-book `TotalCopies` and `AvailableCopies` as scalar subqueries inside `getAll` |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L188) | L188–L189 | Same pair of subqueries inside `getById` |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L236) | L236–L237 | Same pair inside book `search` |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L217) | L217–L218 | Per-book `TotalCopies` and `AvailableCopies` as scalar subqueries inside `getAll` |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L234) | L234–L235 | Same pair of subqueries inside `getById` |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L284) | L284–L285 | Same pair inside book `search` |
 | [`mainapp/services/members.js`](mainapp/services/members.js#L19) | L19–L20 | Per-member `ActiveLoans` and `TotalBorrows` as scalar subqueries |
 | [`mainapp/services/members.js`](mainapp/services/members.js#L29) | L29–L30 | Same pair in `getById` |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L79) | L79–L82 | Nested `COUNT(*)` subquery for available copies in top-borrowed ranking |
@@ -140,9 +142,9 @@ Access Jet/ACE SQL does not support `INTERSECT` or `EXCEPT` natively. The equiva
 
 | File | Line | Equivalent |
 |------|------|-----------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L174) | L174 | `NOT IN` as EXCEPT — copies excluded from available count |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L218) | L218 | `NOT IN` as EXCEPT — copies excluded from available count |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L81) | L81 | `NOT IN` as EXCEPT — unavailable copies excluded from top-borrowed query |
-| [`main.js`](main.js#L208) | L208 | `NOT IN` as EXCEPT — dashboard available copy count |
+| [`main.js`](main.js#L452) | L452 | `NOT IN` as EXCEPT — dashboard available copy count |
 
 ---
 
@@ -161,7 +163,7 @@ Constraints (`PRIMARY KEY`, `FOREIGN KEY`, `CHECK`, `UNIQUE`) are defined inside
 
 - The relational schema in [`schema.txt`](schema.txt) which lists every table and its columns including primary ID fields (`BookID`, `CopyID`, `MemberID`, `LoanID`, `UserID`, etc.).
 - Application-level enforcement where needed:
-  - **UNIQUE:** duplicate title check before insert/update in [`mainapp/services/books.js`](mainapp/services/books.js#L400) and called from [`mainapp/books.html`](mainapp/books.html#L444).
+  - **UNIQUE:** duplicate title check before insert/update in [`mainapp/services/books.js`](mainapp/services/books.js#L446) and called from [`mainapp/books.html`](mainapp/books.html#L444).
   - **UNIQUE:** duplicate username check in [`mainapp/services/auth.js`](mainapp/services/auth.js#L118) and [`mainapp/services/members.js`](mainapp/services/members.js#L54).
   - **CHECK (status transitions):** copy condition can only degrade — `Good → Fair → Damaged` — enforced in [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L256).
 
@@ -185,10 +187,10 @@ The database module exposes three transaction methods that wrap the ODBC connect
 
 | File | Lines | Operation Protected |
 |------|-------|---------------------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L253) | L253–L271 | `Books.add` — INSERT book + sync authors |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L277) | L277–L296 | `Books.update` — UPDATE book + re-sync authors |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L302) | L302–L310 | `Books.delete` — DELETE authors, categories, copies, then book |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L379) | L379–L391 | `Books.addCopies` — loop-INSERT multiple copies atomically |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L301) | L301–L317 | `Books.add` — INSERT book + sync authors |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L325) | L325–L343 | `Books.update` — UPDATE book + re-sync authors |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L351) | L351–L360 | `Books.delete` — DELETE authors, categories, copies, then book |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L427) | L427–L441 | `Books.addCopies` — loop-INSERT multiple copies atomically |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L222) | L222–L231 | `Borrowing.borrow` — INSERT loan record |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L245) | L245–L292 | `Borrowing.returnBook` — UPDATE loan + UPDATE copy status |
 | [`mainapp/services/members.js`](mainapp/services/members.js#L62) | L62–L95 | `Members.add` — INSERT user account + INSERT member record |
@@ -205,8 +207,8 @@ Indexes are created automatically at startup via the `ensureIndexes` routine in 
 
 | File | Lines | Indexes Created |
 |------|-------|-----------------|
-| [`mainapp/services/db.js`](mainapp/services/db.js#L15) | L15–L28 | 13 indexes: Title, ISBN, AuthorName, AuthorID→BookID junction (both directions), CopyID→BookID, AccessionNumber, LoanCopyID, LoanMemberID, LoanStatus, MemberLastName, MemberEmail, CategoryName |
-| [`mainapp/services/db.js`](mainapp/services/db.js#L35) | L35–L40 | `ensureIndexes()` — iterates the list and silently skips already-existing indexes |
+| [`mainapp/services/db.js`](mainapp/services/db.js#L18) | L18–L32 | 13 indexes: Title, ISBN, AuthorName, AuthorID→BookID junction (both directions), CopyID→BookID, AccessionNumber, LoanCopyID, LoanMemberID, LoanStatus, MemberLastName, MemberEmail, CategoryName |
+| [`mainapp/services/db.js`](mainapp/services/db.js#L38) | L38–L48 | `ensureIndexes()` — iterates the list and silently skips already-existing indexes |
 
 **Why these indexes for 20k+ rows:**
 
@@ -236,9 +238,9 @@ All data-mutation SQL is issued through `db.execute()`, the equivalent of Access
 
 | File | Line | Action Query |
 |------|------|-------------|
-| [`mainapp/services/books.js`](mainapp/services/books.js#L256) | L256 | `INSERT INTO Books_Table` — add book |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L281) | L281 | `UPDATE Books_Table` — edit book |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L303) | L303–L306 | `DELETE` cascade: authors → categories → copies → book |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L304) | L304–L305 | `INSERT INTO Books_Table` — add book |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L328) | L328–L330 | `UPDATE Books_Table` — edit book |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L352) | L352–L355 | `DELETE` cascade: authors → categories → copies → book |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L224) | L224–L226 | `INSERT INTO Loans_Table` — issue a loan |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L271) | L271 | `UPDATE Loans_Table SET … LoanStatus='Returned'` — mark returned |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L275) | L275–L280 | `UPDATE BookCopies_Table` — update copy condition on return |
@@ -254,7 +256,7 @@ Access Jet built-in functions are used directly in SQL strings instead of JavaSc
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L225) | L225 | `DateAdd('d', ?, Date())` | Calculate due date at loan creation |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L175) | L175 | `DateDiff('d', l.DueDate, Date())` | Compute days overdue in the overdue report |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L346) | L346 | `DateAdd('d', 7, Date())` | Auto-set reservation expiry to 7 days |
-| [`mainapp/services/books.js`](mainapp/services/books.js#L222) | L222 | `IIF(l.LoanID IS NULL, …)` | Derive copy status inline without a second query |
+| [`mainapp/services/books.js`](mainapp/services/books.js#L270) | L270 | `IIF(l.LoanID IS NULL, …)` | Derive copy status inline without a second query |
 | [`mainapp/services/lookup.js`](mainapp/services/lookup.js#L149) | L149 | `Now()` | Timestamp audit log entries with database time |
 
 ---

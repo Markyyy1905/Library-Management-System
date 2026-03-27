@@ -3,10 +3,10 @@ const path = require('path');
 const fs = require('fs');
 
 // Import services
-const db       = require('./mainapp/services/db');
-const Auth     = require('./mainapp/services/auth');
-const Books    = require('./mainapp/services/books');
-const Members  = require('./mainapp/services/members');
+const db = require('./mainapp/services/db');
+const Auth = require('./mainapp/services/auth');
+const Books = require('./mainapp/services/books');
+const Members = require('./mainapp/services/members');
 const Borrowing = require('./mainapp/services/borrowing');
 const { Authors, Categories, Users, Roles, AuditLogs } = require('./mainapp/services/lookup');
 
@@ -70,13 +70,13 @@ function writeDebugLog(eventName, details = {}) {
   try {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
     fs.appendFileSync(DEBUG_LOG_FILE, `${line}\n`, 'utf8');
-  } catch (_) {}
+  } catch (_) { }
 
   console.log(`[debug:${eventName}]`, entry.details);
 
   try {
     fs.writeFileSync(LAST_STATE_FILE, JSON.stringify(entry), 'utf8');
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function configureNativeCrashCapture() {
@@ -448,21 +448,21 @@ ipcMain.handle('auth:session', async () => {
 
 // ── Dashboard stats ──
 ipcMain.handle('dashboard:stats', async () => {
-  const [totalBooks]    = await db.query('SELECT COUNT(*) AS n FROM Books_Table');
-  const [availCopies]   = await db.query("SELECT COUNT(*) AS n FROM BookCopies_Table WHERE CopyID NOT IN (SELECT CopyID FROM Loans_Table WHERE LoanStatus='Borrowed')");
-  const [totalCopies]   = await db.query('SELECT COUNT(*) AS n FROM BookCopies_Table');
+  const [totalBooks] = await db.query('SELECT COUNT(*) AS n FROM Books_Table');
+  const [availCopies] = await db.query("SELECT COUNT(*) AS n FROM BookCopies_Table WHERE CopyID NOT IN (SELECT CopyID FROM Loans_Table WHERE LoanStatus='Borrowed')");
+  const [totalCopies] = await db.query('SELECT COUNT(*) AS n FROM BookCopies_Table');
   const [activeMembers] = await db.query("SELECT COUNT(*) AS n FROM Members_Table WHERE Status=true");
-  const [activeLoans]   = await db.query("SELECT COUNT(*) AS n FROM Loans_Table WHERE LoanStatus='Borrowed'");
-  const [overdueLoans]  = await db.query("SELECT COUNT(*) AS n FROM Loans_Table WHERE LoanStatus='Borrowed' AND DueDate < Date()");
+  const [activeLoans] = await db.query("SELECT COUNT(*) AS n FROM Loans_Table WHERE LoanStatus='Borrowed'");
+  const [overdueLoans] = await db.query("SELECT COUNT(*) AS n FROM Loans_Table WHERE LoanStatus='Borrowed' AND DueDate < Date()");
 
 
   return {
-    totalBooks:    totalBooks.n,
-    availCopies:   availCopies.n,
-    totalCopies:   totalCopies.n,
+    totalBooks: totalBooks.n,
+    availCopies: availCopies.n,
+    totalCopies: totalCopies.n,
     activeMembers: activeMembers.n,
-    activeLoans:   activeLoans.n,
-    overdueLoans:  overdueLoans.n,
+    activeLoans: activeLoans.n,
+    overdueLoans: overdueLoans.n,
   };
 });
 

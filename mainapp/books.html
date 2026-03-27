@@ -1,325 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LMS — Books</title>
-  <link rel="stylesheet" href="style/style.css"/>
+  <link rel="stylesheet" href="style/style.css" />
 </head>
+
 <body>
-<div class="app">
+  <div class="app">
 
-  <aside class="sidebar">
-    <div class="sidebar-logo"><h1>PUNLAZAN</h1><span>Library Management</span></div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="index.html"     class="nav-item">Dashboard</a>
-      <a href="books.html"     class="nav-item active">Books</a>
-      <a href="members.html"   class="nav-item">Members</a>
-      <a href="borrowing.html" class="nav-item">Borrowing</a>
-      <div class="nav-section-label">Accounts</div>
-      <a href="librarian-register.html" class="nav-item">Librarian Management</a>
-      <div class="nav-section-label">Analytics</div>
-      <a href="reports.html"   class="nav-item">Reports</a>
-    </nav>
-    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <div>
-        <strong id="footer-username">User</strong>
-        <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <h1>PUNLAZAN</h1><span>Library Management</span>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="logout()" style="padding:4px 8px;font-size:11px;">Logout</button>
-    </div>
-  </aside>
-
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar-title">
-        <h2>BOOKS</h2>
-        <p>Catalog &amp; copy management</p>
-      </div>
-      <div class="topbar-actions">
-        <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
-        <button class="btn btn-primary btn-sm" onclick="openModal('add')">+ Add Book</button>
-      </div>
-    </div>
-
-    <div class="content">
-
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
-        <div class="stat-card"><div class="stat-label">Total Titles</div><div class="stat-value" id="s-titles">—</div></div>
-        <div class="stat-card"><div class="stat-label">Total Copies</div><div class="stat-value" id="s-copies">—</div></div>
-        <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" id="s-avail" style="color:var(--green)">—</div></div>
-        <div class="stat-card"><div class="stat-label">On Loan</div><div class="stat-value" id="s-loan" style="color:var(--blue)">—</div></div>
-      </div>
-
-      <div class="toolbar">
-        <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input class="search-input" type="text" placeholder="Search title, ISBN…" oninput="search(this.value)"/>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item">Dashboard</a>
+        <a href="books.html" class="nav-item active">Books</a>
+        <a href="members.html" class="nav-item">Members</a>
+        <a href="borrowing.html" class="nav-item">Borrowing</a>
+        <div class="nav-section-label">Accounts</div>
+        <a href="librarian-register.html" class="nav-item">Librarian Management</a>
+        <div class="nav-section-label">Analytics</div>
+        <a href="reports.html" class="nav-item">Reports</a>
+      </nav>
+      <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <strong id="footer-username">User</strong>
+          <div id="footer-role" style="font-size:11px;color:var(--muted)">Role</div>
         </div>
-        <select class="select-filter" id="cat-filter" onchange="filterCat(this.value)">
-          <option value="">All Categories</option>
-        </select>
-        <select class="select-filter" id="page-size" onchange="changePageSize(this.value)">
-          <option value="25">25 / page</option>
-          <option value="50">50 / page</option>
-          <option value="100" selected>100 / page</option>
-          <option value="250">250 / page</option>
-        </select>
+        <button class="btn btn-outline btn-sm" onclick="logout()"
+          style="padding:4px 8px;font-size:11px;">Logout</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title">
+          <h2>BOOKS</h2>
+          <p>Catalog &amp; copy management</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('add')">+ Add Book</button>
+        </div>
       </div>
 
-      <div class="table-wrap">
-        <div class="table-header">
-          <h3>Book Catalog</h3>
-          <span id="row-count-label" style="font-size:11px;color:var(--muted);">Showing 0–0 of 0</span>
+      <div class="content">
+
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+          <div class="stat-card">
+            <div class="stat-label">Total Titles</div>
+            <div class="stat-value" id="s-titles">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Copies</div>
+            <div class="stat-value" id="s-copies">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Available</div>
+            <div class="stat-value" id="s-avail" style="color:var(--green)">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">On Loan</div>
+            <div class="stat-value" id="s-loan" style="color:var(--blue)">—</div>
+          </div>
         </div>
-        <table id="books-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Author(s)</th>
-              <th>ISBN</th>
-              <th>Publisher</th>
-              <th>Year</th>
-              <th>Categories</th>
-              <th>Copies</th>
-              <th>Avail</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="books-tbody">
-            <tr><td colspan="8" class="loading-row">Loading…</td></tr>
-          </tbody>
-        </table>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);">
-          <span id="page-meta" style="font-size:11px;color:var(--muted);">Showing 0-0 of 0</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button id="prev-page-btn" class="btn btn-outline btn-sm" onclick="goToPage(currentPage - 1)">Prev</button>
-            <span id="page-info" style="font-size:11px;color:var(--muted);">Page 1 of 1</span>
-            <button id="next-page-btn" class="btn btn-outline btn-sm" onclick="goToPage(currentPage + 1)">Next</button>
+
+        <div class="toolbar">
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" type="text" placeholder="Search title, ISBN…" oninput="search(this.value)" />
+          </div>
+          <select class="select-filter" id="cat-filter" onchange="filterCat()">
+            <option value="">All Categories</option>
+          </select>
+          <select class="select-filter" id="page-size" onchange="changePageSize(this.value)">
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100" selected>100 / page</option>
+            <option value="250">250 / page</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Book Catalog</h3>
+            <span id="row-count-label" style="font-size:11px;color:var(--muted);">Showing 0–0 of 0</span>
+          </div>
+          <table id="books-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author(s)</th>
+                <th>ISBN</th>
+                <th>Publisher</th>
+                <th>Year</th>
+                <th>Categories</th>
+                <th>Copies</th>
+                <th>Avail</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="books-tbody">
+              <tr>
+                <td colspan="8" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);">
+            <span id="page-meta" style="font-size:11px;color:var(--muted);">Showing 0-0 of 0</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button id="prev-page-btn" class="btn btn-outline btn-sm"
+                onclick="goToPage(currentPage - 1)">Prev</button>
+              <span id="page-info" style="font-size:11px;color:var(--muted);">Page 1 of 1</span>
+              <button id="next-page-btn" class="btn btn-outline btn-sm"
+                onclick="goToPage(currentPage + 1)">Next</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="book-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">ADD BOOK</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-id" />
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">Title *</label>
+            <input class="form-input" type="text" id="f-title" placeholder="Book title" />
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Author(s)</label>
+            <input class="form-input" type="text" id="f-author" placeholder="Author name(s)"
+              oninput="this.value = this.value.replace(/[^a-zA-Z\u00C0-\u00ff\s\-'.,]/g, '')" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">ISBN</label>
+            <input class="form-input" type="text" id="f-isbn" placeholder="978-…"
+              oninput="this.value = this.value.replace(/[^0-9\-X]/g, '')" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Year Published</label>
+            <input class="form-input" type="text" id="f-year" placeholder="e.g. 2024"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Publisher</label>
+            <input class="form-input" type="text" id="f-publisher" placeholder="Publisher name"
+              oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-'.,&]/g, '')" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Language</label>
+            <input class="form-input" type="text" id="f-lang" placeholder="English" value="English" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="f-copies-label">Number of Copies</label>
+            <input class="form-input" type="number" id="f-copies" min="0" value="1"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <label class="form-label">Categories</label>
+          <div id="categories-list" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;">
           </div>
         </div>
       </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- Add/Edit Modal -->
-<div class="modal-overlay" id="book-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-title">ADD BOOK</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="edit-id"/>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label class="form-label">Title *</label>
-          <input class="form-input" type="text" id="f-title" placeholder="Book title"/>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Author(s)</label>
-          <input class="form-input" type="text" id="f-author" placeholder="Author name(s)" oninput="this.value = this.value.replace(/[^a-zA-Z\u00C0-\u00ff\s\-'.,]/g, '')"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">ISBN</label>
-          <input class="form-input" type="text" id="f-isbn" placeholder="978-…" oninput="this.value = this.value.replace(/[^0-9\-X]/g, '')"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Year Published</label>
-          <input class="form-input" type="text" id="f-year" placeholder="e.g. 2024" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Publisher</label>
-          <input class="form-input" type="text" id="f-publisher" placeholder="Publisher name" oninput="this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-'.,&]/g, '')"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Language</label>
-          <input class="form-input" type="text" id="f-lang" placeholder="English" value="English"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="f-copies-label">Number of Copies</label>
-          <input class="form-input" type="number" id="f-copies" min="0" value="1" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
-        </div>
-      </div>
-      <div style="margin-top:16px;">
-        <label class="form-label">Categories</label>
-        <div id="categories-list" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBook()">Save</button>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBook()">Save</button>
-    </div>
   </div>
-</div>
 
-<script>
-const { ipcRenderer } = require('electron');
+  <script>
+    const { ipcRenderer } = require('electron');
 
-let allBooks = [];
-let currentBooks = [];
-let pageSize = 100;
-let currentPage = 1;
-let allCategories = [];
-let selectedCategories = [];
-let loadGen = 0;
-const BOOKS_PRELOAD_KEY = 'books:preload:v1';
+    let allBooks = [];
+    let currentBooks = [];
+    let pageSize = 100;
+    let currentPage = 1;
+    let allCategories = [];
+    let selectedCategories = [];
+    let loadGen = 0;
+    let searchGen = 0;
+    const BOOKS_PRELOAD_KEY = 'books:preload:v1';
 
-function savePreloadedBooks(books, categories) {
-  try {
-    const payload = {
-      timestamp: Date.now(),
-      books: Array.isArray(books) ? books : [],
-      categories: Array.isArray(categories) ? categories : [],
-    };
-    sessionStorage.setItem(BOOKS_PRELOAD_KEY, JSON.stringify(payload));
-  } catch (_) {}
-}
-
-function restorePreloadedBooks() {
-  try {
-    const raw = sessionStorage.getItem(BOOKS_PRELOAD_KEY);
-    if (!raw) return false;
-
-    const payload = JSON.parse(raw);
-    if (!payload || !Array.isArray(payload.books) || !Array.isArray(payload.categories)) {
-      return false;
+    function savePreloadedBooks(books, categories) {
+      try {
+        const payload = {
+          timestamp: Date.now(),
+          books: Array.isArray(books) ? books : [],
+          categories: Array.isArray(categories) ? categories : [],
+        };
+        sessionStorage.setItem(BOOKS_PRELOAD_KEY, JSON.stringify(payload));
+      } catch (_) { }
     }
 
-    allBooks = payload.books;
-    currentBooks = payload.books;
-    allCategories = payload.categories;
-    currentPage = 1;
+    function restorePreloadedBooks() {
+      try {
+        const raw = sessionStorage.getItem(BOOKS_PRELOAD_KEY);
+        if (!raw) return false;
 
-    populateCategoryFilter(allCategories);
-    populateCategoryCheckboxes(allCategories);
-    renderTable();
-    updateStats(allBooks);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
+        const payload = JSON.parse(raw);
+        if (!payload || !Array.isArray(payload.books) || !Array.isArray(payload.categories)) {
+          return false;
+        }
 
-function populateCategoryFilter(categories) {
-  const catSel = document.getElementById('cat-filter');
-  catSel.innerHTML = '<option value="">All Categories</option>';
-  categories.forEach(c => {
-    catSel.innerHTML += `<option value="${c.CategoryID}">${c.CategoryName}</option>`;
-  });
-}
+        allBooks = payload.books;
+        currentBooks = payload.books;
+        allCategories = payload.categories;
+        currentPage = 1;
 
-function populateCategoryCheckboxes(categories) {
-  const list = document.getElementById('categories-list');
-  list.innerHTML = categories.map(c => `
+        populateCategoryFilter(allCategories);
+        populateCategoryCheckboxes(allCategories);
+        renderTable();
+        updateStats(allBooks);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function populateCategoryFilter(categories) {
+      const catSel = document.getElementById('cat-filter');
+      catSel.innerHTML = '<option value="">All Categories</option>';
+      categories.forEach(c => {
+        catSel.innerHTML += `<option value="${c.CategoryID}">${c.CategoryName}</option>`;
+      });
+    }
+
+    function populateCategoryCheckboxes(categories) {
+      const list = document.getElementById('categories-list');
+      list.innerHTML = categories.map(c => `
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
       <input type="checkbox" class="cat-checkbox" value="${c.CategoryID}" data-name="${c.CategoryName}"/>
       ${c.CategoryName}
     </label>
   `).join('');
-}
-
-async function fetchCategoriesForBooks(books, gen) {
-  // One query for ALL book-category pairs instead of one per book
-  const allPairs = await ipcRenderer.invoke('books:allCategories');
-  if (gen !== loadGen) return; // abort if a newer load started
-
-  // Group by BookID
-  const map = {};
-  for (const row of allPairs) {
-    if (!map[row.BookID]) map[row.BookID] = { ids: [], names: [] };
-    map[row.BookID].ids.push(row.CategoryID);
-    map[row.BookID].names.push(row.CategoryName);
-  }
-  for (const book of books) {
-    const entry = map[book.BookID] || { ids: [], names: [] };
-    book.CategoryIDs   = entry.ids;
-    book.CategoryNames = entry.names;
-  }
-}
-
-async function load() {
-  const gen = ++loadGen;
-  try {
-    const [books, categories, ] = await Promise.all([
-      ipcRenderer.invoke('books:all'),
-      ipcRenderer.invoke('categories:all'),
-      ipcRenderer.invoke('books:allCategories').then(pairs => {
-        // Pre-populate categories onto books as soon as both resolve
-        // (stored temporarily; applied after books array is assigned below)
-        load._pendingPairs = pairs;
-      }),
-    ]);
-
-    if (gen !== loadGen) return;
-
-    // Apply pre-fetched category pairs to book objects
-    const map = {};
-    for (const row of (load._pendingPairs || [])) {
-      if (!map[row.BookID]) map[row.BookID] = { ids: [], names: [] };
-      map[row.BookID].ids.push(row.CategoryID);
-      map[row.BookID].names.push(row.CategoryName);
-    }
-    for (const book of books) {
-      const entry = map[book.BookID] || { ids: [], names: [] };
-      book.CategoryIDs   = entry.ids;
-      book.CategoryNames = entry.names;
     }
 
-    allBooks = books;
-    currentBooks = books;
-    currentPage = 1;
-    allCategories = categories;
+    async function fetchCategoriesForBooks(books, gen) {
+      // One query for ALL book-category pairs instead of one per book
+      const allPairs = await ipcRenderer.invoke('books:allCategories');
+      if (gen !== loadGen) return; // abort if a newer load started
 
-    populateCategoryFilter(categories);
-    populateCategoryCheckboxes(categories);
+      // Group by BookID
+      const map = {};
+      for (const row of allPairs) {
+        if (!map[row.BookID]) map[row.BookID] = { ids: [], names: [] };
+        map[row.BookID].ids.push(row.CategoryID);
+        map[row.BookID].names.push(row.CategoryName);
+      }
+      for (const book of books) {
+        const entry = map[book.BookID] || { ids: [], names: [] };
+        book.CategoryIDs = entry.ids;
+        book.CategoryNames = entry.names;
+      }
+    }
 
-    renderTable();
-    updateStats(books);
-    savePreloadedBooks(books, categories);
-  } catch (err) {
-    document.getElementById('books-tbody').innerHTML =
-      `<tr><td colspan="9" class="error-row">Error: ${err.message}</td></tr>`;
-  }
-}
+    async function load() {
+      const gen = ++loadGen;
+      try {
+        const [books, categories,] = await Promise.all([
+          ipcRenderer.invoke('books:all'),
+          ipcRenderer.invoke('categories:all'),
+          ipcRenderer.invoke('books:allCategories').then(pairs => {
+            // Pre-populate categories onto books as soon as both resolve
+            // (stored temporarily; applied after books array is assigned below)
+            load._pendingPairs = pairs;
+          }),
+        ]);
 
-function updateStats(books) {
-  const totalCopies = books.reduce((a, b) => a + (b.TotalCopies || 0), 0);
-  const availCopies = books.reduce((a, b) => a + (b.AvailableCopies || 0), 0);
-  document.getElementById('s-titles').textContent = books.length.toLocaleString();
-  document.getElementById('s-copies').textContent = totalCopies.toLocaleString();
-  document.getElementById('s-avail').textContent  = availCopies.toLocaleString();
-  document.getElementById('s-loan').textContent   = (totalCopies - availCopies).toLocaleString();
-}
+        if (gen !== loadGen) return;
 
-function renderTable() {
-  const tbody = document.getElementById('books-tbody');
-  const total = currentBooks.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  if (currentPage > totalPages) currentPage = totalPages;
+        // Apply pre-fetched category pairs to book objects
+        const map = {};
+        for (const row of (load._pendingPairs || [])) {
+          if (!map[row.BookID]) map[row.BookID] = { ids: [], names: [] };
+          map[row.BookID].ids.push(row.CategoryID);
+          map[row.BookID].names.push(row.CategoryName);
+        }
+        for (const book of books) {
+          const entry = map[book.BookID] || { ids: [], names: [] };
+          book.CategoryIDs = entry.ids;
+          book.CategoryNames = entry.names;
+        }
 
-  const startIdx = total === 0 ? 0 : (currentPage - 1) * pageSize;
-  const endIdx = Math.min(startIdx + pageSize, total);
-  const pageRows = currentBooks.slice(startIdx, endIdx);
+        allBooks = books;
+        currentBooks = books;
+        currentPage = 1;
+        allCategories = categories;
 
-  const displayFrom = total === 0 ? 0 : startIdx + 1;
-  document.getElementById('row-count-label').innerHTML = `Showing <strong>${displayFrom}–${endIdx}</strong> of <strong>${total}</strong>`;
-  document.getElementById('page-meta').textContent = `Showing ${displayFrom}-${endIdx} of ${total}`;
-  document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+        populateCategoryFilter(categories);
+        populateCategoryCheckboxes(categories);
 
-  const prevBtn = document.getElementById('prev-page-btn');
-  const nextBtn = document.getElementById('next-page-btn');
-  prevBtn.disabled = currentPage <= 1;
-  nextBtn.disabled = currentPage >= totalPages;
+        renderTable();
+        updateStats(books);
+        savePreloadedBooks(books, categories);
+      } catch (err) {
+        document.getElementById('books-tbody').innerHTML =
+          `<tr><td colspan="9" class="error-row">Error: ${err.message}</td></tr>`;
+      }
+    }
 
-  if (total === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No books found.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = pageRows.map(b => `
+    function updateStats(books) {
+      const totalCopies = books.reduce((a, b) => a + (b.TotalCopies || 0), 0);
+      const availCopies = books.reduce((a, b) => a + (b.AvailableCopies || 0), 0);
+      document.getElementById('s-titles').textContent = books.length.toLocaleString();
+      document.getElementById('s-copies').textContent = totalCopies.toLocaleString();
+      document.getElementById('s-avail').textContent = availCopies.toLocaleString();
+      document.getElementById('s-loan').textContent = (totalCopies - availCopies).toLocaleString();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('books-tbody');
+      const total = currentBooks.length;
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIdx = total === 0 ? 0 : (currentPage - 1) * pageSize;
+      const endIdx = Math.min(startIdx + pageSize, total);
+      const pageRows = currentBooks.slice(startIdx, endIdx);
+
+      const displayFrom = total === 0 ? 0 : startIdx + 1;
+      document.getElementById('row-count-label').innerHTML = `Showing <strong>${displayFrom}–${endIdx}</strong> of <strong>${total}</strong>`;
+      document.getElementById('page-meta').textContent = `Showing ${displayFrom}-${endIdx} of ${total}`;
+      document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+
+      const prevBtn = document.getElementById('prev-page-btn');
+      const nextBtn = document.getElementById('next-page-btn');
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+
+      if (total === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No books found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = pageRows.map(b => `
     <tr>
       <td><strong>${esc(b.Title)}</strong></td>
       <td class="td-muted">${esc(b.Author || '—')}</td>
@@ -329,7 +358,7 @@ function renderTable() {
       <td class="td-muted" style="font-size:12px;">${b.CategoryNames && b.CategoryNames.length > 0 ? b.CategoryNames.join(', ') : '—'}</td>
       <td class="td-mono">${b.TotalCopies || 0}</td>
       <td>
-        <span class="badge ${(b.AvailableCopies||0) > 0 ? 'badge-green' : 'badge-red'}">
+        <span class="badge ${(b.AvailableCopies || 0) > 0 ? 'badge-green' : 'badge-red'}">
           ${b.AvailableCopies || 0}
         </span>
       </td>
@@ -340,229 +369,279 @@ function renderTable() {
         </div>
       </td>
     </tr>`).join('');
-}
-
-function setCurrentBooks(books) {
-  currentBooks = books;
-  currentPage = 1;
-  renderTable();
-}
-
-function changePageSize(value) {
-  pageSize = parseInt(value, 10) || 100;
-  currentPage = 1;
-  renderTable();
-}
-
-function goToPage(page) {
-  const totalPages = Math.max(1, Math.ceil(currentBooks.length / pageSize));
-  currentPage = Math.min(totalPages, Math.max(1, page));
-  renderTable();
-}
-
-let searchTimer;
-function search(val) {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    if (val.trim().length < 2) { setCurrentBooks(allBooks); return; }
-    try {
-      const results = await ipcRenderer.invoke('books:search', val.trim());
-      setCurrentBooks(results);
-    } catch {}
-  }, 300);
-}
-
-function filterCat(catId) {
-  if (!catId) { setCurrentBooks(allBooks); return; }
-  // Filter books that have the selected category
-  setCurrentBooks(allBooks.filter(b => b.CategoryIDs && b.CategoryIDs.includes(parseInt(catId))));
-}
-
-function openModal(mode, book = null) {
-  document.getElementById('modal-title').textContent = mode === 'add' ? 'ADD BOOK' : 'EDIT BOOK';
-  document.getElementById('edit-id').value = book ? book.BookID : '';
-  document.getElementById('f-title').value   = book ? book.Title : '';
-  document.getElementById('f-author').value  = book ? (book.Author || '') : '';
-  document.getElementById('f-isbn').value    = book ? (book.ISBN || '') : '';
-  document.getElementById('f-year').value    = book ? (book.YearPublished || '') : '';
-  document.getElementById('f-lang').value    = book ? (book.Language || 'English') : 'English';
-  document.getElementById('f-publisher').value = book ? (book.Publisher || '') : '';
-  
-  // Copies field: defaults to 1 for add, 0 for edit (add additional copies)
-  document.getElementById('f-copies').value = mode === 'add' ? 1 : 0;
-  document.getElementById('f-copies-label').textContent = mode === 'add' ? 'Number of Copies' : 'Additional Copies';
-  
-  // Set category checkboxes
-  selectedCategories = book ? (book.CategoryIDs || []) : [];
-  document.querySelectorAll('.cat-checkbox').forEach(cb => {
-    cb.checked = selectedCategories.includes(parseInt(cb.value));
-  });
-  
-  document.getElementById('book-modal').classList.add('open');
-}
-
-function closeModal() { document.getElementById('book-modal').classList.remove('open'); }
-document.getElementById('book-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-
-async function editBook(id) {
-  const rows = await ipcRenderer.invoke('books:byId', id);
-  if (rows && rows.length) {
-    const book = rows[0];
-    // Fetch categories for the book
-    const categories = await ipcRenderer.invoke('books:categories', id);
-    book.CategoryIDs = categories.map(c => c.CategoryID);
-    book.CategoryNames = categories.map(c => c.CategoryName);
-    openModal('edit', book);
-  }
-}
-
-async function deleteBook(id) {
-  if (!await showConfirm('Delete this book and all its copies?')) return;
-  try {
-    await ipcRenderer.invoke('books:delete', id);
-    await load();
-    await showAlert('Book deleted successfully!', 'success');
-  } catch (err) { await showAlert('Error: ' + err.message, 'error'); }
-}
-
-async function saveBook() {
-  const data = {
-    title:       document.getElementById('f-title').value.trim(),
-    author:      document.getElementById('f-author').value.trim(),
-    isbn:        document.getElementById('f-isbn').value.trim(),
-    yearPublished: parseInt(document.getElementById('f-year').value) || null,
-    publisher:   document.getElementById('f-publisher').value.trim(),
-    language:    document.getElementById('f-lang').value.trim() || 'English',
-  };
-  if (!data.title) { await showAlert('Title is required.', 'warning'); return; }
-  
-  const copyCount = parseInt(document.getElementById('f-copies').value) || 0;
-  const editId = document.getElementById('edit-id').value;
-  
-  // Check for duplicate title
-  try {
-    const dup = await ipcRenderer.invoke('books:checkDuplicate', data.title, editId ? parseInt(editId) : null);
-    if (dup) {
-      await showAlert(`A book with the title "${data.title}" already exists.`, 'warning');
-      return;
     }
-  } catch (err) {
-    await showAlert('Error checking for duplicates: ' + err.message, 'error');
-    return;
-  }
-  
-  // Get selected categories
-  const newCategoryIds = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => parseInt(cb.value));
-  
-  try {
-    if (editId) {
-      const bookId = parseInt(editId);
-      // Update book
-      await ipcRenderer.invoke('books:update', bookId, data);
-      
-      // Remove old categories
-      for (let catId of (selectedCategories || [])) {
-        if (!newCategoryIds.includes(catId)) {
-          try {
-            await ipcRenderer.invoke('books:removeCategory', bookId, catId);
-          } catch (err) {
-            console.error(`Failed to remove category ${catId}:`, err);
+
+    function setCurrentBooks(books) {
+      currentBooks = books;
+      currentPage = 1;
+      renderTable();
+    }
+
+    function changePageSize(value) {
+      pageSize = parseInt(value, 10) || 100;
+      currentPage = 1;
+      renderTable();
+    }
+
+    function goToPage(page) {
+      const totalPages = Math.max(1, Math.ceil(currentBooks.length / pageSize));
+      currentPage = Math.min(totalPages, Math.max(1, page));
+      renderTable();
+    }
+
+    let searchTimer;
+    function search(val) {
+      clearTimeout(searchTimer);
+      const term = val.trim();
+
+      // If term is empty or too short, revert to allBooks + current category filter
+      if (term.length < 1) {
+        applyFilters();
+        return;
+      }
+
+      searchTimer = setTimeout(async () => {
+        const gen = ++searchGen;
+        const tbody = document.getElementById('books-tbody');
+
+        // Optional: show a subtle "Searching..." indicator if it's taking a while
+        const rowCountLabel = document.getElementById('row-count-label');
+        const originalLabel = rowCountLabel.innerHTML;
+        rowCountLabel.innerHTML = 'Searching...';
+
+        try {
+          const results = await ipcRenderer.invoke('books:search', term);
+          if (gen !== searchGen) return;
+
+          // Store search results for filtering
+          search._lastResults = results;
+          applyFilters();
+        } catch (err) {
+          if (gen === searchGen) {
+            tbody.innerHTML = `<tr><td colspan="9" class="error-row">Search Error: ${err.message}</td></tr>`;
+          }
+        } finally {
+          if (gen === searchGen && rowCountLabel.innerHTML === 'Searching...') {
+            // applyFilters will update the label, but just in case
           }
         }
+      }, 400);
+    }
+
+    function filterCat() {
+      applyFilters();
+    }
+
+    /**
+     * Combines search results (if any) and category filter.
+     */
+    function applyFilters() {
+      const searchTerm = document.querySelector('.search-input').value.trim();
+      const catId = document.getElementById('cat-filter').value;
+
+      let baseSet = (searchTerm.length >= 1 && search._lastResults) ? search._lastResults : allBooks;
+
+      // If the search term was cleared, clear the last results
+      if (searchTerm.length < 1) {
+        search._lastResults = null;
+        baseSet = allBooks;
       }
-      
-      // Add new categories
-      for (let catId of newCategoryIds) {
-        if (!selectedCategories.includes(catId)) {
-          try {
-            await ipcRenderer.invoke('books:addCategory', bookId, catId);
-          } catch (err) {
-            console.error(`Failed to add category ${catId}:`, err);
-          }
+
+      let filtered = baseSet;
+      if (catId) {
+        const cid = parseInt(catId);
+        filtered = baseSet.filter(b => b.CategoryIDs && b.CategoryIDs.includes(cid));
+      }
+
+      setCurrentBooks(filtered);
+    }
+
+    function openModal(mode, book = null) {
+      document.getElementById('modal-title').textContent = mode === 'add' ? 'ADD BOOK' : 'EDIT BOOK';
+      document.getElementById('edit-id').value = book ? book.BookID : '';
+      document.getElementById('f-title').value = book ? book.Title : '';
+      document.getElementById('f-author').value = book ? (book.Author || '') : '';
+      document.getElementById('f-isbn').value = book ? (book.ISBN || '') : '';
+      document.getElementById('f-year').value = book ? (book.YearPublished || '') : '';
+      document.getElementById('f-lang').value = book ? (book.Language || 'English') : 'English';
+      document.getElementById('f-publisher').value = book ? (book.Publisher || '') : '';
+
+      // Copies field: defaults to 1 for add, 0 for edit (add additional copies)
+      document.getElementById('f-copies').value = mode === 'add' ? 1 : 0;
+      document.getElementById('f-copies-label').textContent = mode === 'add' ? 'Number of Copies' : 'Additional Copies';
+
+      // Set category checkboxes
+      selectedCategories = book ? (book.CategoryIDs || []) : [];
+      document.querySelectorAll('.cat-checkbox').forEach(cb => {
+        cb.checked = selectedCategories.includes(parseInt(cb.value));
+      });
+
+      document.getElementById('book-modal').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('book-modal').classList.remove('open'); }
+    document.getElementById('book-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+    async function editBook(id) {
+      const rows = await ipcRenderer.invoke('books:byId', id);
+      if (rows && rows.length) {
+        const book = rows[0];
+        // Fetch categories for the book
+        const categories = await ipcRenderer.invoke('books:categories', id);
+        book.CategoryIDs = categories.map(c => c.CategoryID);
+        book.CategoryNames = categories.map(c => c.CategoryName);
+        openModal('edit', book);
+      }
+    }
+
+    async function deleteBook(id) {
+      if (!await showConfirm('Delete this book and all its copies?')) return;
+      try {
+        await ipcRenderer.invoke('books:delete', id);
+        await load();
+        await showAlert('Book deleted successfully!', 'success');
+      } catch (err) { await showAlert('Error: ' + err.message, 'error'); }
+    }
+
+    async function saveBook() {
+      const data = {
+        title: document.getElementById('f-title').value.trim(),
+        author: document.getElementById('f-author').value.trim(),
+        isbn: document.getElementById('f-isbn').value.trim(),
+        yearPublished: parseInt(document.getElementById('f-year').value) || null,
+        publisher: document.getElementById('f-publisher').value.trim(),
+        language: document.getElementById('f-lang').value.trim() || 'English',
+      };
+      if (!data.title) { await showAlert('Title is required.', 'warning'); return; }
+
+      const copyCount = parseInt(document.getElementById('f-copies').value) || 0;
+      const editId = document.getElementById('edit-id').value;
+
+      // Check for duplicate title
+      try {
+        const dup = await ipcRenderer.invoke('books:checkDuplicate', data.title, editId ? parseInt(editId) : null);
+        if (dup) {
+          await showAlert(`A book with the title "${data.title}" already exists.`, 'warning');
+          return;
         }
+      } catch (err) {
+        await showAlert('Error checking for duplicates: ' + err.message, 'error');
+        return;
       }
-      
-      // Add additional copies
-      if (copyCount > 0) {
-        await ipcRenderer.invoke('books:addCopies', bookId, copyCount);
-      }
-      
-      await showAlert('Book updated successfully!', 'success');
-    } else {
-      // Add new book
-      const addResult = await ipcRenderer.invoke('books:add', data);
-      const newBookId = addResult && addResult.BookID;
-      
-      if (newBookId) {
-        // Add categories
-        if (newCategoryIds.length > 0) {
-          for (let catId of newCategoryIds) {
-            try {
-              await ipcRenderer.invoke('books:addCategory', newBookId, catId);
-            } catch (err) {
-              console.error(`Failed to add category ${catId}:`, err);
+
+      // Get selected categories
+      const newCategoryIds = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => parseInt(cb.value));
+
+      try {
+        if (editId) {
+          const bookId = parseInt(editId);
+          // Update book
+          await ipcRenderer.invoke('books:update', bookId, data);
+
+          // Remove old categories
+          for (let catId of (selectedCategories || [])) {
+            if (!newCategoryIds.includes(catId)) {
+              try {
+                await ipcRenderer.invoke('books:removeCategory', bookId, catId);
+              } catch (err) {
+                console.error(`Failed to remove category ${catId}:`, err);
+              }
             }
           }
+
+          // Add new categories
+          for (let catId of newCategoryIds) {
+            if (!selectedCategories.includes(catId)) {
+              try {
+                await ipcRenderer.invoke('books:addCategory', bookId, catId);
+              } catch (err) {
+                console.error(`Failed to add category ${catId}:`, err);
+              }
+            }
+          }
+
+          // Add additional copies
+          if (copyCount > 0) {
+            await ipcRenderer.invoke('books:addCopies', bookId, copyCount);
+          }
+
+          await showAlert('Book updated successfully!', 'success');
+        } else {
+          // Add new book
+          const addResult = await ipcRenderer.invoke('books:add', data);
+          const newBookId = addResult && addResult.BookID;
+
+          if (newBookId) {
+            // Add categories
+            if (newCategoryIds.length > 0) {
+              for (let catId of newCategoryIds) {
+                try {
+                  await ipcRenderer.invoke('books:addCategory', newBookId, catId);
+                } catch (err) {
+                  console.error(`Failed to add category ${catId}:`, err);
+                }
+              }
+            }
+            // Add copies
+            if (copyCount > 0) {
+              await ipcRenderer.invoke('books:addCopies', newBookId, copyCount);
+            }
+          }
+
+          await showAlert('Book saved successfully!', 'success');
         }
-        // Add copies
-        if (copyCount > 0) {
-          await ipcRenderer.invoke('books:addCopies', newBookId, copyCount);
-        }
+        closeModal();
+        await load();
+      } catch (err) {
+        await showAlert('Error saving book: ' + err.message, 'error');
       }
-      
-      await showAlert('Book saved successfully!', 'success');
     }
-    closeModal();
-    await load();
-  } catch (err) {
-    await showAlert('Error saving book: ' + err.message, 'error');
-  }
-}
 
-function exportCSV() {
-  const rows = [['Title','ISBN','Publisher','Year','TotalCopies','Available']];
-  allBooks.forEach(b => rows.push([`"${b.Title}"`, b.ISBN||'', `"${b.Publisher||''}"`, b.YearPublished||'', b.TotalCopies||0, b.AvailableCopies||0]));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'books.csv';
-  a.click();
-}
+    function exportCSV() {
+      const rows = [['Title', 'ISBN', 'Publisher', 'Year', 'TotalCopies', 'Available']];
+      allBooks.forEach(b => rows.push([`"${b.Title}"`, b.ISBN || '', `"${b.Publisher || ''}"`, b.YearPublished || '', b.TotalCopies || 0, b.AvailableCopies || 0]));
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = 'books.csv';
+      a.click();
+    }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
-async function logout() {
-  try { await ipcRenderer.invoke('auth:logout'); } catch (_) {}
-  window.location.href = 'login.html';
-}
+    async function logout() {
+      try { await ipcRenderer.invoke('auth:logout'); } catch (_) { }
+      window.location.href = 'login.html';
+    }
 
-async function populateFooter() {
-  try {
-    const session = await ipcRenderer.invoke('auth:session');
-    if (!session) return;
-    const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
-    const role = session.RoleName || session.Role || 'Administrator';
-    const footerUsername = document.getElementById('footer-username');
-    const footerRole = document.getElementById('footer-role');
-    if (footerUsername) footerUsername.textContent = name;
-    if (footerRole) footerRole.textContent = role;
-  } catch (_) {}
-}
+    async function populateFooter() {
+      try {
+        const session = await ipcRenderer.invoke('auth:session');
+        if (!session) return;
+        const name = [session.FirstName, session.LastName].filter(Boolean).join(' ') || session.Username || 'User';
+        const role = session.RoleName || session.Role || 'Administrator';
+        const footerUsername = document.getElementById('footer-username');
+        const footerRole = document.getElementById('footer-role');
+        if (footerUsername) footerUsername.textContent = name;
+        if (footerRole) footerRole.textContent = role;
+      } catch (_) { }
+    }
 
-// Numeric input validator
-function allowNumericOnly(event) {
-  let value = event.target.value;
-  event.target.value = value.replace(/[^0-9]/g, '');
-}
+    // Numeric input validator
+    function allowNumericOnly(event) {
+      let value = event.target.value;
+      event.target.value = value.replace(/[^0-9]/g, '');
+    }
 
-restorePreloadedBooks();
-load();
-populateFooter();
-</script>
-<script src="services/popup.js"></script>
-<script src="services/authCheck.js"></script>
-<script src="services/roleAccess.js"></script>
+    restorePreloadedBooks();
+    load();
+    populateFooter();
+  </script>
+  <script src="services/popup.js"></script>
+  <script src="services/authCheck.js"></script>
+  <script src="services/roleAccess.js"></script>
 </body>
+
 </html>

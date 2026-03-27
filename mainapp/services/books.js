@@ -78,6 +78,50 @@ function attachAuthors(rows, authorRows) {
   });
 }
 
+async function getCategoryRowsByBookIds(bookIds) {
+  const ids = Array.from(new Set((bookIds || []).map(id => Number(id)).filter(Boolean)));
+  if (!ids.length) return [];
+
+  const chunkSize = 100;
+  const rows = [];
+
+  for (let index = 0; index < ids.length; index += chunkSize) {
+    const chunk = ids.slice(index, index + chunkSize);
+    const chunkRows = await db.query(`
+      SELECT bc.BookID, c.CategoryID, c.CategoryName
+      FROM BookCategories bc
+        INNER JOIN Categories_Table c ON bc.CategoryID = c.CategoryID
+      WHERE bc.BookID IN (${chunk.join(',')})
+      ORDER BY bc.BookID ASC, c.CategoryName ASC
+    `);
+    rows.push(...chunkRows);
+  }
+
+  return rows;
+}
+
+function attachCategories(rows, categoryRows) {
+  const categoryMap = new Map();
+
+  for (const row of categoryRows || []) {
+    const bookId = Number(row.BookID);
+    if (!categoryMap.has(bookId)) {
+      categoryMap.set(bookId, { ids: [], names: [] });
+    }
+    categoryMap.get(bookId).ids.push(row.CategoryID);
+    categoryMap.get(bookId).names.push(row.CategoryName);
+  }
+
+  return (rows || []).map(row => {
+    const entry = categoryMap.get(Number(row.BookID)) || { ids: [], names: [] };
+    return {
+      ...row,
+      CategoryIDs: entry.ids,
+      CategoryNames: entry.names,
+    };
+  });
+}
+
 async function getBookAuthorDisplayRows(bookId) {
   return db.query(`
     SELECT a.AuthorID, a.AuthorName
@@ -177,7 +221,9 @@ const Books = {
     `);
 
     const authorRows = await getAuthorRowsByBookIds(rows.map(row => row.BookID));
-    return attachAuthors(rows, authorRows);
+    const withAuthors = attachAuthors(rows, authorRows);
+    const categoryRows = await getCategoryRowsByBookIds(rows.map(row => row.BookID));
+    return attachCategories(withAuthors, categoryRows);
   },
 
   getById: async (id) => {
@@ -192,7 +238,9 @@ const Books = {
     `, [id]);
 
     const authorRows = await getAuthorRowsByBookIds([id]);
-    return attachAuthors(rows, authorRows);
+    const withAuthors = attachAuthors(rows, authorRows);
+    const categoryRows = await getCategoryRowsByBookIds([id]);
+    return attachCategories(withAuthors, categoryRows);
   },
 
   getAuthors: (bookId) => getBookAuthorDisplayRows(bookId),
@@ -243,7 +291,9 @@ const Books = {
     `, [searchTerm, searchTerm, searchTerm]);
 
     const authorRows = await getAuthorRowsByBookIds(rows.map(row => row.BookID));
-    return attachAuthors(rows, authorRows);
+    const withAuthors = attachAuthors(rows, authorRows);
+    const categoryRows = await getCategoryRowsByBookIds(rows.map(row => row.BookID));
+    return attachCategories(withAuthors, categoryRows);
   },
 
   /**

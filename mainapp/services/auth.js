@@ -5,7 +5,7 @@
  * For production, swap to bcrypt.
  */
 
-const db     = require('./db');
+const db = require('./db');
 const crypto = require('crypto');
 
 const VALID_ROLES = new Set(['Admin', 'Librarian', 'Member']);
@@ -71,23 +71,37 @@ const Auth = {
       && statusVal !== 'false'
       && statusVal !== '';
     if (!isActive) {
-      return { success: false, message: 'Your account is inactive or suspended. Contact an administrator.' };
+      return { success: false, message: 'Your account is deactivated or suspended. Contact an administrator.' };
     }
 
     if (!verifyPassword(password, user.Password)) {
       return { success: false, message: 'Invalid username or password.' };
     }
 
+    const assignedRole = normalizeRole(user.Role);
+
+    // Auto-awake Inactive members
+    if (assignedRole === 'Member') {
+      try {
+        const memRows = await db.query('SELECT MemberID, Status FROM Members_Table WHERE UserID = ?', [user.UserID]);
+        if (memRows && memRows.length > 0 && memRows[0].Status === 'Inactive') {
+          await db.execute("UPDATE Members_Table SET Status = 'Active' WHERE MemberID = ?", [memRows[0].MemberID]);
+        }
+      } catch (err) {
+        console.error('Failed to wake up inactive member:', err.message);
+      }
+    }
+
     // Return safe user object (no password hash)
     return {
       success: true,
       user: {
-        UserID:    user.UserID,
-        Username:  user.Username,
+        UserID: user.UserID,
+        Username: user.Username,
         FirstName: user.FirstName,
-        LastName:  user.LastName,
-        Email:     user.Email,
-        Role:      normalizeRole(user.Role),
+        LastName: user.LastName,
+        Email: user.Email,
+        Role: normalizeRole(user.Role),
       }
     };
   },
@@ -140,7 +154,7 @@ const Auth = {
 
       await db.execute(
         `INSERT INTO Users_Table (Username, Password, Role, FirstName, LastName, Email, Status, DateCreated)
-         VALUES (?, ?, ?, ?, ?, ?, 1, Date())`,  
+         VALUES (?, ?, ?, ?, ?, ?, 1, Date())`,
         [safeUsername, passwordHash, normalizedRole, safeFirstName, safeLastName, safeEmail]
       );
 
