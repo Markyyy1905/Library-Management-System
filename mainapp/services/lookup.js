@@ -129,10 +129,10 @@ const Users = {
     UPDATE Users_Table
     SET Username=?, FirstName=?, LastName=?, Email=?, Role=?, Status=?
     WHERE UserID=?
-  `, [user.username, user.firstName, user.lastName, user.email || '', user.role, user.status, id]),
+  `, [user.username, user.firstName, user.lastName, user.email || '', user.role, Boolean(user.status), id]),
 
   updateStatus: (id, status) =>
-    db.execute('UPDATE Users_Table SET Status=? WHERE UserID=?', [status, id]),
+    db.execute('UPDATE Users_Table SET Status=? WHERE UserID=?', [Boolean(status), id]),
 
   updatePassword: (id, passwordHash) =>
     db.execute('UPDATE Users_Table SET Password=? WHERE UserID=?', [passwordHash, id]),

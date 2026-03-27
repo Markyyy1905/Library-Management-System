@@ -61,9 +61,17 @@ const Auth = {
     }
 
     const user = rows[0];
-    // Status is boolean based on schema. true/false or 1/0 or -1/0. Assuming JS true/1
-    if (!user.Status) {
-      return { success: false, message: 'Your account is inactive. Contact an administrator.' };
+    // Access Yes/No fields return -1 (True) or 0 (False) via ODBC.
+    // Guard against all falsy representations: 0, false, null, '0', 'false', ''.
+    const statusVal = user.Status;
+    const isActive = statusVal !== 0
+      && statusVal !== false
+      && statusVal != null
+      && statusVal !== '0'
+      && statusVal !== 'false'
+      && statusVal !== '';
+    if (!isActive) {
+      return { success: false, message: 'Your account is inactive or suspended. Contact an administrator.' };
     }
 
     if (!verifyPassword(password, user.Password)) {

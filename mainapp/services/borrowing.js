@@ -52,7 +52,7 @@ const Borrowing = {
   getBorrowFormMembers: () => db.query(`
     SELECT MemberID, FirstName, LastName
     FROM Members_Table
-    WHERE Status = 'Active'
+    WHERE Status = 'Active' 
     ORDER BY LastName ASC, FirstName ASC
   `),
 

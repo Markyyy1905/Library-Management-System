@@ -11,6 +11,9 @@ const CONNECTION_STRING = `Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq
 
 let _connection = null;
 let _ensureIndexesPromise = null;
+let _indexesCheckedThisLaunch = false;
+let _indexWarmupScheduled = false;
+const INDEX_WARMUP_DELAY_MS = 30000;
 
 const STARTUP_INDEXES = [
   "CREATE INDEX idx_books_title ON Books_Table ([Title])",
@@ -29,6 +32,7 @@ const STARTUP_INDEXES = [
 ];
 
 async function ensureIndexes(conn) {
+  if (_indexesCheckedThisLaunch) return;
   if (_ensureIndexesPromise) return _ensureIndexesPromise;
 
   _ensureIndexesPromise = (async () => {
@@ -39,9 +43,26 @@ async function ensureIndexes(conn) {
         // Best-effort optimization only. Ignore existing/unsupported index errors.
       }
     }
+
+    _indexesCheckedThisLaunch = true;
   })();
 
+  _ensureIndexesPromise.catch((err) => {
+    console.warn('Index warmup failed:', err.message);
+  });
+
   return _ensureIndexesPromise;
+}
+
+function scheduleIndexWarmup(conn) {
+  if (_indexesCheckedThisLaunch || _indexWarmupScheduled) return;
+  _indexWarmupScheduled = true;
+
+  setTimeout(() => {
+    ensureIndexes(conn).catch((err) => {
+      console.warn('Index warmup failed:', err.message);
+    });
+  }, INDEX_WARMUP_DELAY_MS);
 }
 
 /**
@@ -51,7 +72,8 @@ async function getConnection() {
   if (_connection) return _connection;
   try {
     _connection = await odbc.connect(CONNECTION_STRING);
-    await ensureIndexes(_connection);
+    // Kick off index checks once per launch without delaying initial auth/data queries.
+    scheduleIndexWarmup(_connection);
     console.log('✅ DB connected:', DATABASE_PATH);
     return _connection;
   } catch (err) {
@@ -160,7 +182,6 @@ async function resetConnection() {
     try { await _connection.close(); } catch (e) {}
     _connection = null;
   }
-  _ensureIndexesPromise = null;
 }
 
 // Test connection when run directly: node mainapp/services/db.js

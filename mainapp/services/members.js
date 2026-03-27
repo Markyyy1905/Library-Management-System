@@ -111,8 +111,18 @@ const Members = {
     id
   ]),
 
-  updateStatus: (id, status) =>
-    db.execute('UPDATE Members_Table SET Status=? WHERE MemberID=?', [status, id]),
+  updateStatus: async (id, status) => {
+    // Sync the login-account flag so Suspended/Inactive members cannot log in.
+    const loginEnabled = status === 'Active';
+
+    await db.execute('UPDATE Members_Table SET Status=? WHERE MemberID=?', [status, id]);
+
+    // Best-effort: update Users_Table.Status if a linked account exists.
+    const rows = await db.query('SELECT UserID FROM Members_Table WHERE MemberID=?', [id]);
+    if (rows && rows.length > 0 && rows[0].UserID) {
+      await db.execute('UPDATE Users_Table SET Status=? WHERE UserID=?', [loginEnabled, rows[0].UserID]);
+    }
+  },
 
   updatePassword: async (memberId, passwordHash) => {
     const rows = await db.query('SELECT UserID FROM Members_Table WHERE MemberID = ?', [memberId]);

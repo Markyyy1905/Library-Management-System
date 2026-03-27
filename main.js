@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
+const { app, BrowserWindow, ipcMain, session, crashReporter } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -34,6 +34,150 @@ const BACKUP_DIR = path.join(__dirname, 'backups');
 const AUTO_BACKUP_FILE = 'LMS-auto-backup.accdb';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const AUTO_BACKUP_CHECK_INTERVAL_MS = 60 * 60 * 1000; // Check every hour.
+const DEBUG_LOG_FILE = path.join(BACKUP_DIR, 'runtime-crash-debug.log');
+const CRASH_DUMPS_DIR = path.join(BACKUP_DIR, 'crash-dumps');
+const LAST_STATE_FILE = path.join(BACKUP_DIR, 'runtime-last-state.json');
+
+let backupOperationInProgress = false;
+
+function sanitizeForLog(value) {
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+      stack: value.stack,
+    };
+  }
+
+  if (value === undefined) return '[undefined]';
+
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (_) {
+    return String(value);
+  }
+}
+
+function writeDebugLog(eventName, details = {}) {
+  const entry = {
+    at: new Date().toISOString(),
+    pid: process.pid,
+    event: eventName,
+    details: sanitizeForLog(details),
+  };
+
+  const line = JSON.stringify(entry);
+  try {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    fs.appendFileSync(DEBUG_LOG_FILE, `${line}\n`, 'utf8');
+  } catch (_) {}
+
+  console.log(`[debug:${eventName}]`, entry.details);
+
+  try {
+    fs.writeFileSync(LAST_STATE_FILE, JSON.stringify(entry), 'utf8');
+  } catch (_) {}
+}
+
+function configureNativeCrashCapture() {
+  try {
+    fs.mkdirSync(CRASH_DUMPS_DIR, { recursive: true });
+    app.setPath('crashDumps', CRASH_DUMPS_DIR);
+
+    crashReporter.start({
+      companyName: 'LibraryManagementSystem',
+      productName: 'LibraryManagementSystem',
+      submitURL: 'https://example.invalid/crash',
+      uploadToServer: false,
+      compress: false,
+      ignoreSystemCrashHandler: false,
+    });
+
+    writeDebugLog('crash:capture-configured', { crashDumpsPath: app.getPath('crashDumps') });
+  } catch (err) {
+    writeDebugLog('crash:capture-config-failed', { error: sanitizeForLog(err) });
+  }
+}
+
+async function withBackupOp(opName, context, fn) {
+  if (backupOperationInProgress) {
+    const err = new Error('Another backup operation is already in progress. Please try again.');
+    writeDebugLog('backup:blocked', { opName, context, reason: err.message });
+    throw err;
+  }
+
+  backupOperationInProgress = true;
+  writeDebugLog('backup:start', { opName, context });
+
+  try {
+    const result = await fn();
+    writeDebugLog('backup:success', { opName, context });
+    return result;
+  } catch (err) {
+    writeDebugLog('backup:error', { opName, context, error: sanitizeForLog(err) });
+    throw err;
+  } finally {
+    backupOperationInProgress = false;
+  }
+}
+
+process.on('uncaughtException', (err) => {
+  writeDebugLog('process:uncaughtException', { error: sanitizeForLog(err) });
+});
+
+process.on('unhandledRejection', (reason) => {
+  writeDebugLog('process:unhandledRejection', { reason: sanitizeForLog(reason) });
+});
+
+process.on('exit', (code) => {
+  writeDebugLog('process:exit', { code });
+});
+
+process.on('SIGINT', () => {
+  writeDebugLog('process:signal', { signal: 'SIGINT' });
+});
+
+process.on('SIGTERM', () => {
+  writeDebugLog('process:signal', { signal: 'SIGTERM' });
+});
+
+process.on('SIGHUP', () => {
+  writeDebugLog('process:signal', { signal: 'SIGHUP' });
+});
+
+function ensureWritableStoragePath(targetPath) {
+  try {
+    fs.mkdirSync(targetPath, { recursive: true });
+    fs.accessSync(targetPath, fs.constants.W_OK);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function configureElectronStoragePaths() {
+  const fallbackRoot = path.join(app.getPath('temp'), 'LibraryManagementSystem');
+  let userDataPath = app.getPath('userData');
+
+  if (!ensureWritableStoragePath(userDataPath)) {
+    userDataPath = path.join(fallbackRoot, 'user-data');
+    app.setPath('userData', userDataPath);
+    ensureWritableStoragePath(userDataPath);
+  }
+
+  const sessionDataPath = path.join(userDataPath, 'session-data');
+  if (!ensureWritableStoragePath(sessionDataPath)) {
+    const fallbackSessionPath = path.join(fallbackRoot, 'session-data');
+    ensureWritableStoragePath(fallbackSessionPath);
+    app.setPath('sessionData', fallbackSessionPath);
+    return;
+  }
+
+  app.setPath('sessionData', sessionDataPath);
+}
+
+configureElectronStoragePaths();
+configureNativeCrashCapture();
 
 let autoBackupTimer = null;
 let autoBackupInProgress = false;
@@ -155,25 +299,125 @@ function createWindow() {
 
   // Remove default menu
   win.setMenuBarVisibility(false);
+
+  win.on('closed', () => {
+    writeDebugLog('window:closed');
+  });
+
+  win.webContents.on('render-process-gone', (event, details) => {
+    writeDebugLog('window:render-process-gone', {
+      reason: details.reason,
+      exitCode: details.exitCode,
+    });
+  });
+
+  win.webContents.on('did-finish-load', () => {
+    const telemetryScript = `
+      try {
+        const { ipcRenderer } = require('electron');
+        const send = (type, payload) => {
+          try {
+            ipcRenderer.send('debug:renderer-event', {
+              type,
+              page: window.location.href,
+              payload,
+              ts: new Date().toISOString(),
+            });
+          } catch (_) {}
+        };
+
+        window.addEventListener('error', (e) => {
+          send('window:error', {
+            message: e && e.message,
+            source: e && e.filename,
+            line: e && e.lineno,
+            column: e && e.colno,
+          });
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+          const reason = e && e.reason;
+          send('window:unhandledrejection', {
+            reason: reason && reason.message ? reason.message : String(reason),
+          });
+        });
+
+        window.addEventListener('beforeunload', () => {
+          send('window:beforeunload', {});
+        });
+
+        send('window:telemetry-attached', {});
+
+        const heartbeat = setInterval(() => send('window:heartbeat', {}), 2000);
+        window.addEventListener('beforeunload', () => clearInterval(heartbeat));
+      } catch (_) {}
+    `;
+
+    win.webContents.executeJavaScript(telemetryScript).catch((err) => {
+      writeDebugLog('window:telemetry-inject-failed', { error: sanitizeForLog(err) });
+    });
+  });
 }
 
 app.whenReady().then(async () => {
+  writeDebugLog('app:ready');
   createWindow();
   await runDailyAutoBackup();
   startAutoBackupScheduler();
 });
 
 app.on('window-all-closed', async () => {
+  writeDebugLog('app:window-all-closed');
   stopAutoBackupScheduler();
   await db.close();
   if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {
+  writeDebugLog('app:activate');
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
+app.on('before-quit', () => {
+  writeDebugLog('app:before-quit');
+});
+
+app.on('will-quit', () => {
+  writeDebugLog('app:will-quit');
+});
+
+app.on('render-process-gone', (event, webContents, details) => {
+  writeDebugLog('app:render-process-gone', {
+    reason: details.reason,
+    exitCode: details.exitCode,
+    url: webContents.getURL(),
+  });
+});
+
+app.on('child-process-gone', (event, details) => {
+  writeDebugLog('app:child-process-gone', details);
+});
+
+app.on('gpu-process-crashed', (event, killed) => {
+  writeDebugLog('app:gpu-process-crashed', { killed: Boolean(killed) });
+});
+
+app.on('renderer-process-crashed', (event, webContents, killed) => {
+  writeDebugLog('app:renderer-process-crashed', {
+    killed: Boolean(killed),
+    url: webContents.getURL(),
+  });
+});
+
 // ── IPC Handlers ─────────────────────────────────────────────
+ipcMain.on('debug:renderer-event', (event, data) => {
+  writeDebugLog('renderer:event', {
+    type: data && data.type,
+    page: data && data.page,
+    payload: data && data.payload,
+    ts: data && data.ts,
+  });
+});
 
 // ── Auth ──
 ipcMain.handle('auth:login', async (e, username, password) => {
@@ -413,44 +657,49 @@ ipcMain.handle('backup:list', async () => {
 ipcMain.handle('backup:create', async () => {
   assertAdmin();
 
-  await fs.promises.mkdir(BACKUP_DIR, { recursive: true });
-  const fileName = formatBackupName();
-  const backupPath = path.join(BACKUP_DIR, fileName);
+  return withBackupOp('create', {}, async () => {
+    await fs.promises.mkdir(BACKUP_DIR, { recursive: true });
+    const fileName = formatBackupName();
+    const backupPath = path.join(BACKUP_DIR, fileName);
 
-  await db.close();
-  await db.resetConnection();
-  await fs.promises.copyFile(DB_FILE_PATH, backupPath);
+    await db.close();
+    await db.resetConnection();
+    await fs.promises.copyFile(DB_FILE_PATH, backupPath);
 
-  return {
-    success: true,
-    fileName,
-    backupPath,
-  };
+    return {
+      success: true,
+      fileName,
+      backupPath,
+    };
+  });
 });
 
 ipcMain.handle('backup:restore', async (e, fileName) => {
   assertAdmin();
 
   const safeName = normalizeBackupFileName(fileName);
-  const sourcePath = path.join(BACKUP_DIR, safeName);
+  return withBackupOp('restore', { fileName: safeName }, async () => {
+    const sourcePath = path.join(BACKUP_DIR, safeName);
 
-  await fs.promises.access(sourcePath, fs.constants.F_OK);
-  await db.close();
-  await db.resetConnection();
-  await fs.promises.copyFile(sourcePath, DB_FILE_PATH);
+    await fs.promises.access(sourcePath, fs.constants.F_OK);
+    await db.close();
+    await db.resetConnection();
+    await fs.promises.copyFile(sourcePath, DB_FILE_PATH);
 
-  return {
-    success: true,
-    restoredFrom: safeName,
-  };
+    return {
+      success: true,
+      restoredFrom: safeName,
+    };
+  });
 });
 
 ipcMain.handle('backup:delete', async (e, fileName) => {
   assertAdmin();
 
   const safeName = normalizeBackupFileName(fileName);
-  const targetPath = path.join(BACKUP_DIR, safeName);
-  await fs.promises.unlink(targetPath);
-
-  return { success: true };
+  return withBackupOp('delete', { fileName: safeName }, async () => {
+    const targetPath = path.join(BACKUP_DIR, safeName);
+    await fs.promises.unlink(targetPath);
+    return { success: true };
+  });
 });
