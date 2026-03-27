@@ -61,8 +61,30 @@ const Auth = {
     }
 
     const user = rows[0];
+    const assignedRole = normalizeRole(user.Role);
+
+    // Member-specific status check and Auto-Awake logic
+    if (assignedRole === 'Member') {
+      try {
+        const memRows = await db.query('SELECT MemberID, Status FROM Members_Table WHERE UserID = ?', [user.UserID]);
+        if (memRows && memRows.length > 0) {
+          const memberStatus = memRows[0].Status;
+          if (memberStatus === 'Suspended') {
+            return { success: false, message: 'Your account is suspended. Contact an administrator.' };
+          }
+          if (memberStatus === 'Inactive') {
+            await db.execute("UPDATE Members_Table SET Status = 'Active' WHERE MemberID = ?", [memRows[0].MemberID]);
+            // Also ensure the user account is enabled (should already be -1, but this keeps them in sync)
+            await db.execute('UPDATE Users_Table SET Status = -1 WHERE UserID = ?', [user.UserID]);
+          }
+        }
+      } catch (err) {
+        console.error('Member status verification error:', err.message);
+      }
+    }
+
+    // Default status check (for Librarian/Admin OR for members if they don't have a record yet)
     // Access Yes/No fields return -1 (True) or 0 (False) via ODBC.
-    // Guard against all falsy representations: 0, false, null, '0', 'false', ''.
     const statusVal = user.Status;
     const isActive = statusVal !== 0
       && statusVal !== false
@@ -78,20 +100,6 @@ const Auth = {
       return { success: false, message: 'Invalid username or password.' };
     }
 
-    const assignedRole = normalizeRole(user.Role);
-
-    // Auto-awake Inactive members
-    if (assignedRole === 'Member') {
-      try {
-        const memRows = await db.query('SELECT MemberID, Status FROM Members_Table WHERE UserID = ?', [user.UserID]);
-        if (memRows && memRows.length > 0 && memRows[0].Status === 'Inactive') {
-          await db.execute("UPDATE Members_Table SET Status = 'Active' WHERE MemberID = ?", [memRows[0].MemberID]);
-        }
-      } catch (err) {
-        console.error('Failed to wake up inactive member:', err.message);
-      }
-    }
-
     // Return safe user object (no password hash)
     return {
       success: true,
@@ -101,7 +109,7 @@ const Auth = {
         FirstName: user.FirstName,
         LastName: user.LastName,
         Email: user.Email,
-        Role: normalizeRole(user.Role),
+        Role: assignedRole,
       }
     };
   },

@@ -351,6 +351,18 @@ const Books = {
   delete: async (id) => {
     await db.BeginTrans();
     try {
+      // Check for active loans for this book (ledger integrity)
+      const loanRows = await db.query(`
+        SELECT COUNT(*) AS ActiveLoans 
+        FROM Loans_Table l
+        INNER JOIN BookCopies_Table bc ON l.CopyID = bc.CopyID
+        WHERE bc.BookID = ? AND l.LoanStatus = 'Borrowed'
+      `, [id]);
+
+      if (loanRows && loanRows.length > 0 && loanRows[0].ActiveLoans > 0) {
+        throw new Error('Cannot delete book: ' + loanRows[0].ActiveLoans + ' copy/copies are currently borrowed.');
+      }
+
       await db.execute('DELETE FROM AuthorBooksTable WHERE BookID=?', [id]);
       await db.execute('DELETE FROM BookCategories WHERE BookID=?', [id]);
       await db.execute('DELETE FROM BookCopies_Table WHERE BookID=?', [id]);

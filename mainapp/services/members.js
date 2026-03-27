@@ -114,7 +114,7 @@ const Members = {
   updateStatus: async (id, status) => {
     // Sync the login-account flag so Suspended members cannot log in.
     // Active and Inactive members are allowed to log in.
-    const loginEnabled = status !== 'Suspended' ? -1 : false;
+    const loginEnabled = status !== 'Suspended' ? true : false;
 
     await db.execute('UPDATE Members_Table SET Status=? WHERE MemberID=?', [status, id]);
 
@@ -143,6 +143,15 @@ const Members = {
   delete: async (id) => {
     try {
       await db.BeginTrans();
+
+      // Check for active loans (ledger integrity)
+      const loanRows = await db.query(
+        "SELECT COUNT(*) AS ActiveLoans FROM Loans_Table WHERE MemberID = ? AND LoanStatus = 'Borrowed'",
+        [id]
+      );
+      if (loanRows && loanRows.length > 0 && loanRows[0].ActiveLoans > 0) {
+        throw new Error('Cannot delete member: ' + loanRows[0].ActiveLoans + ' unreturned book(s) outstanding.');
+      }
 
       // Get the member's UserID
       const memberRows = await db.query('SELECT UserID FROM Members_Table WHERE MemberID = ?', [id]);

@@ -193,9 +193,9 @@ The database module exposes three transaction methods that wrap the ODBC connect
 | [`mainapp/services/books.js`](mainapp/services/books.js#L427) | L427–L441 | `Books.addCopies` — loop-INSERT multiple copies atomically |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L222) | L222–L231 | `Borrowing.borrow` — INSERT loan record |
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L245) | L245–L292 | `Borrowing.returnBook` — UPDATE loan + UPDATE copy status |
-| [`mainapp/services/members.js`](mainapp/services/members.js#L62) | L62–L95 | `Members.add` — INSERT user account + INSERT member record |
-| [`mainapp/services/members.js`](mainapp/services/members.js#L134) | L134–L151 | `Members.delete` — DELETE user + DELETE member |
-| [`mainapp/services/auth.js`](mainapp/services/auth.js#L131) | L131–L151 | `Auth.register` — INSERT user + optional INSERT member |
+| [`mainapp/services/members.js`](mainapp/services/members.js#L62) | L62–L98 | `Members.add` — INSERT user account + INSERT member record |
+| [`mainapp/services/members.js`](mainapp/services/members.js#L143) | L143–L164 | `Members.delete` — DELETE user + DELETE member |
+| [`mainapp/services/auth.js`](mainapp/services/auth.js#L117) | L117–L185 | `Auth.register` — INSERT user + optional INSERT member |
 
 ---
 
@@ -246,6 +246,7 @@ All data-mutation SQL is issued through `db.execute()`, the equivalent of Access
 | [`mainapp/services/borrowing.js`](mainapp/services/borrowing.js#L275) | L275–L280 | `UPDATE BookCopies_Table` — update copy condition on return |
 | [`mainapp/services/members.js`](mainapp/services/members.js#L64) | L64–L68 | `INSERT INTO Users_Table` — create login account |
 | [`mainapp/services/members.js`](mainapp/services/members.js#L75) | L75–L83 | `INSERT INTO Members_Table` — create linked member record |
+| [`mainapp/services/members.js`](mainapp/services/members.js#L114) | L114–L125 | `UPDATE Members_Table / Users_Table` — sync login access based on suspension using strict `true`/`false` |
 
 #### Access / Jet Built-in Functions
 
@@ -269,10 +270,10 @@ Access Jet built-in functions are used directly in SQL strings instead of JavaSc
 |------|-------|-------------|
 | [`mainapp/services/auth.js`](mainapp/services/auth.js#L26) | L26–L28 | `hashPassword()` — SHA-256 with a static salt prefix; plain-text is never stored |
 | [`mainapp/services/auth.js`](mainapp/services/auth.js#L30) | L30–L32 | `verifyPassword()` — constant-time comparison by re-hashing |
-| [`mainapp/services/auth.js`](mainapp/services/auth.js#L40) | L40–L88 | `Auth.login()` — username lookup, account-status check, password verification |
+| [`mainapp/services/auth.js`](mainapp/services/auth.js#L36) | L36–L115 | `Auth.login()` — username lookup, **Members_Table status verification**, password verification, and **Auto-Awake** logic |
 | [`mainapp/services/auth.js`](mainapp/services/auth.js#L51) | L51 | `WHERE Username = ?` — parameterised query; safe against SQL injection |
-| [`mainapp/services/auth.js`](mainapp/services/auth.js#L118) | L118 | Duplicate-username check before INSERT |
-| [`mainapp/services/auth.js`](mainapp/services/auth.js#L131) | L131 | Registration wrapped in transaction |
+| [`mainapp/services/auth.js`](mainapp/services/auth.js#L126) | L126 | Duplicate-username check before INSERT |
+| [`mainapp/services/auth.js`](mainapp/services/auth.js#L117) | L117 | Registration wrapped in transaction |
 | [`main.js`](main.js#L47) | L47–L52 | `assertAdmin()` — server-side role guard; throws if caller is not Admin |
 | [`main.js`](main.js#L179) | L179 | `auth:login` IPC handler — stores session in main-process memory only |
 
